@@ -89,8 +89,8 @@ SETUP_REQUIRES = (
 
 INSTALL_REQUIRES = (
     'oasys2>=0.0.1',
-    'shadow4>=0.1.60',
-    'xoppylib', # used in Bragg preprocessor... todo: maybe move that part to crystalpy?
+    'shadow4>=0.1.61',
+    'xoppylib>=1.0.42', # used in Bragg preprocessor... todo: maybe move that part to crystalpy?
 )
 
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))

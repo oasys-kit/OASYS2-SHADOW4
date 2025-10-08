@@ -10,8 +10,10 @@ from oasys2.widget import gui as oasysgui
 from oasys2.widget.widget import OWAction
 from oasys2.widget.util.widget_util import EmittingStream
 from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
+from oasys2.widget.util.widget_objects import TriggerIn
 
 from orangecontrib.shadow4.widgets.gui.ow_generic_element import GenericElement
+from orangecontrib.shadow4.util.shadow4_util import TriggerToolsDecorator
 
 from syned.widget.widget_decorator import WidgetDecorator
 
@@ -21,7 +23,7 @@ from shadow4.tools.logger import set_verbose
 from orangecontrib.shadow4.util.shadow4_objects import ShadowData
 from orangecontrib.shadow4.util.shadow4_util import ShadowCongruence
 
-class OWBeamMovement(GenericElement, WidgetDecorator):
+class OWBeamMovement(GenericElement, WidgetDecorator, TriggerToolsDecorator):
     name = "Beam movements"
     description = "Shadow Beam Movement"
     icon = "icons/beam_movement.png"
@@ -29,10 +31,12 @@ class OWBeamMovement(GenericElement, WidgetDecorator):
 
     class Inputs:
         shadow_data = Input("Shadow Data", ShadowData, default=True, auto_summary=False)
+        trigger     = TriggerToolsDecorator.get_trigger_input()
         syned_data  = WidgetDecorator.syned_input_data(multi_input=True)
 
     class Outputs:
         shadow_data = Output("Shadow Data", ShadowData, id="Shadow Data", default=True, auto_summary=False)
+        trigger = TriggerToolsDecorator.get_trigger_output()
 
     #########################################################
     # Position
@@ -169,6 +173,10 @@ class OWBeamMovement(GenericElement, WidgetDecorator):
         optical_element.set_input_beam(self.input_data.beam)
         return optical_element
 
+    @Inputs.trigger
+    def set_trigger_parameters_for_optics(self, trigger):
+        super(OWBeamMovement, self).set_trigger_parameters_for_optics(trigger)
+
     @Inputs.shadow_data
     def set_shadow_data(self, input_data):
         self.not_interactive = self._check_not_interactive_conditions(input_data)
@@ -234,6 +242,8 @@ class OWBeamMovement(GenericElement, WidgetDecorator):
             # send beam
             #
             self.Outputs.shadow_data.send(ShadowData(beam=output_beam, beamline=beamline))
+            self.Outputs.trigger.send(TriggerIn(new_object=True))
+
         except Exception as exception:
             try:    self._initialize_tabs()
             except: pass

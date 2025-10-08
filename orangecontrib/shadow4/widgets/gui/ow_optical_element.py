@@ -22,7 +22,7 @@ from orangecontrib.shadow4.widgets.gui.ow_generic_element import GenericElement
 from orangecontrib.shadow4.util.shadow4_objects import ShadowData
 
 from orangecontrib.shadow4.util.shadow4_util import ShadowCongruence, TriggerToolsDecorator
-from oasys2.widget.util.widget_objects import TriggerIn, TriggerOut
+from oasys2.widget.util.widget_objects import TriggerIn
 
 NO_FILE_SPECIFIED = "<specify file name>"
 SUBTAB_INNER_BOX_WIDTH = 375
