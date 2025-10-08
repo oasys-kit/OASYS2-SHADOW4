@@ -1,5 +1,4 @@
 import numpy
-import copy
 
 from PyQt5.QtWidgets import QMessageBox
 
@@ -63,8 +62,7 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                             "file 1D: (reflectivity vs angle)",
                             "file 1D: (reflectivity vs energy)",
                             "file 2D: (reflectivity vs energy and angle)",
-                            "Internal (using xraylib)",
-                            "Internal (using Dabax)",
+                            "Internal (Dabax)",
                             ],
                      sendSelectedValue=False, orientation="horizontal",
                      tooltip="reflectivity_source", callback=self.reflectivity_tab_visibility)
@@ -98,13 +96,10 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
 
         if self.reflectivity_source < 4:
             self.file_refl_box.setVisible(True)
+            self.box_xraylib_dabax.setVisible(False)
         else:
             self.file_refl_box.setVisible(False)
-
-        if self.reflectivity_source >= 4:
             self.box_xraylib_dabax.setVisible(True)
-        else:
-            self.box_xraylib_dabax.setVisible(False)
 
     def select_file_refl(self):
         self.le_file_refl.setText(oasysgui.selectFileFromDialog(self, self.file_refl, "Select File with Reflectivity")) #, file_extension_filter="Data Files (*.dat)"))
@@ -150,11 +145,14 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
         try:    name = self.getNode().title
         except: name = "Multilayer"
 
+        reflectivity_source = self.reflectivity_source if self.reflectivity_source < 4 else 5 # no more xraylib
+
+
         if self.surface_shape_type == 0:
             multilayer = S4PlaneMultilayer(
                 name=name,
                 boundary_shape=self.get_boundary_shape(),
-                f_refl=self.reflectivity_source,
+                f_refl=reflectivity_source,
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 structure=self.structure,
                 period=self.period,
@@ -180,7 +178,7 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 q_focus=self.get_focusing_q(),
                 grazing_angle=self.get_focusing_grazing_angle(),
                 # inputs related to multilayer reflectivity
-                f_refl=self.reflectivity_source,
+                f_refl=reflectivity_source,
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 structure=self.structure,
                 period=self.period,
@@ -201,7 +199,7 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 q_focus=self.get_focusing_q(),
                 grazing_angle=self.get_focusing_grazing_angle(),
                 # inputs related to multilayer reflectivity
-                f_refl=self.reflectivity_source,
+                f_refl=reflectivity_source,
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 structure=self.structure,
                 period=self.period,
@@ -222,7 +220,7 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 q_focus=self.get_focusing_q(),
                 grazing_angle=self.get_focusing_grazing_angle(),
                 # inputs related to multilayer reflectivity
-                f_refl=self.reflectivity_source,
+                f_refl=reflectivity_source,
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 structure=self.structure,
                 period=self.period,
@@ -243,7 +241,7 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 q_focus=self.get_focusing_q(),
                 grazing_angle=self.get_focusing_grazing_angle(),
                 # inputs related to multilayer reflectivity
-                f_refl=self.reflectivity_source,
+                f_refl=reflectivity_source,
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 structure=self.structure,
                 period=self.period,
@@ -261,7 +259,7 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 q_focus=self.get_focusing_q(),
                 grazing_angle=self.get_focusing_grazing_angle(),
                 # inputs related to multilayer reflectivity
-                f_refl=self.reflectivity_source,
+                f_refl=reflectivity_source,
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 structure=self.structure,
                 period=self.period,
@@ -277,7 +275,7 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                      self.conic_coefficient_6,self.conic_coefficient_7,self.conic_coefficient_8,
                      self.conic_coefficient_9],
                 # inputs related to multilayer reflectivity
-                f_refl=self.reflectivity_source,
+                f_refl=reflectivity_source,
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 structure=self.structure,
                 period=self.period,

@@ -42,6 +42,8 @@ class OWLens(OWAbstractLens):
         else:
             cylinder_angle = 0
 
+        ri_calculation_mode = self.ri_calculation_mode if self.ri_calculation_mode < 2 else 3 # no more xraylib
+
         return S4Lens(name=name,
                       boundary_shape=boundary_shape,
                       material=self.material,
@@ -50,7 +52,7 @@ class OWLens(OWAbstractLens):
                       surface_shape=self.surface_shape,
                       convex_to_the_beam=self.convex_to_the_beam,
                       cylinder_angle=cylinder_angle,
-                      ri_calculation_mode=self.ri_calculation_mode,
+                      ri_calculation_mode=ri_calculation_mode,
                       prerefl_file=self.prerefl_file,
                       refraction_index=self.refraction_index,
                       attenuation_coefficient=self.attenuation_coefficient,

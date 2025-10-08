@@ -118,7 +118,7 @@ class OWScreenSlits(OWOpticalElement):
         box_absorption = oasysgui.widgetBox(tab_beam_stopper_type, "Absorption Parameters", addSpace=False, orientation="vertical", height=200)
 
         gui.comboBox(box_absorption, self, "absorption", label="Absorption", labelWidth=350,
-                     items=["No", "Yes (using preprocessor file)", "Yes (using xraylib)", "Yes (using dabax)"],
+                     items=["No", "Yes (using preprocessor file)", "Yes (using dabax)"],
                      tooltip="absorption",
                      callback=self.set_absorption, sendSelectedValue=False, orientation="horizontal")
 
@@ -160,10 +160,9 @@ class OWScreenSlits(OWOpticalElement):
         if not is_init: self.__change_icon_from_oe_type()
 
     def set_absorption(self, is_init=False):
-        #self.box_absorption_empty.setVisible(self.absorption == 0)
         self.box_thickness.setVisible(self.absorption >= 1)
         self.box_absorption.setVisible(self.absorption == 1)
-        self.box_material.setVisible(self.absorption in (2,3))
+        self.box_material.setVisible(self.absorption == 2)
 
         if not is_init: self.__change_icon_from_oe_type()
 
@@ -195,9 +194,11 @@ class OWScreenSlits(OWOpticalElement):
                                                                     b_axis_min=self.slit_center_zaxis - self.slit_height_zaxis*0.5,
                                                                     b_axis_max=self.slit_center_zaxis + self.slit_height_zaxis*0.5)
 
+        absorption = self.absorption if self.absorption < 2 else 3  # no more xraylib
+
         return S4Screen(name=self.getNode().title,
                         boundary_shape=boundary_shape,
-                        i_abs=self.absorption,
+                        i_abs=absorption,
                         i_stop=self.open_slit_solid_stop==1,
                         thick=self.thickness,
                         file_abs=self.opt_const_file_name,

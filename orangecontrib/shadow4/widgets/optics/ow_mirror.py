@@ -90,8 +90,7 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                             "file 1D: (reflectivity vs angle)",
                             "file 1D: (reflectivity vs energy)",
                             "file 2D: (reflectivity vs energy and angle)",
-                            "Internal (using xraylib)",
-                            "Internal (using Dabax)",
+                            "Internal (Dabax)",
                             ],
                      callback=self.reflectivity_tab_visibility, sendSelectedValue=False, orientation="horizontal",
                      tooltip="reflectivity_source")
@@ -147,10 +146,10 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
         if self.reflectivity_source in [0, 2, 3, 4]:
             self.file_refl_box.setVisible(True)
 
-        if self.reflectivity_source in [5, 6]:
+        if self.reflectivity_source in [5]:
             self.material_refl_box.setVisible(True)
 
-        if self.reflectivity_source in [0, 1, 5, 6]:
+        if self.reflectivity_source in [0, 1, 5]:
             self.roughness_refl_box.setVisible(True)
 
     def select_file_refl(self):
@@ -213,19 +212,21 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
         try:    name = self.getNode().title
         except: name = "Mirror"
 
+        reflectivity_source = self.reflectivity_source if self.reflectivity_source < 5 else 6 # no more xraylib
+
         if self.surface_shape_type == 0:
             mirror = S4PlaneMirror(
                 name=name,
                 boundary_shape=self.get_boundary_shape(),
                 # inputs related to mirror reflectivity
                 f_reflec=self.reflectivity_flag,  # reflectivity of surface: 0=no reflectivity, 1=full polarization
-                f_refl=self.reflectivity_source,  # 0=prerefl file
-                                                # 1=electric susceptibility
-                                                # 2=user defined file (1D reflectivity vs angle)
-                                                # 3=user defined file (1D reflectivity vs energy)
-                                                # 4=user defined file (2D reflectivity vs energy and angle)
-                                                # 5=direct calculation using xraylib
-                                                # 6=direct calculation using dabax
+                f_refl=reflectivity_source,  # 0=prerefl file
+                                             # 1=electric susceptibility
+                                             # 2=user defined file (1D reflectivity vs angle)
+                                             # 3=user defined file (1D reflectivity vs energy)
+                                             # 4=user defined file (2D reflectivity vs energy and angle)
+                                             # 5=direct calculation using xraylib
+                                             # 6=direct calculation using dabax
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 refraction_index=1-self.refraction_index_delta+1j*self.refraction_index_beta,  # refraction index (complex) for f_refl=1
                 coating_material=self.coating_material,    # string with coating material formula for f_refl=5,6
@@ -253,13 +254,13 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 grazing_angle=self.get_focusing_grazing_angle(),
                 # inputs related to mirror reflectivity
                 f_reflec=self.reflectivity_flag,  # reflectivity of surface: 0=no reflectivity, 1=full polarization
-                f_refl=self.reflectivity_source,  # 0=prerefl file
-                                                # 1=electric susceptibility
-                                                # 2=user defined file (1D reflectivity vs angle)
-                                                # 3=user defined file (1D reflectivity vs energy)
-                                                # 4=user defined file (2D reflectivity vs energy and angle)
-                                                # 5=direct calculation using xraylib
-                                                # 6=direct calculation using dabax
+                f_refl=reflectivity_source,  # 0=prerefl file
+                                           # 1=electric susceptibility
+                                           # 2=user defined file (1D reflectivity vs angle)
+                                           # 3=user defined file (1D reflectivity vs energy)
+                                           # 4=user defined file (2D reflectivity vs energy and angle)
+                                           # 5=direct calculation using xraylib
+                                           # 6=direct calculation using dabax
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 refraction_index=1 - self.refraction_index_delta + 1j * self.refraction_index_beta,
                 # refraction index (complex) for f_refl=1
@@ -283,13 +284,13 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 grazing_angle=self.get_focusing_grazing_angle(),
                 # inputs related to mirror reflectivity
                 f_reflec=self.reflectivity_flag,  # reflectivity of surface: 0=no reflectivity, 1=full polarization
-                f_refl=self.reflectivity_source,  # 0=prerefl file
-                                                # 1=electric susceptibility
-                                                # 2=user defined file (1D reflectivity vs angle)
-                                                # 3=user defined file (1D reflectivity vs energy)
-                                                # 4=user defined file (2D reflectivity vs energy and angle)
-                                                # 5=direct calculation using xraylib
-                                                # 6=direct calculation using dabax
+                f_refl=reflectivity_source,  # 0=prerefl file
+                                           # 1=electric susceptibility
+                                           # 2=user defined file (1D reflectivity vs angle)
+                                           # 3=user defined file (1D reflectivity vs energy)
+                                           # 4=user defined file (2D reflectivity vs energy and angle)
+                                           # 5=direct calculation using xraylib
+                                           # 6=direct calculation using dabax
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 refraction_index=1 - self.refraction_index_delta + 1j * self.refraction_index_beta,
                 # refraction index (complex) for f_refl=1
@@ -313,13 +314,13 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 grazing_angle=self.get_focusing_grazing_angle(),
                 # inputs related to mirror reflectivity
                 f_reflec=self.reflectivity_flag,  # reflectivity of surface: 0=no reflectivity, 1=full polarization
-                f_refl=self.reflectivity_source,  # 0=prerefl file
-                                                # 1=electric susceptibility
-                                                # 2=user defined file (1D reflectivity vs angle)
-                                                # 3=user defined file (1D reflectivity vs energy)
-                                                # 4=user defined file (2D reflectivity vs energy and angle)
-                                                # 5=direct calculation using xraylib
-                                                # 6=direct calculation using dabax
+                f_refl=reflectivity_source,  # 0=prerefl file
+                                           # 1=electric susceptibility
+                                           # 2=user defined file (1D reflectivity vs angle)
+                                           # 3=user defined file (1D reflectivity vs energy)
+                                           # 4=user defined file (2D reflectivity vs energy and angle)
+                                           # 5=direct calculation using xraylib
+                                           # 6=direct calculation using dabax
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 refraction_index=1 - self.refraction_index_delta + 1j * self.refraction_index_beta,
                 # refraction index (complex) for f_refl=1
@@ -343,13 +344,13 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 grazing_angle=self.get_focusing_grazing_angle(),
                 # inputs related to mirror reflectivity
                 f_reflec=self.reflectivity_flag,  # reflectivity of surface: 0=no reflectivity, 1=full polarization
-                f_refl=self.reflectivity_source,  # 0=prerefl file
-                                                # 1=electric susceptibility
-                                                # 2=user defined file (1D reflectivity vs angle)
-                                                # 3=user defined file (1D reflectivity vs energy)
-                                                # 4=user defined file (2D reflectivity vs energy and angle)
-                                                # 5=direct calculation using xraylib
-                                                # 6=direct calculation using dabax
+                f_refl=reflectivity_source,  # 0=prerefl file
+                                           # 1=electric susceptibility
+                                           # 2=user defined file (1D reflectivity vs angle)
+                                           # 3=user defined file (1D reflectivity vs energy)
+                                           # 4=user defined file (2D reflectivity vs energy and angle)
+                                           # 5=direct calculation using xraylib
+                                           # 6=direct calculation using dabax
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 refraction_index=1 - self.refraction_index_delta + 1j * self.refraction_index_beta,
                 # refraction index (complex) for f_refl=1
@@ -370,13 +371,13 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 grazing_angle=self.get_focusing_grazing_angle(),
                 # inputs related to mirror reflectivity
                 f_reflec=self.reflectivity_flag,  # reflectivity of surface: 0=no reflectivity, 1=full polarization
-                f_refl=self.reflectivity_source,  # 0=prerefl file
-                                                # 1=electric susceptibility
-                                                # 2=user defined file (1D reflectivity vs angle)
-                                                # 3=user defined file (1D reflectivity vs energy)
-                                                # 4=user defined file (2D reflectivity vs energy and angle)
-                                                # 5=direct calculation using xraylib
-                                                # 6=direct calculation using dabax
+                f_refl=reflectivity_source,  # 0=prerefl file
+                                           # 1=electric susceptibility
+                                           # 2=user defined file (1D reflectivity vs angle)
+                                           # 3=user defined file (1D reflectivity vs energy)
+                                           # 4=user defined file (2D reflectivity vs energy and angle)
+                                           # 5=direct calculation using xraylib
+                                           # 6=direct calculation using dabax
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 refraction_index=1 - self.refraction_index_delta + 1j * self.refraction_index_beta,
                 # refraction index (complex) for f_refl=1
@@ -395,13 +396,13 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                      self.conic_coefficient_9],
                 # inputs related to mirror reflectivity
                 f_reflec=self.reflectivity_flag,  # reflectivity of surface: 0=no reflectivity, 1=full polarization
-                f_refl=self.reflectivity_source,  # 0=prerefl file
-                                                # 1=electric susceptibility
-                                                # 2=user defined file (1D reflectivity vs angle)
-                                                # 3=user defined file (1D reflectivity vs energy)
-                                                # 4=user defined file (2D reflectivity vs energy and angle)
-                                                # 5=direct calculation using xraylib
-                                                # 6=direct calculation using dabax
+                f_refl=reflectivity_source,  # 0=prerefl file
+                                           # 1=electric susceptibility
+                                           # 2=user defined file (1D reflectivity vs angle)
+                                           # 3=user defined file (1D reflectivity vs energy)
+                                           # 4=user defined file (2D reflectivity vs energy and angle)
+                                           # 5=direct calculation using xraylib
+                                           # 6=direct calculation using dabax
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 refraction_index=1 - self.refraction_index_delta + 1j * self.refraction_index_beta,
                 # refraction index (complex) for f_refl=1

@@ -52,6 +52,8 @@ class OWCRL(OWAbstractLens):
         if self.is_cylinder == 1: cylinder_angle = self.cylinder_angle + 1
         else:                     cylinder_angle = 0
 
+        ri_calculation_mode = self.ri_calculation_mode if self.ri_calculation_mode < 2 else 3 # no more xraylib
+
         return S4CRL(name=name,
                      n_lens=self.n_lens,
                      piling_thickness=self.piling_thickness*mm_to_si,
@@ -62,7 +64,7 @@ class OWCRL(OWAbstractLens):
                      surface_shape=self.surface_shape,
                      convex_to_the_beam=self.convex_to_the_beam,
                      cylinder_angle=cylinder_angle,
-                     ri_calculation_mode=self.ri_calculation_mode,
+                     ri_calculation_mode=ri_calculation_mode,
                      prerefl_file=self.prerefl_file,
                      refraction_index=self.refraction_index,
                      attenuation_coefficient=self.attenuation_coefficient,

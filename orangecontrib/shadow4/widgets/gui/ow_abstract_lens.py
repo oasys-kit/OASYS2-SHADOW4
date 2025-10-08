@@ -101,7 +101,7 @@ class OWAbstractLens(OWOpticalElement):
 
         gui.comboBox(lens_box, self, "ri_calculation_mode", label="Refraction Index calculation mode", labelWidth=260,
                      tooltip="ri_calculation_mode",
-                     items=["User Parameters", "PreRefl File", "Internal (using xraylib)", "Internal (using dabax)"],
+                     items=["User Parameters", "PreRefl File", "Internal (using dabax)"],
                      callback=self.set_ri_calculation_mode,
                      sendSelectedValue=False, orientation="horizontal")
 

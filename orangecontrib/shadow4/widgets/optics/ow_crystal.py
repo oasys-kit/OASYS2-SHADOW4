@@ -93,8 +93,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
 
         gui.comboBox(crystal_box, self, "diffraction_calculation", tooltip="diffraction_calculation",
                      label="Diffraction Profile", labelWidth=120,
-                     items=["Calculated internally with xraylib",
-                            "Calculated internally with dabax *NYI*",
+                     items=["Calculated internally with dabax *NYI*",
                             "bragg preprocessor file v1",
                             "bragg preprocessor file v2",
                             "User File (energy-independent) *NYI*",
@@ -250,47 +249,20 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
     #########################################################
 
     def crystal_diffraction_tab_visibility(self):
-        # self.set_BraggLaue()  #todo: to be deleted
         self.set_diffraction_calculation()
         self.set_autosetting()
         self.set_units_in_use()
 
     def crystal_geometry_tab_visibility(self):
-        # self.set_mosaic()
         self.set_asymmetric_cut()
         self.set_thickness()
-        # self.set_johansson_geometry()
-
-
-    # todo: change next methods name from CamelCase to undercore...
-    # def set_BraggLaue(self):
-    #     self.asymmetric_cut_box_1_order.setVisible(self.diffraction_geometry==1) #LAUE
-    #     if self.diffraction_geometry==1:
-    #         self.asymmetric_cut = 1
-    #         self.set_AsymmetricCut()
-    #         self.asymmetric_cut_combo.setEnabled(False)
-    #     else:
-    #         self.asymmetric_cut_combo.setEnabled(True)
 
     def set_diffraction_calculation(self):
-        self.crystal_box_1.setVisible(False)
-        self.crystal_box_2.setVisible(False)
-        self.crystal_box_3.setVisible(False)
+        self.crystal_box_1.setVisible(self.diffraction_calculation in [3, 4])
+        self.crystal_box_2.setVisible(self.diffraction_calculation in [1, 2])
+        self.crystal_box_3.setVisible(self.diffraction_calculation == 0)
 
-        if (self.diffraction_calculation == 0):   # internal xraylib
-            self.crystal_box_3.setVisible(True)
-        elif (self.diffraction_calculation == 1): # internal
-            self.crystal_box_3.setVisible(True)
-        elif (self.diffraction_calculation == 2): # preprocessor bragg v1
-            self.crystal_box_1.setVisible(True)
-        elif (self.diffraction_calculation == 3): # preprocessor bragg v2
-            self.crystal_box_1.setVisible(True)
-        elif (self.diffraction_calculation == 4): # user file, E-independent
-            self.crystal_box_2.setVisible(True)
-        elif (self.diffraction_calculation == 5): # user file, E-dependent
-            self.crystal_box_2.setVisible(True)
-
-        if self.diffraction_calculation in (4,5):
+        if self.diffraction_calculation in [3, 4]:
             self.incidence_angle_deg_le.setEnabled(True)
             self.incidence_angle_rad_le.setEnabled(True)
             self.reflection_angle_deg_le.setEnabled(True)
@@ -322,14 +294,6 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
     def select_file_diffraction_profile(self):
         self.le_file_diffraction_profile.setText(oasysgui.selectFileFromDialog(self, self.file_diffraction_profile, "Select File With User Defined Diffraction Profile"))
 
-    # def set_mosaic(self):
-    #     self.mosaic_box_1.setVisible(self.mosaic_crystal == 0)
-    #     self.mosaic_box_2.setVisible(self.mosaic_crystal == 1)
-    #
-    #     if self.mosaic_crystal == 0:
-    #         self.set_asymmetric_cut()
-    #         self.set_johansson_geometry()
-
     def set_asymmetric_cut(self):
         self.asymmetric_cut_box_1.setVisible(self.asymmetric_cut == 1)
         self.asymmetric_cut_box_1_empty.setVisible(self.asymmetric_cut == 0)
@@ -347,7 +311,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
         if data is not None:
             if data.bragg_data_file != BraggPreProcessorData.NONE:
                 self.file_crystal_parameters = data.bragg_data_file
-                self.diffraction_calculation = 3
+                self.diffraction_calculation = 2
                 self.crystal_diffraction_tab_visibility()
             else:
                 QMessageBox.warning(self, "Warning", "Incompatible Preprocessor Data", QMessageBox.Ok)
@@ -381,7 +345,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                 file_refl=self.file_crystal_parameters,
                 f_bragg_a=True if self.asymmetric_cut else False,
                 f_ext=0,
-                material_constants_library_flag=self.diffraction_calculation,
+                material_constants_library_flag=self.diffraction_calculation + 1, # no xraylib
                 method_efields_management=self.method_efields_management,
             )
 
@@ -405,7 +369,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                 file_refl=self.file_crystal_parameters,
                 f_bragg_a=True if self.asymmetric_cut else False,
                 f_ext=0,
-                material_constants_library_flag=self.diffraction_calculation,
+                material_constants_library_flag=self.diffraction_calculation + 1, # no xraylib
                 radius=self.spherical_radius,
                 is_cylinder=self.is_cylinder,
                 cylinder_direction=self.cylinder_orientation, #  Direction:  TANGENTIAL = 0  SAGITTAL = 1
@@ -428,7 +392,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                 file_refl=self.file_crystal_parameters,
                 f_bragg_a=True if self.asymmetric_cut else False,
                 f_ext=0,
-                material_constants_library_flag=self.diffraction_calculation,
+                material_constants_library_flag=self.diffraction_calculation + 1, # no xraylib
                 min_axis=self.ellipse_hyperbola_semi_minor_axis * 2, # todo: check factor 2
                 maj_axis=self.ellipse_hyperbola_semi_major_axis * 2, # todo: check factor 2
                 pole_to_focus=self.angle_of_majax_and_pole, # todo: change variable name,
@@ -453,7 +417,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                 file_refl=self.file_crystal_parameters,
                 f_bragg_a=True if self.asymmetric_cut else False,
                 f_ext=0,
-                material_constants_library_flag=self.diffraction_calculation,
+                material_constants_library_flag=self.diffraction_calculation + 1, # no xraylib
                 min_axis=self.ellipse_hyperbola_semi_minor_axis * 2, # todo: check factor 2
                 maj_axis=self.ellipse_hyperbola_semi_major_axis * 2, # todo: check factor 2
                 pole_to_focus=self.angle_of_majax_and_pole, # todo: change variable name
@@ -478,7 +442,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                 file_refl=self.file_crystal_parameters,
                 f_bragg_a=True if self.asymmetric_cut else False,
                 f_ext=0,
-                material_constants_library_flag=self.diffraction_calculation,
+                material_constants_library_flag=self.diffraction_calculation + 1, # no xraylib
                 at_infinity=self.focus_location,  # Side:  Side.SOURCE: SOURCE = 0  IMAGE = 1
                 parabola_parameter=self.paraboloid_parameter,
                 pole_to_focus=self.angle_of_majax_and_pole,
@@ -503,7 +467,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                 file_refl=self.file_crystal_parameters,
                 f_bragg_a=True if self.asymmetric_cut else False,
                 f_ext=0,
-                material_constants_library_flag=self.diffraction_calculation,
+                material_constants_library_flag=self.diffraction_calculation + 1, # no xraylib
                 min_radius=self.torus_minor_radius,
                 maj_radius=self.torus_major_radius,
                 f_torus=self.toroidal_mirror_pole_location,
@@ -528,7 +492,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                 file_refl=self.file_crystal_parameters,
                 f_bragg_a=True if self.asymmetric_cut else False,
                 f_ext=0,
-                material_constants_library_flag=self.diffraction_calculation,
+                material_constants_library_flag=self.diffraction_calculation + 1, # no xraylib
                 conic_coefficients=[
                      self.conic_coefficient_0,self.conic_coefficient_1,self.conic_coefficient_2,
                      self.conic_coefficient_3,self.conic_coefficient_4,self.conic_coefficient_5,
@@ -558,7 +522,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                             file_refl=self.file_crystal_parameters,
                             f_bragg_a=True if self.asymmetric_cut else False,
                             f_ext=0,
-                            material_constants_library_flag=self.diffraction_calculation,
+                            material_constants_library_flag=self.diffraction_calculation + 1, # no xraylib
                             )
                         )
         else:

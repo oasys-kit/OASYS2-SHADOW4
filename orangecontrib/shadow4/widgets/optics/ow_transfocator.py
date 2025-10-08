@@ -134,8 +134,7 @@ class OWTransfocator(OWOpticalElement):
             boundary_shape = Circle(radius=um_to_si * self.diameter[0] * 0.5)
         elif self.has_finite_diameter[0] == 2:
             rr = um_to_si * self.diameter[0] * 0.5
-            boundary_shape = Rectangle() (x_left=-rr, x_right=rr, y_bottom=-rr, y_top=rr)
-
+            boundary_shape = Rectangle(x_left=-rr, x_right=rr, y_bottom=-rr, y_top=rr)
 
         n = len(self.n_lenses)
         cylinder_angle = [0] * n
@@ -151,6 +150,8 @@ class OWTransfocator(OWOpticalElement):
         try:    name = self.getNode().title
         except: name = "Transfocator"
 
+        ri_calculation_mode = self.ri_calculation_mode if self.ri_calculation_mode < 2 else 3  # no more xraylib
+
         optical_element = S4Transfocator(name=name,
                                         n_lens=self.n_lenses,
                                         thickness=thickness,  # syned stuff
@@ -161,7 +162,7 @@ class OWTransfocator(OWOpticalElement):
                                         surface_shape=self.surface_shape,
                                         convex_to_the_beam=self.convex_to_the_beam,
                                         cylinder_angle=cylinder_angle,
-                                        ri_calculation_mode=self.ri_calculation_mode,
+                                        ri_calculation_mode=ri_calculation_mode,
                                         prerefl_file=self.prerefl_file,
                                         refraction_index=self.refraction_index,
                                         attenuation_coefficient=self.attenuation_coefficient,
@@ -689,8 +690,7 @@ class CRLBox(QWidget):
         ###############
         self.ri_calculation_mode_combo = gui.comboBox(crl_box, self, "ri_calculation_mode", tooltip="ri_calculation_mode[i]",
                                                       label="Refraction Index calculation mode", labelWidth=260,
-                                                      items=["User Parameters", "Prerefl File", \
-                                                             "Internal (using xraylib)", "Internal (using dabax)"],
+                                                      items=["User Parameters", "Prerefl File", "Internal (Dabax)"],
                                                       sendSelectedValue=False, orientation="horizontal",
                                                       callback=self.set_ri_calculation_mode)
 
