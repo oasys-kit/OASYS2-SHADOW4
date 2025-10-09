@@ -10,4 +10,4 @@ BACKGROUND = "#b9d47a"
 
 ICON = "icons/ingranaggio.png"
 
-PRIORITY = 1007
+PRIORITY = 4.2
