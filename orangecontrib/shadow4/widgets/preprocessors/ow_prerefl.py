@@ -19,6 +19,7 @@ from oasys2.widget.util import congruence
 from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
 from oasys2.widget.util.widget_util import EmittingStream
 
+from orangecontrib.shadow4.util import materials_library
 from orangecontrib.shadow4.util.shadow4_objects import PreReflPreProcessorData
 from orangecontrib.shadow4.util.shadow4_util import ShadowPhysics
 from orangecontrib.shadow4.widgets.gui.plots import plot_data1D, plot_data2D, plot_multi_data1D
@@ -277,7 +278,8 @@ class OWPrerefl(OWWidget):
                             FILE=congruence.checkFileName(self.prerefl_file),
                             E_MIN=self.e_min,
                             E_MAX=self.e_max,
-                            E_STEP=self.e_step)
+                            E_STEP=self.e_step,
+                            materials_library=materials_library)
 
             self.Outputs.preprocessor_data.send(PreReflPreProcessorData(prerefl_data_file=self.prerefl_file))
 
