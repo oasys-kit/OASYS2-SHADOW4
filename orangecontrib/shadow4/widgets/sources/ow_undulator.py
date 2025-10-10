@@ -257,60 +257,64 @@ class OWUndulator(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
     def get_lightsource(self):
         # syned
         electron_beam = self.get_electron_beam()
-        print("\n\n***** ElectronBeam info: ", electron_beam.info(), type(electron_beam))
 
-        if self.type_of_properties == 3:
-            flag_emittance = 0
+        if not electron_beam is None: # None if user canceled operation
+            print("\n\n***** ElectronBeam info: ", electron_beam.info(), type(electron_beam))
+
+            if self.type_of_properties == 3:
+                flag_emittance = 0
+            else:
+                flag_emittance = 1
+
+            # S4undulator
+            code_undul_phot = ["internal", "pysru", "srw"][self.code_undul_phot]
+
+            sourceundulator = S4Undulator(
+                K_vertical=self.K_vertical,                # syned Undulator parameter
+                period_length=self.period_length,          # syned Undulator parameter
+                number_of_periods=self.number_of_periods,  # syned Undulator parameter
+                emin=self.photon_energy if self.is_monochromatic else self.emin ,  # Photon energy scan from energy (in eV)
+                emax=self.photon_energy if self.is_monochromatic else self.emax,  # Photon energy scan to energy (in eV)
+                ng_e=self.ng_e,  # Photon energy scan number of points
+                maxangle=self.maxangle,  # Maximum radiation semiaperture in RADIANS
+                ng_t=self.ng_t,  # Number of points in angle theta
+                ng_p=self.ng_p,  # Number of points in angle phi
+                ng_j=self.ng_j,  # Number of points in electron trajectory (per period) for internal calculation only
+                code_undul_phot=code_undul_phot,  # internal, pysru, srw
+                flag_emittance=flag_emittance,  # when sampling rays: Use emittance (0=No, 1=Yes)
+                flag_size=self.flag_size,  # when sampling rays: 0=point,1=Gaussian,2=FT(Divergences)
+                distance=self.distance,
+                magnification=self.magnification,
+                srw_range=self.srw_range,
+                srw_resolution=self.srw_resolution,
+                srw_semianalytical=self.srw_semianalytical,
+                flag_backprop_recalculate_source=self.flag_backprop_recalculate_source,
+                flag_backprop_weight=self.flag_backprop_weight,
+                weight_ratio=self.weight_ratio,
+                flag_energy_spread=self.flag_energy_spread,
+                )
+
+            # S4undulatorLightSource
+            try:    name = self.getNode().title
+            except: name = "Undulator Light Source"
+
+            lightsource = S4UndulatorLightSource(name=name,
+                                               electron_beam=electron_beam,
+                                               magnetic_structure=sourceundulator,
+                                               nrays=self.number_of_rays,
+                                               seed=self.seed)
+
+            # reset energy after user choice
+            if self.set_at_resonance:
+                if self.is_monochromatic: lightsource.set_energy_monochromatic_at_resonance(harmonic_number=self.harmonic)
+                else:                     lightsource.set_energy_at_resonance(harmonic_number=self.harmonic, delta_e=self.delta_e)
+
+
+            print("\n\n***** S4undulatorLightSource info: ", lightsource.info())
+
+            return lightsource
         else:
-            flag_emittance = 1
-
-        # S4undulator
-        code_undul_phot = ["internal", "pysru", "srw"][self.code_undul_phot]
-
-        sourceundulator = S4Undulator(
-            K_vertical=self.K_vertical,                # syned Undulator parameter
-            period_length=self.period_length,          # syned Undulator parameter
-            number_of_periods=self.number_of_periods,  # syned Undulator parameter
-            emin=self.photon_energy if self.is_monochromatic else self.emin ,  # Photon energy scan from energy (in eV)
-            emax=self.photon_energy if self.is_monochromatic else self.emax,  # Photon energy scan to energy (in eV)
-            ng_e=self.ng_e,  # Photon energy scan number of points
-            maxangle=self.maxangle,  # Maximum radiation semiaperture in RADIANS
-            ng_t=self.ng_t,  # Number of points in angle theta
-            ng_p=self.ng_p,  # Number of points in angle phi
-            ng_j=self.ng_j,  # Number of points in electron trajectory (per period) for internal calculation only
-            code_undul_phot=code_undul_phot,  # internal, pysru, srw
-            flag_emittance=flag_emittance,  # when sampling rays: Use emittance (0=No, 1=Yes)
-            flag_size=self.flag_size,  # when sampling rays: 0=point,1=Gaussian,2=FT(Divergences)
-            distance=self.distance,
-            magnification=self.magnification,
-            srw_range=self.srw_range,
-            srw_resolution=self.srw_resolution,
-            srw_semianalytical=self.srw_semianalytical,
-            flag_backprop_recalculate_source=self.flag_backprop_recalculate_source,
-            flag_backprop_weight=self.flag_backprop_weight,
-            weight_ratio=self.weight_ratio,
-            flag_energy_spread=self.flag_energy_spread,
-            )
-
-        # S4undulatorLightSource
-        try:    name = self.getNode().title
-        except: name = "Undulator Light Source"
-
-        lightsource = S4UndulatorLightSource(name=name,
-                                           electron_beam=electron_beam,
-                                           magnetic_structure=sourceundulator,
-                                           nrays=self.number_of_rays,
-                                           seed=self.seed)
-
-        # reset energy after user choice
-        if self.set_at_resonance:
-            if self.is_monochromatic: lightsource.set_energy_monochromatic_at_resonance(harmonic_number=self.harmonic)
-            else:                     lightsource.set_energy_at_resonance(harmonic_number=self.harmonic, delta_e=self.delta_e)
-
-
-        print("\n\n***** S4undulatorLightSource info: ", lightsource.info())
-
-        return lightsource
+            return None
 
     @Inputs.trigger
     def set_trigger_parameters_for_sources(self, trigger):
@@ -330,58 +334,55 @@ class OWUndulator(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
 
     def run_shadow4(self):
         try:
-            set_verbose()
-            self.shadow_output.setText("")
-            self.lightsource = None # clean
-
-            sys.stdout = EmittingStream(textWritten=self._write_stdout)
-
-            self._set_plot_quality()
-
-            self.progressBarInit()
-
             light_source = self.get_lightsource()
 
-            #
-            # script
-            #
-            script = light_source.to_python_code()
-            script += "\n\n# test plot\nfrom srxraylib.plot.gol import plot_scatter"
-            script += "\nrays = beam.get_rays()"
-            script += "\nplot_scatter(1e6 * rays[:, 0], 1e6 * rays[:, 2], title='(X,Z) in microns')"
+            if not light_source is None: # None if user has canceled the operation
+                set_verbose()
+                self.shadow_output.setText("")
+                self.lightsource = None # clean
+
+                sys.stdout = EmittingStream(textWritten=self._write_stdout)
+
+                self._set_plot_quality()
+
+                self.progressBarInit()
+                #
+                # script
+                #
+                script = light_source.to_python_code()
+                script += "\n\n# test plot\nfrom srxraylib.plot.gol import plot_scatter"
+                script += "\nrays = beam.get_rays()"
+                script += "\nplot_scatter(1e6 * rays[:, 0], 1e6 * rays[:, 2], title='(X,Z) in microns')"
 
 
-            self.shadow4_script.set_code(script)
+                self.shadow4_script.set_code(script)
 
-            self.progressBarSet(5)
-            #
-            # run shadow4
-            #
-            t00 = time.time()
-            print("***** starting calculation...")
-            output_beam = light_source.get_beam()
-            t11 = time.time() - t00
-            print("***** time for %d rays: %f s, %f min, " % (self.number_of_rays, t11, t11 / 60))
+                self.progressBarSet(5)
+                #
+                # run shadow4
+                #
+                t00 = time.time()
+                print("***** starting calculation...")
+                output_beam = light_source.get_beam()
+                t11 = time.time() - t00
+                print("***** time for %d rays: %f s, %f min, " % (self.number_of_rays, t11, t11 / 60))
 
-            self.lightsource = light_source
+                self.lightsource = light_source
+                #
+                # plots
+                #
+                self._plot_results(output_beam, None, progressBarValue=80)
+                self.refresh_specific_undulator_plots()
 
+                self.progressBarFinished()
 
-            #
-            # plots
-            #
-            self._plot_results(output_beam, None, progressBarValue=80)
-            self.refresh_specific_undulator_plots()
-
-
-            self.progressBarFinished()
-
-            #
-            # send beam and trigger
-            #
-            self.Outputs.shadow_data.send(ShadowData(beam=output_beam,
-                                                    number_of_rays=self.number_of_rays,
-                                                    beamline=S4Beamline(light_source=light_source)))
-            self.Outputs.trigger.send(TriggerIn(new_object=True))
+                #
+                # send beam and trigger
+                #
+                self.Outputs.shadow_data.send(ShadowData(beam=output_beam,
+                                                        number_of_rays=self.number_of_rays,
+                                                        beamline=S4Beamline(light_source=light_source)))
+                self.Outputs.trigger.send(TriggerIn(new_object=True))
         except Exception as exception:
             try:    self._initialize_tabs()
             except: pass
@@ -545,7 +546,7 @@ class OWUndulator(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
                         w = light_source.get_magnetic_structure()
                         self.K_vertical        = w.K_vertical()
                         self.period_length     = w.period_length()
-                        self.number_of_periods = w.number_of_periods()
+                        self.number_of_periods = int(w.number_of_periods())
                         #others
                         self.set_at_resonance = 1
                         self.is_monochromatic = 1

@@ -215,84 +215,84 @@ class OWWiggler(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
         # syned
         electron_beam = self.get_electron_beam()
 
-        if self.type_of_properties == 3:
-            flag_emittance = 0
-        else:
-            flag_emittance = 1
+        if not electron_beam is None:
+            if self.type_of_properties == 3: flag_emittance = 0
+            else:                            flag_emittance = 1
 
-        if self.e_min == self.e_max:
-            ng_e = 1
-        else:
-            ng_e = self.ng_e
-        # S4Wiggler
-        if self.magnetic_field_source == 0:
-            sourcewiggler = S4Wiggler(
-                    magnetic_field_periodic  = 1,   # 0=external, 1=periodic
-                    file_with_magnetic_field = "",  # useful if magnetic_field_periodic=0
-                    K_vertical                    = self.k_value,
-                    period_length                 = self.id_period,
-                    number_of_periods             = self.number_of_periods, # syned Wiggler pars: useful if magnetic_field_periodic=1
-                    emin                          = self.e_min,     # Photon energy scan from energy (in eV)
-                    emax                          = self.e_max,     # Photon energy scan to energy (in eV)
-                    ng_e                          = ng_e,      # Photon energy scan number of points
-                    ng_j                          = self.ng_j ,     # Number of points in electron trajectory (per period) for internal calculation only
+            if self.e_min == self.e_max: ng_e = 1
+            else:                        ng_e = self.ng_e
+
+            # S4Wiggler
+            if self.magnetic_field_source == 0:
+                sourcewiggler = S4Wiggler(
+                        magnetic_field_periodic  = 1,   # 0=external, 1=periodic
+                        file_with_magnetic_field = "",  # useful if magnetic_field_periodic=0
+                        K_vertical                    = self.k_value,
+                        period_length                 = self.id_period,
+                        number_of_periods             = self.number_of_periods, # syned Wiggler pars: useful if magnetic_field_periodic=1
+                        emin                          = self.e_min,     # Photon energy scan from energy (in eV)
+                        emax                          = self.e_max,     # Photon energy scan to energy (in eV)
+                        ng_e                          = ng_e,      # Photon energy scan number of points
+                        ng_j                          = self.ng_j ,     # Number of points in electron trajectory (per period) for internal calculation only
+                        psi_interval_number_of_points = self.psi_interval_number_of_points,
+                        flag_interpolation            = self.flag_interpolation,  # Use intyerpolation to sample psi (0=No, 1=Yes)
+                        flag_emittance                = flag_emittance, # Use emittance (0=No, 1=Yes)
+                        shift_x_flag                  = 0,
+                        shift_x_value                 = 0.0,
+                        shift_betax_flag              = 0,
+                        shift_betax_value             = 0.0,
+                        )
+
+            elif self.magnetic_field_source == 1:
+                sourcewiggler = S4Wiggler(
+                    magnetic_field_periodic   = 0,
+                    file_with_magnetic_field  = self.file_with_b_vs_y,
+                    emin                      = self.e_min,
+                    emax                      = self.e_max,
+                    ng_e                      = ng_e,
+                    ng_j                      = self.ng_j,
                     psi_interval_number_of_points = self.psi_interval_number_of_points,
-                    flag_interpolation            = self.flag_interpolation,  # Use intyerpolation to sample psi (0=No, 1=Yes)
-                    flag_emittance                = flag_emittance, # Use emittance (0=No, 1=Yes)
-                    shift_x_flag                  = 0,
-                    shift_x_value                 = 0.0,
-                    shift_betax_flag              = 0,
-                    shift_betax_value             = 0.0,
+                    flag_interpolation        = self.flag_interpolation,  # Use intyerpolation to sample psi (0=No, 1=Yes)
+                    flag_emittance            = flag_emittance,  # Use emittance (0=No, 1=Yes)
+                    shift_x_flag              = 4,
+                    shift_x_value             = 0.0,
+                    shift_betax_flag          = 4,
+                    shift_betax_value         = 0.0,
+                )
+                sourcewiggler.set_electron_initial_conditions_by_label(
+                    position_label="value_at_zero",
+                    velocity_label="value_at_zero",
                     )
 
-        elif self.magnetic_field_source == 1:
-            sourcewiggler = S4Wiggler(
-                magnetic_field_periodic   = 0,
-                file_with_magnetic_field  = self.file_with_b_vs_y,
-                emin                      = self.e_min,
-                emax                      = self.e_max,
-                ng_e                      = ng_e,
-                ng_j                      = self.ng_j,
-                psi_interval_number_of_points = self.psi_interval_number_of_points,
-                flag_interpolation        = self.flag_interpolation,  # Use intyerpolation to sample psi (0=No, 1=Yes)
-                flag_emittance            = flag_emittance,  # Use emittance (0=No, 1=Yes)
-                shift_x_flag              = 4,
-                shift_x_value             = 0.0,
-                shift_betax_flag          = 4,
-                shift_betax_value         = 0.0,
-            )
-            sourcewiggler.set_electron_initial_conditions_by_label(
-                position_label="value_at_zero",
-                velocity_label="value_at_zero",
-                )
+            elif self.magnetic_field_source == 2:
+                raise Exception(NotImplemented)
 
-        elif self.magnetic_field_source == 2:
-            raise Exception(NotImplemented)
+            if self.e_min == self.e_max:
+                sourcewiggler.set_energy_monochromatic(self.e_min)
 
-        if self.e_min == self.e_max:
-            sourcewiggler.set_energy_monochromatic(self.e_min)
+            sourcewiggler.set_electron_initial_conditions(
+                            shift_x_flag=self.shift_x_flag,
+                            shift_x_value=self.shift_x_value,
+                            shift_betax_flag=self.shift_betax_flag,
+                            shift_betax_value=self.shift_betax_value)
 
-        sourcewiggler.set_electron_initial_conditions(
-                        shift_x_flag=self.shift_x_flag,
-                        shift_x_value=self.shift_x_value,
-                        shift_betax_flag=self.shift_betax_flag,
-                        shift_betax_value=self.shift_betax_value)
+            print("***** \n\n S4Wiggler get_info: \n", sourcewiggler.get_info())
 
-        print("***** \n\n S4Wiggler get_info: \n", sourcewiggler.get_info())
+            # S4WigglerLightSource
+            try:    name = self.getNode().title
+            except: name = "Wiggler Light Source"
 
-        # S4WigglerLightSource
-        try:    name = self.getNode().title
-        except: name = "Wiggler Light Source"
+            lightsource = S4WigglerLightSource(name=name,
+                                               electron_beam=electron_beam,
+                                               magnetic_structure=sourcewiggler,
+                                               nrays=self.number_of_rays,
+                                               seed=self.seed)
 
-        lightsource = S4WigglerLightSource(name=name,
-                                           electron_beam=electron_beam,
-                                           magnetic_structure=sourcewiggler,
-                                           nrays=self.number_of_rays,
-                                           seed=self.seed)
+            print("\n\n***** S4WigglerLightSource info: \n", lightsource.info())
 
-        print("\n\n***** S4WigglerLightSource info: \n", lightsource.info())
-
-        return lightsource
+            return lightsource
+        else:
+            return None
 
     @Inputs.trigger
     def set_trigger_parameters_for_sources(self, trigger):
@@ -312,55 +312,55 @@ class OWWiggler(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
 
     def run_shadow4(self):
         try:
-            set_verbose()
-            self.shadow_output.setText("")
-            sys.stdout = EmittingStream(textWritten=self._write_stdout)
-
-            self._set_plot_quality()
-
-            self.progressBarInit()
-
             light_source = self.get_lightsource()
 
-            #
-            # script
-            #
-            script = light_source.to_python_code()
-            script += "\n\n# test plot\nfrom srxraylib.plot.gol import plot_scatter"
-            script += "\nrays = beam.get_rays()"
-            script += "\nplot_scatter(1e6 * rays[:, 0], 1e6 * rays[:, 2], title='(X,Z) in microns')"
+            if not light_source is None:  # None if user has canceled the operation
+                set_verbose()
+                self.shadow_output.setText("")
+                sys.stdout = EmittingStream(textWritten=self._write_stdout)
 
-            self.shadow4_script.set_code(script)
+                self._set_plot_quality()
 
-            #
-            # run shadow4
-            #
-            self.progressBarSet(5)
+                self.progressBarInit()
+
+                #
+                # script
+                #
+                script = light_source.to_python_code()
+                script += "\n\n# test plot\nfrom srxraylib.plot.gol import plot_scatter"
+                script += "\nrays = beam.get_rays()"
+                script += "\nplot_scatter(1e6 * rays[:, 0], 1e6 * rays[:, 2], title='(X,Z) in microns')"
+
+                self.shadow4_script.set_code(script)
+
+                #
+                # run shadow4
+                #
+                self.progressBarSet(5)
 
 
-            self.progressBarSet(10)
-            t00 = time.time()
-            print("***** starting shadow calculation...")
-            output_beam = light_source.get_beam()
-            photon_energy, flux, spectral_power = light_source.calculate_spectrum()
-            t11 = time.time() - t00
-            print("***** time for %d rays: %f s, %f min, " % (self.number_of_rays, t11, t11 / 60))
+                self.progressBarSet(10)
+                t00 = time.time()
+                print("***** starting shadow calculation...")
+                output_beam = light_source.get_beam()
+                photon_energy, flux, spectral_power = light_source.calculate_spectrum()
+                t11 = time.time() - t00
+                print("***** time for %d rays: %f s, %f min, " % (self.number_of_rays, t11, t11 / 60))
 
-            #
-            # plots
-            #
-            self._plot_results(output_beam, None, progressBarValue=80)
-            self.refresh_specific_wiggler_plots(light_source, photon_energy, flux, spectral_power)
+                #
+                # plots
+                #
+                self._plot_results(output_beam, None, progressBarValue=80)
+                self.refresh_specific_wiggler_plots(light_source, photon_energy, flux, spectral_power)
 
-            self.progressBarFinished()
-
-            #
-            # send beam and trigger
-            #
-            self.Outputs.shadow_data.send(ShadowData(beam=output_beam,
-                                                    number_of_rays=self.number_of_rays,
-                                                    beamline=S4Beamline(light_source=light_source)))
-            self.Outputs.trigger.send(TriggerIn(new_object=True))
+                self.progressBarFinished()
+                #
+                # send beam and trigger
+                #
+                self.Outputs.shadow_data.send(ShadowData(beam=output_beam,
+                                                        number_of_rays=self.number_of_rays,
+                                                        beamline=S4Beamline(light_source=light_source)))
+                self.Outputs.trigger.send(TriggerIn(new_object=True))
         except Exception as exception:
             try:    self._initialize_tabs()
             except: pass

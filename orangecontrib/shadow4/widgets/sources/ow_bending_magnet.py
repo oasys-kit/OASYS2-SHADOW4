@@ -151,46 +151,49 @@ class OWBendingMagnet(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
     def get_lightsource(self):
         # syned electron beam
         electron_beam = self.get_electron_beam()
-        print("\n\n***** electron_beam info: ", electron_beam.info())
 
-        if self.type_of_properties == 3:
-            flag_emittance = 0
+        if not electron_beam is None: # None if user canceled operation
+            print("\n\n***** electron_beam info: ", electron_beam.info())
+
+            if self.type_of_properties == 3:
+                flag_emittance = 0
+            else:
+                flag_emittance = 1
+
+            magnetic_radius = numpy.abs(S4BendingMagnet.calculate_magnetic_radius(self.magnetic_field, electron_beam.energy()))
+            length = numpy.abs(self.divergence * magnetic_radius)
+
+            print(">>> calculated magnetic_radius = S4BendingMagnet.calculate_magnetic_radius(%f, %f) = %f" %\
+                  (self.magnetic_field, electron_beam.energy(), magnetic_radius))
+
+            print(">>> calculated BM length = divergence * magnetic_radius = %f " % length)
+
+            bm = S4BendingMagnet(magnetic_radius,
+                                 self.magnetic_field,
+                                 length,
+                                 emin=self.emin,  # Photon energy scan from energy (in eV)
+                                 emax=self.emax,  # Photon energy scan to energy (in eV)
+                                 ng_e=self.ng_e,  # Photon energy scan number of points
+                                 flag_emittance=flag_emittance,  # when sampling rays: Use emittance (0=No, 1=Yes)
+                                 )
+
+            print("\n\n***** BM info: ", bm.info())
+
+            # S4UndulatorLightSource
+            try:    name = self.getNode().title
+            except: name = "Bending Magnet"
+
+            lightsource = S4BendingMagnetLightSource(name=name,
+                                                 electron_beam=electron_beam,
+                                                 magnetic_structure=bm,
+                                                 nrays=self.number_of_rays,
+                                                 seed=self.seed)
+
+            print("\n\n***** S4BendingMagnetLightSource info: ", lightsource.info())
+
+            return lightsource
         else:
-            flag_emittance = 1
-
-        magnetic_radius = numpy.abs(S4BendingMagnet.calculate_magnetic_radius(self.magnetic_field, electron_beam.energy()))
-        length = numpy.abs(self.divergence * magnetic_radius)
-
-        print(">>> calculated magnetic_radius = S4BendingMagnet.calculate_magnetic_radius(%f, %f) = %f" %\
-              (self.magnetic_field, electron_beam.energy(), magnetic_radius))
-
-        print(">>> calculated BM length = divergence * magnetic_radius = %f " % length)
-
-        bm = S4BendingMagnet(magnetic_radius,
-                             self.magnetic_field,
-                             length,
-                             emin=self.emin,  # Photon energy scan from energy (in eV)
-                             emax=self.emax,  # Photon energy scan to energy (in eV)
-                             ng_e=self.ng_e,  # Photon energy scan number of points
-                             flag_emittance=flag_emittance,  # when sampling rays: Use emittance (0=No, 1=Yes)
-                             )
-
-        print("\n\n***** BM info: ", bm.info())
-
-
-        # S4UndulatorLightSource
-        try:    name = self.getNode().title
-        except: name = "Bending Magnet"
-
-        lightsource = S4BendingMagnetLightSource(name=name,
-                                             electron_beam=electron_beam,
-                                             magnetic_structure=bm,
-                                             nrays=self.number_of_rays,
-                                             seed=self.seed)
-
-        print("\n\n***** S4BendingMagnetLightSource info: ", lightsource.info())
-
-        return lightsource
+            return None
 
     @Inputs.trigger
     def set_trigger_parameters_for_sources(self, trigger):
@@ -210,53 +213,50 @@ class OWBendingMagnet(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
 
     def run_shadow4(self):
         try:
-            set_verbose()
-            self.shadow_output.setText("")
-            sys.stdout = EmittingStream(textWritten=self._write_stdout)
-
-            self._set_plot_quality()
-
-            self.progressBarInit()
-
             light_source = self.get_lightsource()
 
+            if not light_source is None: # None if user has canceled the operation
+                set_verbose()
+                self.shadow_output.setText("")
+                sys.stdout = EmittingStream(textWritten=self._write_stdout)
 
-            #
-            # script
-            #
-            script = light_source.to_python_code()
-            script += "\n\n# test plot\nfrom srxraylib.plot.gol import plot_scatter"
-            script += "\nrays = beam.get_rays()"
-            script += "\nplot_scatter(1e6 * rays[:, 0], 1e6 * rays[:, 2], title='(X,Z) in microns')"
-            self.shadow4_script.set_code(script)
+                self._set_plot_quality()
+                self.progressBarInit()
 
-            self.progressBarSet(5)
+                #
+                # script
+                #
+                script = light_source.to_python_code()
+                script += "\n\n# test plot\nfrom srxraylib.plot.gol import plot_scatter"
+                script += "\nrays = beam.get_rays()"
+                script += "\nplot_scatter(1e6 * rays[:, 0], 1e6 * rays[:, 2], title='(X,Z) in microns')"
+                self.shadow4_script.set_code(script)
 
-            # run shadow4
+                self.progressBarSet(5)
 
-            t00 = time.time()
-            print("***** starting calculation...")
-            output_beam = light_source.get_beam()
-            photon_energy, flux, spectral_power = light_source.calculate_spectrum()
-            t11 = time.time() - t00
-            print("***** time for %d rays: %f s, %f min, " % (self.number_of_rays, t11, t11 / 60))
+                # run shadow4
+                t00 = time.time()
+                print("***** starting calculation...")
+                output_beam = light_source.get_beam()
+                photon_energy, flux, spectral_power = light_source.calculate_spectrum()
+                t11 = time.time() - t00
+                print("***** time for %d rays: %f s, %f min, " % (self.number_of_rays, t11, t11 / 60))
 
-            #
-            # beam plots
-            #
-            self._plot_results(output_beam, None, progressBarValue=80)
+                #
+                # beam plots
+                #
+                self._plot_results(output_beam, None, progressBarValue=80)
+                self.refresh_specific_bm_plots(light_source, photon_energy, flux, spectral_power)
 
-            self.refresh_specific_bm_plots(light_source, photon_energy, flux, spectral_power)
+                self.progressBarFinished()
 
-            self.progressBarFinished()
-
-            #
-            # send beam and trigger
-            #
-            self.Outputs.shadow_data.send(ShadowData(beam=output_beam,
-                                                    number_of_rays=self.number_of_rays,
-                                                    beamline=S4Beamline(light_source=light_source)))
-            self.Outputs.trigger.send(TriggerIn(new_object=True))
+                #
+                # send beam and trigger
+                #
+                self.Outputs.shadow_data.send(ShadowData(beam=output_beam,
+                                                        number_of_rays=self.number_of_rays,
+                                                        beamline=S4Beamline(light_source=light_source)))
+                self.Outputs.trigger.send(TriggerIn(new_object=True))
         except Exception as exception:
             try:    self._initialize_tabs()
             except: pass

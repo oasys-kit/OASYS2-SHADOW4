@@ -232,37 +232,38 @@ class OWUndulatorGaussian(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator
         # syned electron beam
         electron_beam = self.get_electron_beam()
 
-        if self.type_of_properties == 3:
-            flag_emittance = 0
+        if not electron_beam is None:
+            if self.type_of_properties == 3: flag_emittance = 0
+            else:                            flag_emittance = 1
+
+            sourceundulator = S4UndulatorGaussian(
+                period_length=self.period_length,  # syned Undulator parameter
+                number_of_periods=self.undulator_length / self.period_length,  # syned Undulator parameter
+                photon_energy=self.energy,
+                delta_e=self.delta_e,
+                ng_e=self.plot_npoints,  # Photon energy scan number of points
+                flag_emittance=flag_emittance,  # when sampling rays: Use emittance (0=No, 1=Yes)
+                flag_energy_spread=self.flag_energy_spread,
+                harmonic_number=self.harmonic_number,
+                flag_autoset_flux_central_cone=self.flag_autoset_flux_central_cone,
+                flux_central_cone=float(self.flux_central_cone),
+            )
+
+            # S4UndulatorLightSource
+            try:    name = self.getNode().title
+            except: name = "Undulator gaussian"
+
+            lightsource = S4UndulatorGaussianLightSource(name=name,
+                                                 electron_beam=electron_beam,
+                                                 magnetic_structure=sourceundulator,
+                                                 nrays=self.number_of_rays,
+                                                 seed=self.seed)
+
+            print("\n\n***** S4UndulatorLightSource info: ", lightsource.info())
+
+            return lightsource
         else:
-            flag_emittance = 1
-
-        sourceundulator = S4UndulatorGaussian(
-            period_length=self.period_length,  # syned Undulator parameter
-            number_of_periods=self.undulator_length / self.period_length,  # syned Undulator parameter
-            photon_energy=self.energy,
-            delta_e=self.delta_e,
-            ng_e=self.plot_npoints,  # Photon energy scan number of points
-            flag_emittance=flag_emittance,  # when sampling rays: Use emittance (0=No, 1=Yes)
-            flag_energy_spread=self.flag_energy_spread,
-            harmonic_number=self.harmonic_number,
-            flag_autoset_flux_central_cone=self.flag_autoset_flux_central_cone,
-            flux_central_cone=float(self.flux_central_cone),
-        )
-
-        # S4UndulatorLightSource
-        try:    name = self.getNode().title
-        except: name = "Undulator gaussian"
-
-        lightsource = S4UndulatorGaussianLightSource(name=name,
-                                             electron_beam=electron_beam,
-                                             magnetic_structure=sourceundulator,
-                                             nrays=self.number_of_rays,
-                                             seed=self.seed)
-
-        print("\n\n***** S4UndulatorLightSource info: ", lightsource.info())
-
-        return lightsource
+            return None
 
     @Inputs.trigger
     def set_trigger_parameters_for_sources(self, trigger):
@@ -282,51 +283,51 @@ class OWUndulatorGaussian(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator
 
     def run_shadow4(self):
         try:
-            set_verbose()
-            self.shadow_output.setText("")
-            sys.stdout = EmittingStream(textWritten=self._write_stdout)
-
-            self._set_plot_quality()
-
-            self.progressBarInit()
-
             light_source = self.get_lightsource()
 
-            #
-            # script
-            #
-            script = light_source.to_python_code()
-            script += "\n\n# test plot\nfrom srxraylib.plot.gol import plot_scatter"
-            script += "\nrays = beam.get_rays()"
-            script += "\nplot_scatter(1e6 * rays[:, 0], 1e6 * rays[:, 2], title='(X,Z) in microns')"
-            self.shadow4_script.set_code(script)
-            self.progressBarSet(5)
+            if not light_source is None:  # None if user has canceled the operation
+                set_verbose()
+                self.shadow_output.setText("")
+                sys.stdout = EmittingStream(textWritten=self._write_stdout)
 
-            # run shadow4
-            t00 = time.time()
-            print("***** starting calculation...")
-            output_beam = light_source.get_beam()
-            t11 = time.time() - t00
-            print("***** time for %d rays: %f s, %f min, " % (self.number_of_rays, t11, t11 / 60))
+                self._set_plot_quality()
 
-            self.lightsource = light_source
+                self.progressBarInit()
 
-            #
-            # beam plots
-            #
-            self._plot_results(output_beam, None, progressBarValue=80)
+                #
+                # script
+                #
+                script = light_source.to_python_code()
+                script += "\n\n# test plot\nfrom srxraylib.plot.gol import plot_scatter"
+                script += "\nrays = beam.get_rays()"
+                script += "\nplot_scatter(1e6 * rays[:, 0], 1e6 * rays[:, 2], title='(X,Z) in microns')"
+                self.shadow4_script.set_code(script)
+                self.progressBarSet(5)
 
-            self.refresh_specific_undulator_plots()
+                # run shadow4
+                t00 = time.time()
+                print("***** starting calculation...")
+                output_beam = light_source.get_beam()
+                t11 = time.time() - t00
+                print("***** time for %d rays: %f s, %f min, " % (self.number_of_rays, t11, t11 / 60))
 
-            self.progressBarFinished()
+                self.lightsource = light_source
 
-            #
-            # send beam and trigger
-            #
-            self.Outputs.shadow_data.send(ShadowData(beam=output_beam,
-                                                    number_of_rays=self.number_of_rays,
-                                                    beamline=S4Beamline(light_source=light_source)))
-            self.Outputs.trigger.send(TriggerIn(new_object=True))
+                #
+                # beam plots
+                #
+                self._plot_results(output_beam, None, progressBarValue=80)
+                self.refresh_specific_undulator_plots()
+
+                self.progressBarFinished()
+
+                #
+                # send beam and trigger
+                #
+                self.Outputs.shadow_data.send(ShadowData(beam=output_beam,
+                                                        number_of_rays=self.number_of_rays,
+                                                        beamline=S4Beamline(light_source=light_source)))
+                self.Outputs.trigger.send(TriggerIn(new_object=True))
         except Exception as exception:
             try:    self._initialize_tabs()
             except: pass
