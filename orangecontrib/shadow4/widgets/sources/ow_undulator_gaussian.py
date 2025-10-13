@@ -349,6 +349,9 @@ class OWUndulatorGaussian(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator
                         self.undulator_length = light_source.get_magnetic_structure().length()
                         self.period_length = light_source.get_magnetic_structure().period_length()
                         self.plot_Kmax = light_source.get_magnetic_structure().K_vertical()
+
+                        self.type_of_properties = 2 if self.check_dispersion_presence() else 1
+                        self.set_TypeOfProperties()
                     else:
                         self.type_of_properties = 0 # if not ID defined, use electron moments instead of sigmas
                         self.set_TypeOfProperties()

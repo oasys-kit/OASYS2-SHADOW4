@@ -550,6 +550,9 @@ class OWUndulator(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
                         #others
                         self.set_at_resonance = 1
                         self.is_monochromatic = 1
+
+                        self.type_of_properties = 2 if self.check_dispersion_presence() else 1
+                        self.set_TypeOfProperties()
                     else:
                         self.type_of_properties = 0 # if not ID defined, use electron moments instead of sigmas
                         self.set_TypeOfProperties()

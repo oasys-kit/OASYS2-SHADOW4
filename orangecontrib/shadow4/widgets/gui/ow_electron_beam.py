@@ -176,29 +176,17 @@ class OWElectronBeam(GenericElement):
             congruence.checkNumber(self.electron_beam_etap_h, "Horizontal Beam Dispersion Eta'")
             congruence.checkNumber(self.electron_beam_etap_v, "Vertical Beam Dispersion Eta'")
 
-            def check_contraints(emittance, alpha, beta, eta, etap, direction):
-                S4ElectronBeam._set_twiss(energy_spread=self.electron_energy_spread,
-                                          emittance=emittance,
-                                          alpha=alpha,
-                                          beta=beta,
-                                          eta=eta,
-                                          etap=etap,
-                                          check_consistency=True,
-                                          direction=direction)
-            check_contraints(self.electron_beam_emittance_h, self.electron_beam_alpha_h, self.electron_beam_beta_h, self.electron_beam_eta_h, self.electron_beam_etap_h, "Horizontal")
-            check_contraints(self.electron_beam_emittance_v, self.electron_beam_alpha_v, self.electron_beam_beta_v, self.electron_beam_eta_v, self.electron_beam_etap_v, "Vertical")
-
         self.check_magnetic_structure()
 
 
     def run_shadow4(self):
         raise Exception("To be defined in the superclass")
 
-    def check_twiss_change(self, electron_beam: S4ElectronBeam):
-        return self.electron_beam_eta_h != electron_beam._dispersion_x or \
-               self.electron_beam_eta_v != electron_beam._dispersion_y or \
-               self.electron_beam_etap_h != electron_beam._dispersionp_x or \
-               self.electron_beam_etap_v != electron_beam._dispersionp_y
+    def check_dispersion_presence(self):
+        return self.electron_beam_eta_h != 0.0 or \
+               self.electron_beam_eta_v != 0.0 or \
+               self.electron_beam_etap_h != 0.0 or \
+               self.electron_beam_etap_v != 0.0
 
     def get_electron_beam(self):
         electron_beam = S4ElectronBeam(energy_in_GeV=self.electron_energy_in_GeV,
@@ -221,51 +209,25 @@ class OWElectronBeam(GenericElement):
             electron_beam.set_twiss_all(self.electron_beam_emittance_h,
                                         self.electron_beam_alpha_h,
                                         self.electron_beam_beta_h,
-                                        self.electron_beam_eta_h,
-                                        self.electron_beam_etap_h,
                                         self.electron_beam_emittance_v,
                                         self.electron_beam_alpha_v,
-                                        self.electron_beam_beta_v,
-                                        self.electron_beam_eta_v,
-                                        self.electron_beam_etap_v)
+                                        self.electron_beam_beta_v)
+            electron_beam.set_dispersion_all(self.electron_beam_eta_h,
+                                             self.electron_beam_etap_h,
+                                             self.electron_beam_eta_v,
+                                             self.electron_beam_etap_v)
         elif self.type_of_properties == 3:
             electron_beam.set_moments_all(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
         proceed = True
-        if self.type_of_properties in [0, 1] and self.check_twiss_change(electron_beam):
-            if not ConfirmDialog.confirmed(parent=self, message="This operation will set \u03B7, \u03B7' to zero and recompute the twiss parameters, proceed?"):
+        if self.type_of_properties in [0, 1] and self.check_dispersion_presence():
+            if not ConfirmDialog.confirmed(parent=self, message="Dispersion parameters \u03B7, \u03B7' will be reset to zero, proceed?"):
                 proceed = False
                 self.type_of_properties = 2
                 self.set_TypeOfProperties()
 
         if proceed: # modify input form with the results of the calculations
-            self.moment_xx              = round(electron_beam._moment_xx,   16)
-            self.moment_xxp             = round(electron_beam._moment_xxp,  16)
-            self.moment_xpxp            = round(electron_beam._moment_xpxp, 16)
-            self.moment_yy              = round(electron_beam._moment_yy,   16)
-            self.moment_yyp             = round(electron_beam._moment_yyp,  16)
-            self.moment_ypyp            = round(electron_beam._moment_ypyp, 16)
-            self.electron_beam_eta_h    = electron_beam._dispersion_x
-            self.electron_beam_eta_v    = electron_beam._dispersion_y
-            self.electron_beam_etap_h   = electron_beam._dispersionp_x
-            self.electron_beam_etap_v   = electron_beam._dispersionp_y
-
-            # calculated parameters from second moments
-            x, xp, y, yp = electron_beam.get_sigmas_all()
-
-            self.electron_beam_size_h       = round(x, 10)
-            self.electron_beam_size_v       = round(y, 10)
-            self.electron_beam_divergence_h = round(xp, 10)
-            self.electron_beam_divergence_v = round(yp, 10)
-
-            ex, ax, bx, ey, ay, by = electron_beam.get_twiss_all()
-
-            self.electron_beam_emittance_h = round(ex, 16)
-            self.electron_beam_emittance_v = round(ey, 16)
-            self.electron_beam_alpha_h     = round(ax, 6)
-            self.electron_beam_alpha_v     = round(ay, 6)
-            self.electron_beam_beta_h      = round(bx, 6)
-            self.electron_beam_beta_v      = round(by, 6)
+            self.populate_fields_from_electron_beam(electron_beam)
 
             return electron_beam
         else:
@@ -276,30 +238,36 @@ class OWElectronBeam(GenericElement):
         self.electron_energy_spread = electron_beam._energy_spread
         self.ring_current           = electron_beam.current()
 
-        self.moment_xx              = round(electron_beam._moment_xx,   16)
-        self.moment_xxp             = round(electron_beam._moment_xxp,  16)
-        self.moment_xpxp            = round(electron_beam._moment_xpxp, 16)
-        self.moment_yy              = round(electron_beam._moment_yy,   16)
-        self.moment_yyp             = round(electron_beam._moment_yyp,  16)
-        self.moment_ypyp            = round(electron_beam._moment_ypyp, 16)
-        self.electron_beam_eta_h    = electron_beam._dispersion_x
-        self.electron_beam_eta_v    = electron_beam._dispersion_y
-        self.electron_beam_etap_h   = electron_beam._dispersionp_x
-        self.electron_beam_etap_v   = electron_beam._dispersionp_y
+        moment_xx,\
+        moment_xxp,\
+        moment_xpxp,\
+        moment_yy,\
+        moment_yyp,\
+        moment_ypyp = electron_beam.get_moments_all()
 
-        # calculated parameters from second moments
-        x, xp, y, yp = electron_beam.get_sigmas_all()
+        self.moment_xx              = round(moment_xx,   16)
+        self.moment_xxp             = round(moment_xxp,  16)
+        self.moment_xpxp            = round(moment_xpxp, 16)
+        self.moment_yy              = round(moment_yy,   16)
+        self.moment_yyp             = round(moment_yyp,  16)
+        self.moment_ypyp            = round(moment_ypyp, 16)
+
+        x, xp, y, yp                 = electron_beam.get_sigmas_all()
+        ex, ax, bx, ey, ay, by,      = electron_beam.get_twiss_all()
+        eta_x, etap_x, eta_y, etap_y = electron_beam.get_dispersion_all()
 
         self.electron_beam_size_h       = round(x, 10)
         self.electron_beam_size_v       = round(y, 10)
         self.electron_beam_divergence_h = round(xp, 10)
         self.electron_beam_divergence_v = round(yp, 10)
+        self.electron_beam_emittance_h  = round(ex, 16)
+        self.electron_beam_emittance_v  = round(ey, 16)
+        self.electron_beam_alpha_h      = round(ax, 6)
+        self.electron_beam_alpha_v      = round(ay, 6)
+        self.electron_beam_beta_h       = round(bx, 6)
+        self.electron_beam_beta_v       = round(by, 6)
+        self.electron_beam_eta_h        = round(eta_x, 8)
+        self.electron_beam_eta_v        = round(eta_y, 8)
+        self.electron_beam_etap_h       = round(etap_x, 8)
+        self.electron_beam_etap_v       = round(etap_y, 8)
 
-        ex, ax, bx, ey, ay, by = electron_beam.get_twiss_all()
-
-        self.electron_beam_emittance_h = round(ex, 16)
-        self.electron_beam_emittance_v = round(ey, 16)
-        self.electron_beam_alpha_h     = round(ax, 6)
-        self.electron_beam_alpha_v     = round(ay, 6)
-        self.electron_beam_beta_h      = round(bx, 6)
-        self.electron_beam_beta_v      = round(by, 6)
