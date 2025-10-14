@@ -1,59 +1,40 @@
-import sys
-import time
 import numpy
 
 from orangewidget import gui as orangegui
 from orangewidget.settings import Setting
-from orangewidget.widget import Output
 
-from oasys2.widget.util.widget_objects import TriggerIn
 from oasys2.widget import gui as oasysgui
-from oasys2.widget.util.widget_util import EmittingStream
 from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
+from oasys2.widget.util import congruence
 
-from syned.beamline.beamline import Beamline
 from syned.storage_ring.magnetic_structures.insertion_device import InsertionDevice
-from syned.widget.widget_decorator import WidgetDecorator
 
 from shadow4.sources.undulator.s4_undulator import S4Undulator
 from shadow4.sources.undulator.s4_undulator_light_source import S4UndulatorLightSource
-from shadow4.beamline.s4_beamline import S4Beamline
-from shadow4.tools.logger import set_verbose
 
-from orangecontrib.shadow4.widgets.gui.ow_electron_beam import OWElectronBeam
+from orangecontrib.shadow4.widgets.gui.ow_synchrotron_source import OWSynchrotronSource
 from orangecontrib.shadow4.widgets.gui.plots import plot_data1D, plot_data2D, plot_data3D
-from orangecontrib.shadow4.util.shadow4_objects import ShadowData
-from orangecontrib.shadow4.util.shadow4_util import TriggerToolsDecorator
 
-class OWUndulator(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
+class OWUndulator(OWSynchrotronSource):
     name = "Undulator Light Source"
     description = "Undulator Light Source"
     icon = "icons/undulator.png"
     priority = 50
 
-    class Inputs:
-        trigger     = TriggerToolsDecorator.get_trigger_input()
-        syned_data  = WidgetDecorator.syned_input_data(multi_input=True)
-
-    class Outputs:
-        shadow_data = Output("Shadow Data", ShadowData, id="Shadow Data", default=True, auto_summary=False)
-        trigger     = TriggerToolsDecorator.get_trigger_output()
-
     # undulator parameters
-    K_vertical = Setting(0.25)  # syned Undulator parameter
-    period_length = Setting(0.032)  # syned Undulator parameter
+    K_vertical        = Setting(0.25)  # syned Undulator parameter
+    period_length     = Setting(0.032)  # syned Undulator parameter
     number_of_periods = Setting(50)  # syned Undulator parameter
 
     # photon energy
     set_at_resonance = Setting(0)
     is_monochromatic = Setting(1)
-    emin = Setting(10490.0)  # Photon energy scan from energy (in eV)
-    emax = Setting(10510.0)  # Photon energy scan to energy (in eV)
-    photon_energy = Setting(10500.0)
-    harmonic = Setting(1.0)
-    delta_e = Setting(1000.0)
-
-    maxangle = Setting(0.015)  # Maximum radiation semiaperture in RADIANS
+    emin             = Setting(10490.0)  # Photon energy scan from energy (in eV)
+    emax             = Setting(10510.0)  # Photon energy scan to energy (in eV)
+    photon_energy    = Setting(10500.0)
+    harmonic         = Setting(1.0)
+    delta_e          = Setting(1000.0)
+    maxangle         = Setting(0.015)  # Maximum radiation semiaperture in RADIANS
 
 
     # other parameters
@@ -64,10 +45,6 @@ class OWUndulator(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
     code_undul_phot = Setting(0) # "internal",  # internal, pysru, srw
     flag_emittance = Setting(0)  # when sampling rays: Use emittance (0=No, 1=Yes)
     flag_size = Setting(2)  # when sampling rays: 0=point,1=Gaussian,2=FT(Divergences)
-
-    # sampling rays
-    number_of_rays = Setting(500)
-    seed = Setting(5676561)
 
     # specific/backpropagation
     distance = Setting(100.0)
@@ -80,10 +57,6 @@ class OWUndulator(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
     weight_ratio = Setting(0.5)
 
     plot_undulator_graph = Setting(1)
-
-    beam_out = None
-    lightsource = None # store lightsource after calculation
-
 
     def __init__(self):
         super().__init__(show_energy_spread=True)
@@ -180,8 +153,6 @@ class OWUndulator(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
         orangegui.comboBox(self.box_backpropagation_srw, self, "srw_semianalytical", label="Use SRW semianalytic propagator", tooltip="srw_semianalytical",
                            items=["No (standard)", "Yes"], labelWidth=260, orientation="horizontal")
 
-
-
         # undulator plots
         self.add_specific_undulator_plots()
 
@@ -189,9 +160,7 @@ class OWUndulator(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
 
         orangegui.rubber(self.controlArea)
 
-
     def add_specific_undulator_plots(self):
-
         undulator_plot_tab = oasysgui.widgetBox(self.main_tabs, addToLayout=0, margin=4)
 
         self.main_tabs.insertTab(1, undulator_plot_tab, "Undulator Plots")
@@ -204,7 +173,7 @@ class OWUndulator(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
                                                           label="Plot Graphs?",
                                                           labelWidth=220,
                                                           items=["No", "Yes"],
-                                                          callback=self.refresh_specific_undulator_plots,
+                                                          callback=self.refresh_specific_plots,
                                                           sendSelectedValue=False,
                                                           orientation="horizontal")
 
@@ -239,8 +208,6 @@ class OWUndulator(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
 
         self.undulator_tabs.setCurrentIndex(current_tab)
 
-
-
     def set_visibility(self):
         self.box_photon_energy_min_max.setVisible( self.set_at_resonance == 0 and self.is_monochromatic == 0)
         self.box_photon_energy_center.setVisible(  self.set_at_resonance == 0 and self.is_monochromatic == 1)
@@ -250,151 +217,67 @@ class OWUndulator(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
 
         self.box_backpropagation_internal_wofry.setVisible(self.flag_size == 2 and self.code_undul_phot <= 1)
         self.box_backpropagation_srw.setVisible(self.flag_size == 2 and self.code_undul_phot == 2)
+        self.box_backpropagation_internal_wofry_weight_vaue.setVisible(self.flag_backprop_weight == 1)
 
-        self.box_backpropagation_internal_wofry_weight_vaue.setVisible(self.flag_backprop_weight == 1) # self.flag_size == 2 and
-                                                                      # self.code_undul_phot == 2 and
-                                                                      # self.flag_backprop_weight == 1)
-    def get_lightsource(self):
-        # syned
-        electron_beam = self.get_electron_beam()
+    def check_magnetic_structure(self):
+        congruence.checkStrictlyPositiveNumber(self.K_vertical, "K Vertical")
+        congruence.checkStrictlyPositiveNumber(self.number_of_periods, "Number of Periods")
+        congruence.checkStrictlyPositiveNumber(self.period_length, "Period Length")
 
-        if not electron_beam is None: # None if user canceled operation
-            print("\n\n***** ElectronBeam info: ", electron_beam.info(), type(electron_beam))
+    def build_light_source(self, electron_beam, flag_emittance):
+        # S4undulator
+        code_undul_phot = ["internal", "pysru", "srw"][self.code_undul_phot]
 
-            if self.type_of_properties == 3:
-                flag_emittance = 0
-            else:
-                flag_emittance = 1
+        sourceundulator = S4Undulator(
+            K_vertical=self.K_vertical,                # syned Undulator parameter
+            period_length=self.period_length,          # syned Undulator parameter
+            number_of_periods=self.number_of_periods,  # syned Undulator parameter
+            emin=self.photon_energy if self.is_monochromatic else self.emin ,  # Photon energy scan from energy (in eV)
+            emax=self.photon_energy if self.is_monochromatic else self.emax,  # Photon energy scan to energy (in eV)
+            ng_e=self.ng_e,  # Photon energy scan number of points
+            maxangle=self.maxangle,  # Maximum radiation semiaperture in RADIANS
+            ng_t=self.ng_t,  # Number of points in angle theta
+            ng_p=self.ng_p,  # Number of points in angle phi
+            ng_j=self.ng_j,  # Number of points in electron trajectory (per period) for internal calculation only
+            code_undul_phot=code_undul_phot,  # internal, pysru, srw
+            flag_emittance=flag_emittance,  # when sampling rays: Use emittance (0=No, 1=Yes)
+            flag_size=self.flag_size,  # when sampling rays: 0=point,1=Gaussian,2=FT(Divergences)
+            distance=self.distance,
+            magnification=self.magnification,
+            srw_range=self.srw_range,
+            srw_resolution=self.srw_resolution,
+            srw_semianalytical=self.srw_semianalytical,
+            flag_backprop_recalculate_source=self.flag_backprop_recalculate_source,
+            flag_backprop_weight=self.flag_backprop_weight,
+            weight_ratio=self.weight_ratio,
+            flag_energy_spread=self.flag_energy_spread,
+            )
 
-            # S4undulator
-            code_undul_phot = ["internal", "pysru", "srw"][self.code_undul_phot]
+        # S4undulatorLightSource
+        try:    name = self.getNode().title
+        except: name = "Undulator Light Source"
 
-            sourceundulator = S4Undulator(
-                K_vertical=self.K_vertical,                # syned Undulator parameter
-                period_length=self.period_length,          # syned Undulator parameter
-                number_of_periods=self.number_of_periods,  # syned Undulator parameter
-                emin=self.photon_energy if self.is_monochromatic else self.emin ,  # Photon energy scan from energy (in eV)
-                emax=self.photon_energy if self.is_monochromatic else self.emax,  # Photon energy scan to energy (in eV)
-                ng_e=self.ng_e,  # Photon energy scan number of points
-                maxangle=self.maxangle,  # Maximum radiation semiaperture in RADIANS
-                ng_t=self.ng_t,  # Number of points in angle theta
-                ng_p=self.ng_p,  # Number of points in angle phi
-                ng_j=self.ng_j,  # Number of points in electron trajectory (per period) for internal calculation only
-                code_undul_phot=code_undul_phot,  # internal, pysru, srw
-                flag_emittance=flag_emittance,  # when sampling rays: Use emittance (0=No, 1=Yes)
-                flag_size=self.flag_size,  # when sampling rays: 0=point,1=Gaussian,2=FT(Divergences)
-                distance=self.distance,
-                magnification=self.magnification,
-                srw_range=self.srw_range,
-                srw_resolution=self.srw_resolution,
-                srw_semianalytical=self.srw_semianalytical,
-                flag_backprop_recalculate_source=self.flag_backprop_recalculate_source,
-                flag_backprop_weight=self.flag_backprop_weight,
-                weight_ratio=self.weight_ratio,
-                flag_energy_spread=self.flag_energy_spread,
-                )
+        light_source = S4UndulatorLightSource(name=name,
+                                           electron_beam=electron_beam,
+                                           magnetic_structure=sourceundulator,
+                                           nrays=self.number_of_rays,
+                                           seed=self.seed)
 
-            # S4undulatorLightSource
-            try:    name = self.getNode().title
-            except: name = "Undulator Light Source"
-
-            lightsource = S4UndulatorLightSource(name=name,
-                                               electron_beam=electron_beam,
-                                               magnetic_structure=sourceundulator,
-                                               nrays=self.number_of_rays,
-                                               seed=self.seed)
-
-            # reset energy after user choice
-            if self.set_at_resonance:
-                if self.is_monochromatic: lightsource.set_energy_monochromatic_at_resonance(harmonic_number=self.harmonic)
-                else:                     lightsource.set_energy_at_resonance(harmonic_number=self.harmonic, delta_e=self.delta_e)
+        # reset energy after user choice
+        if self.set_at_resonance:
+            if self.is_monochromatic: light_source.set_energy_monochromatic_at_resonance(harmonic_number=self.harmonic)
+            else:                     light_source.set_energy_at_resonance(harmonic_number=self.harmonic, delta_e=self.delta_e)
 
 
-            print("\n\n***** S4undulatorLightSource info: ", lightsource.info())
+        print("\n\n***** S4undulatorLightSource info: ", light_source.info())
 
-            return lightsource
-        else:
-            return None
-
-    @Inputs.trigger
-    def set_trigger_parameters_for_sources(self, trigger):
-        super(OWUndulator, self).set_trigger_parameters_for_sources(trigger)
-
-    @Inputs.syned_data
-    def set_syned_data(self, index, syned_data):
-        self.receive_syned_data(syned_data)
-
-    @Inputs.syned_data.insert
-    def insert_syned_data(self, index, syned_data):
-        self.receive_syned_data(syned_data)
-
-    @Inputs.syned_data.remove
-    def remove_syned_data(self, index):
-        pass
-
-    def run_shadow4(self):
-        try:
-            light_source = self.get_lightsource()
-
-            if not light_source is None: # None if user has canceled the operation
-                set_verbose()
-                self.shadow_output.setText("")
-                self.lightsource = None # clean
-
-                sys.stdout = EmittingStream(textWritten=self._write_stdout)
-
-                self._set_plot_quality()
-
-                self.progressBarInit()
-                #
-                # script
-                #
-                script = light_source.to_python_code()
-                script += "\n\n# test plot\nfrom srxraylib.plot.gol import plot_scatter"
-                script += "\nrays = beam.get_rays()"
-                script += "\nplot_scatter(1e6 * rays[:, 0], 1e6 * rays[:, 2], title='(X,Z) in microns')"
-
-
-                self.shadow4_script.set_code(script)
-
-                self.progressBarSet(5)
-                #
-                # run shadow4
-                #
-                t00 = time.time()
-                print("***** starting calculation...")
-                output_beam = light_source.get_beam()
-                t11 = time.time() - t00
-                print("***** time for %d rays: %f s, %f min, " % (self.number_of_rays, t11, t11 / 60))
-
-                self.lightsource = light_source
-                #
-                # plots
-                #
-                self._plot_results(output_beam, None, progressBarValue=80)
-                self.refresh_specific_undulator_plots()
-
-                self.progressBarFinished()
-
-                #
-                # send beam and trigger
-                #
-                self.Outputs.shadow_data.send(ShadowData(beam=output_beam,
-                                                        number_of_rays=self.number_of_rays,
-                                                        beamline=S4Beamline(light_source=light_source)))
-                self.Outputs.trigger.send(TriggerIn(new_object=True))
-        except Exception as exception:
-            try:    self._initialize_tabs()
-            except: pass
-            self.prompt_exception(exception)
+        return light_source
 
     def get_title_for_stack_view_flux(self, idx):
-        photon_energy = self.lightsource.get_result_dictionary()['photon_energy']
+        photon_energy = self.light_source.get_result_dictionary()['photon_energy']
         return "Units: Photons/s/eV/rad2; Photon energy: %8.3f eV"%(photon_energy[idx])
 
-    def refresh_specific_undulator_plots(self):
-        if self.lightsource is None: return
-
+    def refresh_specific_plots(self):
         if self.plot_undulator_graph == 0:
             for undulator_plot_slot_index in range(7):
                 current_item = self.undulator_tab[undulator_plot_slot_index].layout().itemAt(0)
@@ -402,10 +285,12 @@ class OWUndulator(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
                 plot_widget_id = oasysgui.QLabel() # TODO: is there a better way to clean this??????????????????????
                 self.undulator_tab[undulator_plot_slot_index].layout().addWidget(plot_widget_id)
         else:
-            is_monochromatic = self.lightsource.get_magnetic_structure().is_monochromatic()
-            dict_results = self.lightsource.get_result_dictionary()
+            if self.light_source is None: return
+            
+            is_monochromatic = self.light_source.get_magnetic_structure().is_monochromatic()
+            dict_results     = self.light_source.get_result_dictionary()
             # radiation
-            # radiation, photon_energy, theta, phi = self.lightsource.get_result_radiation_polar()
+            # radiation, photon_energy, theta, phi = self.light_source.get_result_radiation_polar()
             radiation     = dict_results['radiation']
             photon_energy = dict_results['photon_energy']
             theta         = dict_results['theta']
@@ -477,7 +362,7 @@ class OWUndulator(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
             #
             # power density
             #
-            intens_xy, vx, vz = self.lightsource.get_power_density_interpolated_cartesian() # in W/rad2
+            intens_xy, vx, vz = self.light_source.get_power_density_interpolated_cartesian() # in W/rad2
             if is_monochromatic:
                 title="power density W/mrad2/eV"
             else:
@@ -486,7 +371,7 @@ class OWUndulator(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
                              title=title, xtitle="vx [urad]", ytitle="vz [rad]")
 
             # spectra
-            e, f, w = self.lightsource.calculate_spectrum()
+            e, f, w = self.light_source.calculate_spectrum()
             self.plot_undulator_item1D(5, e, f,
                                   title="Undulator spectrum", xtitle="Photon energy [eV]", ytitle=r"Photons/s/0.1%bw")
 
@@ -496,7 +381,7 @@ class OWUndulator(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
 
             # trajectory
             try:
-                yy, xx, beta_x = self.lightsource.get_result_trajectory()
+                yy, xx, beta_x = self.light_source.get_result_trajectory()
                 self.plot_undulator_item1D(7, yy, xx,
                                       title="electron trajectory", xtitle="Y [m]", ytitle="X [m]", symbol='')
 
@@ -506,10 +391,8 @@ class OWUndulator(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
                 pass
 
             print("\n\n")
-            print("Total power (integral [trapz] of spectral power) [W]: ",
-                  numpy.trapz(w, photon_energy))
-            print("Total number of photons (integral [trapz] of flux): ",
-                  numpy.trapz(f / (1e-3 * photon_energy), photon_energy))
+            print("Total power (integral [trapz] of spectral power) [W]: ", numpy.trapezoid(w, photon_energy))
+            print("Total number of photons (integral [trapz] of flux): ",   numpy.trapezoid(f / (1e-3 * photon_energy), photon_energy))
             print("\n\n")
 
     def plot_undulator_item1D(self, undulator_plot_slot_index, x, y, title="", xtitle="", ytitle="", symbol='.'):
@@ -530,38 +413,14 @@ class OWUndulator(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
                                      callback_for_title=self.get_title_for_stack_view_flux)
         self.undulator_tab[undulator_plot_slot_index].layout().addWidget(plot_widget_id)
 
-    def receive_syned_data(self, data):
-        sys.stdout = EmittingStream(textWritten=self._write_stdout)
-        if data is not None:
-            if isinstance(data, Beamline):
-                if data.get_light_source() is not None:
-                    light_source = data.get_light_source()
-                    # electron parameters
-                    if light_source.get_electron_beam() is not None:
-                        self.populate_fields_from_electron_beam(light_source.get_electron_beam())
-
-                    if isinstance(data.get_light_source().get_magnetic_structure(), InsertionDevice):
-                        print(data.get_light_source().get_magnetic_structure(), InsertionDevice)
-                        # undulator parameters
-                        w = light_source.get_magnetic_structure()
-                        self.K_vertical        = w.K_vertical()
-                        self.period_length     = w.period_length()
-                        self.number_of_periods = int(w.number_of_periods())
-                        #others
-                        self.set_at_resonance = 1
-                        self.is_monochromatic = 1
-
-                        self.type_of_properties = 2 if self.check_dispersion_presence() else 1
-                        self.set_TypeOfProperties()
-                    else:
-                        self.type_of_properties = 0 # if not ID defined, use electron moments instead of sigmas
-                        self.set_TypeOfProperties()
-
-                    self.set_visibility()
-                else:
-                    raise ValueError("Syned data not correct: light source not present")
-            else:
-                raise ValueError("Syned data not correct: it must be Beamline()")
-
+    def populate_fields_from_magnetic_structure(self, magnetic_structure, electron_beam):
+        if isinstance(magnetic_structure, InsertionDevice):
+            # undulator parameters
+            self.K_vertical        = magnetic_structure.K_vertical()
+            self.period_length     = magnetic_structure.period_length()
+            self.number_of_periods = int(magnetic_structure.number_of_periods())
+            # others
+            self.set_at_resonance = 1
+            self.is_monochromatic = 1
 
 add_widget_parameters_to_module(__name__)

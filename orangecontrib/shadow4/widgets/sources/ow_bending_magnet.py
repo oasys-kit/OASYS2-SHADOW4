@@ -1,47 +1,26 @@
-import sys
-import time
 import numpy
 
 from orangewidget.settings import Setting
 from orangewidget import gui as orangegui
-from orangewidget.widget import Output
 
 from oasys2.widget import gui as oasysgui
 from oasys2.widget.util import congruence
-from oasys2.widget.util.widget_util import EmittingStream
 from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
-from oasys2.widget.util.widget_objects import TriggerIn
 
-from syned.beamline.beamline import Beamline
 from syned.storage_ring.magnetic_structures.bending_magnet import BendingMagnet
-from syned.widget.widget_decorator import WidgetDecorator
 
-from shadow4.beamline.s4_beamline import S4Beamline
 from shadow4.sources.bending_magnet.s4_bending_magnet import S4BendingMagnet
 from shadow4.sources.bending_magnet.s4_bending_magnet_light_source import S4BendingMagnetLightSource
-from shadow4.tools.logger import set_verbose
 
-from orangecontrib.shadow4.widgets.gui.ow_electron_beam import OWElectronBeam
-from orangecontrib.shadow4.util.shadow4_objects import ShadowData
+from orangecontrib.shadow4.widgets.gui.ow_synchrotron_source import OWSynchrotronSource
 from orangecontrib.shadow4.widgets.gui.plots import plot_data1D
-from orangecontrib.shadow4.util.shadow4_util import TriggerToolsDecorator
 
-class OWBendingMagnet(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
+class OWBendingMagnet(OWSynchrotronSource):
     name = "Bending Magnet"
     description = "Shadow Source: Bending Magnet"
     icon = "icons/bending_magnet.png"
     priority = 3
 
-    class Inputs:
-        trigger     = TriggerToolsDecorator.get_trigger_input()
-        syned_data  = WidgetDecorator.syned_input_data(multi_input=True)
-
-    class Outputs:
-        shadow_data = Output("Shadow Data", ShadowData, id="Shadow Data", default=True, auto_summary=False)
-        trigger     = TriggerToolsDecorator.get_trigger_output()
-
-    number_of_rays = Setting(5000)
-    seed = Setting(5676561)
     magnetic_field         = Setting(-1.26754)
     divergence             = Setting(69e-3)
     emin                   = Setting(1000.0)  # Photon energy scan from energy (in eV)
@@ -91,7 +70,7 @@ class OWBendingMagnet(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
                                                           label="Plot Graphs?",
                                                           labelWidth=220,
                                                           items=["No", "Yes"],
-                                                          callback=self.refresh_specific_bm_plots,
+                                                          callback=self.refresh_specific_plots,
                                                           sendSelectedValue=False,
                                                           orientation="horizontal")
 
@@ -118,8 +97,7 @@ class OWBendingMagnet(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
 
         self.bm_tabs.setCurrentIndex(current_tab)
 
-    def refresh_specific_bm_plots(self, lightsource=None, e=None, f=None, w=None):
-
+    def refresh_specific_plots(self):
         if self.plot_bm_graph == 0:
             for bm_plot_slot_index in range(6):
                 current_item = self.bm_tab[bm_plot_slot_index].layout().itemAt(0)
@@ -127,164 +105,64 @@ class OWBendingMagnet(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
                 plot_widget_id = oasysgui.QLabel() # TODO: is there a better way to clean this??????????????????????
                 self.bm_tab[bm_plot_slot_index].layout().addWidget(plot_widget_id)
         else:
+            if self.light_source is None: return
 
-            if lightsource is None: return
+            e, f, w = self.light_source.calculate_spectrum()
 
-            self.plot_widget_item(e,f,0,
+            self.plot_widget_item(e, f, 0,
                                   title="BM spectrum (current = %5.1f)"%self.ring_current,
                                   xtitle="Photon energy [eV]",ytitle=r"Photons/s/0.1%bw")
 
-            self.plot_widget_item(e,w,1,
+            self.plot_widget_item(e, w, 1,
                                   title="BM spectrum (current = %5.1f)"%self.ring_current,
                                   xtitle="Photon energy [eV]",ytitle="Spectral power [W/eV]")
 
     def plot_widget_item(self,x,y,bm_plot_slot_index,title="",xtitle="",ytitle=""):
-
         self.bm_tab[bm_plot_slot_index].layout().removeItem(self.bm_tab[bm_plot_slot_index].layout().itemAt(0))
         plot_widget_id = plot_data1D(x.copy(),y.copy(),title=title,xtitle=xtitle,ytitle=ytitle,symbol='.')
         self.bm_tab[bm_plot_slot_index].layout().addWidget(plot_widget_id)
 
-    def checkFields(self):
-        self.number_of_rays = congruence.checkPositiveNumber(self.number_of_rays, "Number of rays")
-        self.seed = congruence.checkPositiveNumber(self.seed, "Seed")
+    def check_magnetic_structure(self):
+        congruence.checkNumber(self.magnetic_field, "Magnetic Field")
+        congruence.checkStrictlyPositiveNumber(self.divergence, "Divergence")
 
-    def get_lightsource(self):
-        # syned electron beam
-        electron_beam = self.get_electron_beam()
+    def build_light_source(self, electron_beam, flag_emittance):
+        magnetic_radius = numpy.abs(S4BendingMagnet.calculate_magnetic_radius(self.magnetic_field, electron_beam.energy()))
+        length          = numpy.abs(self.divergence * magnetic_radius)
 
-        if not electron_beam is None: # None if user canceled operation
-            print("\n\n***** electron_beam info: ", electron_beam.info())
+        print(">>> calculated magnetic_radius = S4BendingMagnet.calculate_magnetic_radius(%f, %f) = %f" %\
+              (self.magnetic_field, electron_beam.energy(), magnetic_radius))
 
-            if self.type_of_properties == 3:
-                flag_emittance = 0
-            else:
-                flag_emittance = 1
+        print(">>> calculated BM length = divergence * magnetic_radius = %f " % length)
 
-            magnetic_radius = numpy.abs(S4BendingMagnet.calculate_magnetic_radius(self.magnetic_field, electron_beam.energy()))
-            length = numpy.abs(self.divergence * magnetic_radius)
+        bm = S4BendingMagnet(magnetic_radius,
+                             self.magnetic_field,
+                             length,
+                             emin=self.emin,  # Photon energy scan from energy (in eV)
+                             emax=self.emax,  # Photon energy scan to energy (in eV)
+                             ng_e=self.ng_e,  # Photon energy scan number of points
+                             flag_emittance=flag_emittance,  # when sampling rays: Use emittance (0=No, 1=Yes)
+                             )
 
-            print(">>> calculated magnetic_radius = S4BendingMagnet.calculate_magnetic_radius(%f, %f) = %f" %\
-                  (self.magnetic_field, electron_beam.energy(), magnetic_radius))
+        print("\n\n***** BM info: ", bm.info())
 
-            print(">>> calculated BM length = divergence * magnetic_radius = %f " % length)
+        # S4UndulatorLightSource
+        try:    name = self.getNode().title
+        except: name = "Bending Magnet"
 
-            bm = S4BendingMagnet(magnetic_radius,
-                                 self.magnetic_field,
-                                 length,
-                                 emin=self.emin,  # Photon energy scan from energy (in eV)
-                                 emax=self.emax,  # Photon energy scan to energy (in eV)
-                                 ng_e=self.ng_e,  # Photon energy scan number of points
-                                 flag_emittance=flag_emittance,  # when sampling rays: Use emittance (0=No, 1=Yes)
-                                 )
+        light_source = S4BendingMagnetLightSource(name=name,
+                                                  electron_beam=electron_beam,
+                                                  magnetic_structure=bm,
+                                                  nrays=self.number_of_rays,
+                                                  seed=self.seed)
 
-            print("\n\n***** BM info: ", bm.info())
+        print("\n\n***** S4BendingMagnetLightSource info: ", light_source.info())
 
-            # S4UndulatorLightSource
-            try:    name = self.getNode().title
-            except: name = "Bending Magnet"
+        return light_source
 
-            lightsource = S4BendingMagnetLightSource(name=name,
-                                                 electron_beam=electron_beam,
-                                                 magnetic_structure=bm,
-                                                 nrays=self.number_of_rays,
-                                                 seed=self.seed)
-
-            print("\n\n***** S4BendingMagnetLightSource info: ", lightsource.info())
-
-            return lightsource
-        else:
-            return None
-
-    @Inputs.trigger
-    def set_trigger_parameters_for_sources(self, trigger):
-        super(OWBendingMagnet, self).set_trigger_parameters_for_sources(trigger)
-
-    @Inputs.syned_data
-    def set_syned_data(self, index, syned_data):
-        self.receive_syned_data(syned_data)
-
-    @Inputs.syned_data.insert
-    def insert_syned_data(self, index, syned_data):
-        self.receive_syned_data(syned_data)
-
-    @Inputs.syned_data.remove
-    def remove_syned_data(self, index):
-        pass
-
-    def run_shadow4(self):
-        try:
-            light_source = self.get_lightsource()
-
-            if not light_source is None: # None if user has canceled the operation
-                set_verbose()
-                self.shadow_output.setText("")
-                sys.stdout = EmittingStream(textWritten=self._write_stdout)
-
-                self._set_plot_quality()
-                self.progressBarInit()
-
-                #
-                # script
-                #
-                script = light_source.to_python_code()
-                script += "\n\n# test plot\nfrom srxraylib.plot.gol import plot_scatter"
-                script += "\nrays = beam.get_rays()"
-                script += "\nplot_scatter(1e6 * rays[:, 0], 1e6 * rays[:, 2], title='(X,Z) in microns')"
-                self.shadow4_script.set_code(script)
-
-                self.progressBarSet(5)
-
-                # run shadow4
-                t00 = time.time()
-                print("***** starting calculation...")
-                output_beam = light_source.get_beam()
-                photon_energy, flux, spectral_power = light_source.calculate_spectrum()
-                t11 = time.time() - t00
-                print("***** time for %d rays: %f s, %f min, " % (self.number_of_rays, t11, t11 / 60))
-
-                #
-                # beam plots
-                #
-                self._plot_results(output_beam, None, progressBarValue=80)
-                self.refresh_specific_bm_plots(light_source, photon_energy, flux, spectral_power)
-
-                self.progressBarFinished()
-
-                #
-                # send beam and trigger
-                #
-                self.Outputs.shadow_data.send(ShadowData(beam=output_beam,
-                                                        number_of_rays=self.number_of_rays,
-                                                        beamline=S4Beamline(light_source=light_source)))
-                self.Outputs.trigger.send(TriggerIn(new_object=True))
-        except Exception as exception:
-            try:    self._initialize_tabs()
-            except: pass
-            self.prompt_exception(exception)
-
-    def receive_syned_data(self, data):
-        if data is not None:
-            if isinstance(data, Beamline):
-                if data.get_light_source() is not None:
-                    light_source = data.get_light_source()
-                    # electron parameters
-                    if light_source.get_electron_beam() is not None:
-                        self.populate_fields_from_electron_beam(light_source.get_electron_beam())
-
-                    if isinstance(data.get_light_source().get_magnetic_structure(), BendingMagnet):
-                        magnetic_structure: BendingMagnet = data.get_light_source().get_magnetic_structure()
-
-                        self.magnetic_field = magnetic_structure.magnetic_field()
-                        self.divergence     = magnetic_structure.horizontal_divergence()
-
-                        self.type_of_properties = 2 if self.check_dispersion_presence() else 1
-                        self.set_TypeOfProperties()
-                    else:
-                        self.type_of_properties = 0 # if not ID defined, use electron moments instead of sigmas
-                        self.set_TypeOfProperties()
-                else:
-                    raise ValueError("Syned data not correct: light source not present")
-            else:
-                raise ValueError("Syned data not correct: it must be Beamline()")
+    def populate_fields_from_magnetic_structure(self, magnetic_structure, electron_beam):
+        if isinstance(magnetic_structure, BendingMagnet):
+            self.magnetic_field = magnetic_structure.magnetic_field()
+            self.divergence     = magnetic_structure.horizontal_divergence()
 
 add_widget_parameters_to_module(__name__)

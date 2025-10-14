@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QPalette, QColor, QFont
+from PyQt5.QtWidgets import QMessageBox
 
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -13,9 +13,6 @@ from orangecontrib.shadow4.widgets.gui.ow_generic_element import GenericElement
 from shadow4.sources.s4_electron_beam import S4ElectronBeam
 
 class OWElectronBeam(GenericElement):
-
-    syned_file_name = Setting("Select *.json file")
-
     electron_energy_in_GeV = Setting(1.9)
     electron_energy_spread = Setting(0.000)
     ring_current           = Setting(0.4)
@@ -56,24 +53,10 @@ class OWElectronBeam(GenericElement):
         button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
 
         button = gui.button(button_box, self, "Run shadow4/source", callback=self.run_shadow4)
-        font = QFont(button.font())
-        font.setBold(True)
-        button.setFont(font)
-        palette = QPalette(button.palette()) # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Blue'))
-        button.setPalette(palette) # assign new palette
-        button.setFixedHeight(45)
+        button.setStyleSheet("color: darkblue; font-weight: bold; height: 45px;")
 
         button = gui.button(button_box, self, "Reset Fields", callback=self.call_reset_settings)
-        font = QFont(button.font())
-        font.setItalic(True)
-        button.setFont(font)
-        palette = QPalette(button.palette()) # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Red'))
-        button.setPalette(palette) # assign new palette
-        button.setFixedHeight(45)
-        button.setFixedWidth(150)
-
+        button.setStyleSheet("color: darkred; font-weight: bold; font-style: italic; height: 45px; width: 150px;")
 
         self.tabs_control_area = oasysgui.tabWidget(self.controlArea)
         self.tabs_control_area.setFixedHeight(self.TABS_AREA_HEIGHT)
@@ -102,38 +85,41 @@ class OWElectronBeam(GenericElement):
                      callback=self.set_TypeOfProperties,
                      sendSelectedValue=False, orientation="horizontal")
 
-        self.left_box_2_1 = oasysgui.widgetBox(self.electron_beam_box, "", addSpace=False, orientation="vertical", height=150)
+        self.left_box_2_1 = oasysgui.widgetBox(self.electron_beam_box, "", addSpace=False, orientation="vertical", height=190)
 
-        oasysgui.lineEdit(self.left_box_2_1, self, "moment_xx",   "<x x>   [m^2]",   tooltip="moment_xx",   labelWidth=160, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.left_box_2_1, self, "moment_xxp",  "<x x'>  [m.rad]", tooltip="moment_xxp",  labelWidth=160, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.left_box_2_1, self, "moment_xpxp", "<x' x'> [rad^2]", tooltip="moment_xpxp", labelWidth=160, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.left_box_2_1, self, "moment_yy",   "<y y>   [m^2]",   tooltip="moment_yy",   labelWidth=160, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.left_box_2_1, self, "moment_yyp",  "<y y'>  [m.rad]", tooltip="moment_yyp",  labelWidth=160, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.left_box_2_1, self, "moment_ypyp", "<y' y'> [rad^2]", tooltip="moment_ypyp", labelWidth=160, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.left_box_2_1, self, "moment_xx",   "<x x>   [m^2]",   tooltip="moment_xx",   labelWidth=160, valueType=float, orientation="horizontal", callback=self._electron_beam_modified)
+        oasysgui.lineEdit(self.left_box_2_1, self, "moment_xxp",  "<x x'>  [m.rad]", tooltip="moment_xxp",  labelWidth=160, valueType=float, orientation="horizontal", callback=self._electron_beam_modified)
+        oasysgui.lineEdit(self.left_box_2_1, self, "moment_xpxp", "<x' x'> [rad^2]", tooltip="moment_xpxp", labelWidth=160, valueType=float, orientation="horizontal", callback=self._electron_beam_modified)
+        oasysgui.lineEdit(self.left_box_2_1, self, "moment_yy",   "<y y>   [m^2]",   tooltip="moment_yy",   labelWidth=160, valueType=float, orientation="horizontal", callback=self._electron_beam_modified)
+        oasysgui.lineEdit(self.left_box_2_1, self, "moment_yyp",  "<y y'>  [m.rad]", tooltip="moment_yyp",  labelWidth=160, valueType=float, orientation="horizontal", callback=self._electron_beam_modified)
+        oasysgui.lineEdit(self.left_box_2_1, self, "moment_ypyp", "<y' y'> [rad^2]", tooltip="moment_ypyp", labelWidth=160, valueType=float, orientation="horizontal", callback=self._electron_beam_modified)
+        lbl = oasysgui.widgetLabel(self.left_box_2_1, "Note: 2nd Moments do not include dispersion")
+        lbl.setStyleSheet("color: darkblue; font-weight: bold;")
 
+        self.left_box_2_2 = oasysgui.widgetBox(self.electron_beam_box, "", addSpace=False, orientation="vertical", height=190)
 
-        self.left_box_2_2 = oasysgui.widgetBox(self.electron_beam_box, "", addSpace=False, orientation="vertical", height=150)
+        oasysgui.lineEdit(self.left_box_2_2, self, "electron_beam_size_h",       "Horizontal Beam Size \u03c3x [m]",          tooltip="electron_beam_size_h",       labelWidth=260, valueType=float, orientation="horizontal", callback=self._electron_beam_modified)
+        oasysgui.lineEdit(self.left_box_2_2, self, "electron_beam_size_v",       "Vertical Beam Size \u03c3y [m]",            tooltip="electron_beam_size_v",       labelWidth=260, valueType=float, orientation="horizontal", callback=self._electron_beam_modified)
+        oasysgui.lineEdit(self.left_box_2_2, self, "electron_beam_divergence_h", "Horizontal Beam Divergence \u03c3'x [rad]", tooltip="electron_beam_divergence_h", labelWidth=260, valueType=float, orientation="horizontal", callback=self._electron_beam_modified)
+        oasysgui.lineEdit(self.left_box_2_2, self, "electron_beam_divergence_v", "Vertical Beam Divergence \u03c3'y [rad]",   tooltip="electron_beam_divergence_v", labelWidth=260, valueType=float, orientation="horizontal", callback=self._electron_beam_modified)
+        lbl = oasysgui.widgetLabel(self.left_box_2_2, "Note: Size/Divergence do not include dispersion")
+        lbl.setStyleSheet("color: darkblue; font-weight: bold;")
 
-        oasysgui.lineEdit(self.left_box_2_2, self, "electron_beam_size_h",       "Horizontal Beam Size \u03c3x [m]",          tooltip="electron_beam_size_h", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.left_box_2_2, self, "electron_beam_size_v",       "Vertical Beam Size \u03c3y [m]",            tooltip="electron_beam_size_v",  labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.left_box_2_2, self, "electron_beam_divergence_h", "Horizontal Beam Divergence \u03c3'x [rad]", tooltip="electron_beam_divergence_h", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.left_box_2_2, self, "electron_beam_divergence_v", "Vertical Beam Divergence \u03c3'y [rad]",   tooltip="electron_beam_divergence_v", labelWidth=260, valueType=float, orientation="horizontal")
-
-        self.left_box_2_3 = oasysgui.widgetBox(self.electron_beam_box, "", addSpace=False, orientation="horizontal",height=150)
+        self.left_box_2_3 = oasysgui.widgetBox(self.electron_beam_box, "", addSpace=False, orientation="horizontal",height=190)
         self.left_box_2_3_l = oasysgui.widgetBox(self.left_box_2_3, "", addSpace=False, orientation="vertical")
         self.left_box_2_3_r = oasysgui.widgetBox(self.left_box_2_3, "", addSpace=False, orientation="vertical")
-        oasysgui.lineEdit(self.left_box_2_3_l, self, "electron_beam_emittance_h", "\u03B5x [m.rad]",tooltip="electron_beam_emittance_h",labelWidth=75, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.left_box_2_3_l, self, "electron_beam_alpha_h",     "\u03B1x",        tooltip="electron_beam_alpha_h",    labelWidth=75, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.left_box_2_3_l, self, "electron_beam_beta_h",      "\u03B2x [m]",    tooltip="electron_beam_beta_h",     labelWidth=75, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.left_box_2_3_l, self, "electron_beam_eta_h",       "\u03B7x",        tooltip="electron_beam_eta_h",      labelWidth=75, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.left_box_2_3_l, self, "electron_beam_etap_h",      "\u03B7'x",       tooltip="electron_beam_etap_h",     labelWidth=75, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.left_box_2_3_l, self, "electron_beam_emittance_h", "\u03B5x [m.rad]",tooltip="electron_beam_emittance_h",labelWidth=75, valueType=float, orientation="horizontal", callback=self._electron_beam_modified)
+        oasysgui.lineEdit(self.left_box_2_3_l, self, "electron_beam_alpha_h",     "\u03B1x",        tooltip="electron_beam_alpha_h",    labelWidth=75, valueType=float, orientation="horizontal", callback=self._electron_beam_modified)
+        oasysgui.lineEdit(self.left_box_2_3_l, self, "electron_beam_beta_h",      "\u03B2x [m]",    tooltip="electron_beam_beta_h",     labelWidth=75, valueType=float, orientation="horizontal", callback=self._electron_beam_modified)
+        oasysgui.lineEdit(self.left_box_2_3_l, self, "electron_beam_eta_h",       "\u03B7x",        tooltip="electron_beam_eta_h",      labelWidth=75, valueType=float, orientation="horizontal", callback=self._electron_beam_modified)
+        oasysgui.lineEdit(self.left_box_2_3_l, self, "electron_beam_etap_h",      "\u03B7'x",       tooltip="electron_beam_etap_h",     labelWidth=75, valueType=float, orientation="horizontal", callback=self._electron_beam_modified)
+        oasysgui.lineEdit(self.left_box_2_3_r, self, "electron_beam_emittance_v", "\u03B5y [m.rad]",tooltip="electron_beam_emittance_v",labelWidth=75, valueType=float, orientation="horizontal", callback=self._electron_beam_modified)
+        oasysgui.lineEdit(self.left_box_2_3_r, self, "electron_beam_alpha_v",     "\u03B1y",        tooltip="electron_beam_alpha_v",    labelWidth=75, valueType=float, orientation="horizontal", callback=self._electron_beam_modified)
+        oasysgui.lineEdit(self.left_box_2_3_r, self, "electron_beam_beta_v",      "\u03B2y [m]",    tooltip="electron_beam_beta_v",     labelWidth=75, valueType=float, orientation="horizontal", callback=self._electron_beam_modified)
+        oasysgui.lineEdit(self.left_box_2_3_r, self, "electron_beam_eta_v",       "\u03B7y",        tooltip="electron_beam_eta_v",      labelWidth=75, valueType=float, orientation="horizontal", callback=self._electron_beam_modified)
+        oasysgui.lineEdit(self.left_box_2_3_r, self, "electron_beam_etap_v",      "\u03B7'y",       tooltip="electron_beam_etap_v",     labelWidth=75, valueType=float, orientation="horizontal", callback=self._electron_beam_modified)
 
-
-        oasysgui.lineEdit(self.left_box_2_3_r, self, "electron_beam_emittance_v", "\u03B5y [m.rad]",tooltip="electron_beam_emittance_v",labelWidth=75, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.left_box_2_3_r, self, "electron_beam_alpha_v",     "\u03B1y",        tooltip="electron_beam_alpha_v",    labelWidth=75,valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.left_box_2_3_r, self, "electron_beam_beta_v",      "\u03B2y [m]",    tooltip="electron_beam_beta_v",     labelWidth=75, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.left_box_2_3_r, self, "electron_beam_eta_v",       "\u03B7y",        tooltip="electron_beam_eta_v",      labelWidth=75, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.left_box_2_3_r, self, "electron_beam_etap_v",      "\u03B7'y",       tooltip="electron_beam_etap_v",     labelWidth=75, valueType=float, orientation="horizontal")
+        self.left_box_2_4   = oasysgui.widgetBox(self.electron_beam_box, "", addSpace=False, orientation="horizontal",height=190)
 
         self.set_TypeOfProperties()
 
@@ -143,27 +129,24 @@ class OWElectronBeam(GenericElement):
         self.left_box_2_1.setVisible(self.type_of_properties == 0)
         self.left_box_2_2.setVisible(self.type_of_properties == 1)
         self.left_box_2_3.setVisible(self.type_of_properties == 2)
+        self.left_box_2_4.setVisible(self.type_of_properties == 3)
         self.box_energy_spread.setVisible(self.flag_energy_spread == 1)
-        self.set_visibility_energy_spread()
 
-    def set_visibility_energy_spread(self): # to be filled in the upper class
-        pass
-
-    def check_data(self):
-        congruence.checkStrictlyPositiveNumber(self.electron_energy_in_GeV , "Energy")
-        congruence.checkStrictlyPositiveNumber(self.electron_energy_spread, "Energy Spread")
+    def check_electron_beam(self):
+        congruence.checkStrictlyPositiveNumber(self.electron_energy_in_GeV, "Energy")
+        if self.flag_energy_spread == 1: congruence.checkStrictlyPositiveNumber(self.electron_energy_spread, "Energy Spread")
         congruence.checkStrictlyPositiveNumber(self.ring_current, "Ring Current")
 
         if self.type_of_properties == 0:
-            congruence.checkPositiveNumber(self.moment_xx   , "Moment xx")
-            congruence.checkPositiveNumber(self.moment_xpxp , "Moment xpxp")
-            congruence.checkPositiveNumber(self.moment_yy   , "Moment yy")
-            congruence.checkPositiveNumber(self.moment_ypyp , "Moment ypyp")
+            congruence.checkPositiveNumber(self.moment_xx, "Moment xx")
+            congruence.checkPositiveNumber(self.moment_xpxp, "Moment xpxp")
+            congruence.checkPositiveNumber(self.moment_yy, "Moment yy")
+            congruence.checkPositiveNumber(self.moment_ypyp, "Moment ypyp")
         elif self.type_of_properties == 1:
-            congruence.checkPositiveNumber(self.electron_beam_size_h       , "Horizontal Beam Size")
-            congruence.checkPositiveNumber(self.electron_beam_divergence_h , "Horizontal Beam Divergence")
-            congruence.checkPositiveNumber(self.electron_beam_size_v       , "Vertical Beam Size")
-            congruence.checkPositiveNumber(self.electron_beam_divergence_v , "Vertical Beam Divergence")
+            congruence.checkPositiveNumber(self.electron_beam_size_h, "Horizontal Beam Size")
+            congruence.checkPositiveNumber(self.electron_beam_divergence_h, "Horizontal Beam Divergence")
+            congruence.checkPositiveNumber(self.electron_beam_size_v, "Vertical Beam Size")
+            congruence.checkPositiveNumber(self.electron_beam_divergence_v, "Vertical Beam Divergence")
         elif self.type_of_properties == 2:
             congruence.checkPositiveNumber(self.electron_beam_emittance_h, "Horizontal Beam Emittance")
             congruence.checkPositiveNumber(self.electron_beam_emittance_v, "Vertical Beam Emittance")
@@ -176,13 +159,8 @@ class OWElectronBeam(GenericElement):
             congruence.checkNumber(self.electron_beam_etap_h, "Horizontal Beam Dispersion Eta'")
             congruence.checkNumber(self.electron_beam_etap_v, "Vertical Beam Dispersion Eta'")
 
-        self.check_magnetic_structure()
 
-
-    def run_shadow4(self):
-        raise Exception("To be defined in the superclass")
-
-    def check_dispersion_presence(self):
+    def _check_dispersion_presence(self):
         return self.electron_beam_eta_h != 0.0 or \
                self.electron_beam_eta_v != 0.0 or \
                self.electron_beam_etap_h != 0.0 or \
@@ -219,14 +197,7 @@ class OWElectronBeam(GenericElement):
         elif self.type_of_properties == 3:
             electron_beam.set_moments_all(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
-        proceed = True
-        if self.type_of_properties in [0, 1] and self.check_dispersion_presence():
-            if not ConfirmDialog.confirmed(parent=self, message="Dispersion parameters \u03B7, \u03B7' will be reset to zero, proceed?"):
-                proceed = False
-                self.type_of_properties = 2
-                self.set_TypeOfProperties()
-
-        if proceed: # modify input form with the results of the calculations
+        if self._check_dispersion_reset(): # modify input form with the results of the calculations
             self.populate_fields_from_electron_beam(electron_beam)
 
             return electron_beam
@@ -271,3 +242,20 @@ class OWElectronBeam(GenericElement):
         self.electron_beam_etap_h       = round(etap_x, 8)
         self.electron_beam_etap_v       = round(etap_y, 8)
 
+    def _check_dispersion_reset(self):
+        proceed = True
+        if self.type_of_properties in [0, 1, 3] and self._check_dispersion_presence():
+            if not ConfirmDialog.confirmed(parent=self, message="Dispersion parameters \u03B7, \u03B7' will be reset to zero, proceed?"):
+                proceed = False
+                self.type_of_properties = 2
+                self.set_TypeOfProperties()
+        return proceed
+
+    def _electron_beam_modified(self):
+        try:
+            self.check_electron_beam()
+            if self._check_dispersion_reset():
+                self.populate_fields_from_electron_beam(self.get_electron_beam())
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e.args[0]), QMessageBox.Ok)
+            if self.IS_DEVELOP: raise e

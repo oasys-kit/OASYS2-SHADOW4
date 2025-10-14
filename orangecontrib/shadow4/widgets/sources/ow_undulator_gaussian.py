@@ -1,50 +1,29 @@
-import sys
-import time
 import numpy
 
 from orangewidget.settings import Setting
-from orangewidget.widget import Output
 from orangewidget import gui as orangegui
 
 from oasys2.widget import gui as oasysgui
 from oasys2.widget.util import congruence
-from oasys2.widget.util.widget_util import EmittingStream
 from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
-from oasys2.widget.util.widget_objects import TriggerIn
 
-from syned.beamline.beamline import Beamline
 from syned.storage_ring.magnetic_structures.undulator import Undulator
-from syned.widget.widget_decorator import WidgetDecorator
 
-from shadow4.beamline.s4_beamline import S4Beamline
 from shadow4.sources.undulator.s4_undulator_gaussian import S4UndulatorGaussian
 from shadow4.sources.undulator.s4_undulator_gaussian_light_source import S4UndulatorGaussianLightSource
-from shadow4.tools.logger import set_verbose
 
-from orangecontrib.shadow4.widgets.gui.ow_electron_beam import OWElectronBeam
-from orangecontrib.shadow4.util.shadow4_objects import ShadowData
+from orangecontrib.shadow4.widgets.gui.ow_synchrotron_source import OWSynchrotronSource
 from orangecontrib.shadow4.widgets.gui.plots import plot_data1D, plot_multi_data1D
-from orangecontrib.shadow4.util.shadow4_util import TriggerToolsDecorator
 
-class OWUndulatorGaussian(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator):
+class OWUndulatorGaussian(OWSynchrotronSource):
     name = "Undulator Gaussian"
     description = "Shadow Source: Undulator Gaussian"
     icon = "icons/ugaussian.png"
     priority = 5
 
-    class Inputs:
-        trigger     = TriggerToolsDecorator.get_trigger_input()
-        syned_data  = WidgetDecorator.syned_input_data(multi_input=True)
-
-    class Outputs:
-        shadow_data = Output("Shadow Data", ShadowData, id="Shadow Data", default=True, auto_summary=False)
-        trigger     = TriggerToolsDecorator.get_trigger_output()
-
     undulator_length = Setting(4.0)
-    energy = Setting(15000.0)
-    delta_e = Setting(0)
-    number_of_rays = Setting(5000)
-    seed = Setting(5676561)
+    energy           = Setting(15000.0)
+    delta_e          = Setting(0)
 
     plot_undulator_graph = Setting(1)
 
@@ -58,8 +37,6 @@ class OWUndulatorGaussian(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator
     plot_Kmin = Setting(0.2)
     plot_Kmax = Setting(2.0)
     plot_max_harmonic_number = Setting(11)
-
-    lightsource = None # store lightsource after calculation
 
     def __init__(self):
         super().__init__(show_energy_spread=True)
@@ -120,19 +97,19 @@ class OWUndulatorGaussian(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator
 
         orangegui.rubber(self.controlArea)
         orangegui.rubber(self.mainArea)
-
+    
+    def set_TypeOfProperties(self):
+        super(OWUndulatorGaussian, self).set_TypeOfProperties()
+        self.set_visibility_energy_spread()
+    
     def set_visibility_energy_spread(self): # to be filled in the upper class
-        try: # avoid error when calling this method from the base class
-            self.box_energy_spread_local.setVisible(self.flag_energy_spread == 1)
-        except:
-            pass
+        self.box_energy_spread_local.setVisible(self.flag_energy_spread == 1)
 
     def set_visibility(self):
         self.box_flux_central_cone.setVisible(self.flag_autoset_flux_central_cone == 0)
         self.set_visibility_energy_spread()
 
     def add_specific_undulator_plots(self):
-
         undulator_plot_tab = oasysgui.widgetBox(self.main_tabs, addToLayout=0, margin=4)
 
         self.main_tabs.insertTab(1, undulator_plot_tab, "Undulator Plots")
@@ -145,7 +122,7 @@ class OWUndulatorGaussian(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator
                                                           label="Plot Graphs?",
                                                           labelWidth=220,
                                                           items=["No", "Yes"],
-                                                          callback=self.refresh_specific_undulator_plots,
+                                                          callback=self.refresh_specific_plots,
                                                           sendSelectedValue=False,
                                                           orientation="horizontal")
 
@@ -184,8 +161,8 @@ class OWUndulatorGaussian(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator
         plot_widget_id = plot_multi_data1D(x, y, title=title, xtitle=xtitle, ytitle=ytitle, ytitles=ytitles, flag_common_abscissas=0) #, symbol=symbol)
         self.undulator_tab[undulator_plot_slot_index].layout().addWidget(plot_widget_id)
 
-    def refresh_specific_undulator_plots(self):
-        if self.lightsource is None: return
+    def refresh_specific_plots(self):
+        if self.light_source is None: return
 
         if self.plot_undulator_graph == 0:
             for undulator_plot_slot_index in range(len(self.undulator_plot_canvas)):
@@ -195,7 +172,7 @@ class OWUndulatorGaussian(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator
                 self.undulator_tab[undulator_plot_slot_index].layout().addWidget(plot_widget_id)
         else:
             # spectra
-            e, f, w = self.lightsource.calculate_spectrum()
+            e, f, w = self.light_source.calculate_spectrum()
             self.plot_undulator_item1D(0, e, f,
                                   title="Undulator spectrum", xtitle="Photon energy [eV]", ytitle=r"Photons/s/0.1%bw")
 
@@ -205,7 +182,7 @@ class OWUndulatorGaussian(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator
 
             # size and divergence
             Energies, SizeH, SizeV, DivergenceH, DivergenceV, Labels = \
-            self.lightsource.get_size_and_divergence_vs_photon_energy(self.plot_Kmin, self.plot_Kmax,
+            self.light_source.get_size_and_divergence_vs_photon_energy(self.plot_Kmin, self.plot_Kmax,
                                                                       max_harmonic_number=self.plot_max_harmonic_number)
 
             Energies2 = numpy.concatenate((Energies, Energies))
@@ -221,145 +198,47 @@ class OWUndulatorGaussian(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator
                                   title="Undulator divergence", xtitle="Photon energy [eV]", ytitle=r"Divergence angle (Sigma) [urad]",
                                   ytitles=Labels2)
 
-    def checkFields(self):
-        self.number_of_rays = congruence.checkPositiveNumber(self.number_of_rays, "Number of rays")
-        self.seed = congruence.checkPositiveNumber(self.seed, "Seed")
+    def check_magnetic_structure(self):
         self.energy = congruence.checkPositiveNumber(self.energy, "Energy")
         self.delta_e = congruence.checkPositiveNumber(self.delta_e, "Delta Energy")
         self.undulator_length = congruence.checkPositiveNumber(self.undulator_length, "Undulator Length")
 
-    def get_lightsource(self):
-        # syned electron beam
-        electron_beam = self.get_electron_beam()
 
-        if not electron_beam is None:
-            if self.type_of_properties == 3: flag_emittance = 0
-            else:                            flag_emittance = 1
+    def build_light_source(self, electron_beam, flag_emittance):
+        sourceundulator = S4UndulatorGaussian(
+            period_length=self.period_length,  # syned Undulator parameter
+            number_of_periods=self.undulator_length / self.period_length,  # syned Undulator parameter
+            photon_energy=self.energy,
+            delta_e=self.delta_e,
+            ng_e=self.plot_npoints,  # Photon energy scan number of points
+            flag_emittance=flag_emittance,  # when sampling rays: Use emittance (0=No, 1=Yes)
+            flag_energy_spread=self.flag_energy_spread,
+            harmonic_number=self.harmonic_number,
+            flag_autoset_flux_central_cone=self.flag_autoset_flux_central_cone,
+            flux_central_cone=float(self.flux_central_cone),
+        )
 
-            sourceundulator = S4UndulatorGaussian(
-                period_length=self.period_length,  # syned Undulator parameter
-                number_of_periods=self.undulator_length / self.period_length,  # syned Undulator parameter
-                photon_energy=self.energy,
-                delta_e=self.delta_e,
-                ng_e=self.plot_npoints,  # Photon energy scan number of points
-                flag_emittance=flag_emittance,  # when sampling rays: Use emittance (0=No, 1=Yes)
-                flag_energy_spread=self.flag_energy_spread,
-                harmonic_number=self.harmonic_number,
-                flag_autoset_flux_central_cone=self.flag_autoset_flux_central_cone,
-                flux_central_cone=float(self.flux_central_cone),
-            )
+        # S4UndulatorLightSource
+        try:    name = self.getNode().title
+        except: name = "Undulator gaussian"
 
-            # S4UndulatorLightSource
-            try:    name = self.getNode().title
-            except: name = "Undulator gaussian"
+        lightsource = S4UndulatorGaussianLightSource(name=name,
+                                             electron_beam=electron_beam,
+                                             magnetic_structure=sourceundulator,
+                                             nrays=self.number_of_rays,
+                                             seed=self.seed)
 
-            lightsource = S4UndulatorGaussianLightSource(name=name,
-                                                 electron_beam=electron_beam,
-                                                 magnetic_structure=sourceundulator,
-                                                 nrays=self.number_of_rays,
-                                                 seed=self.seed)
+        print("\n\n***** S4UndulatorLightSource info: ", lightsource.info())
 
-            print("\n\n***** S4UndulatorLightSource info: ", lightsource.info())
+        return lightsource
 
-            return lightsource
-        else:
-            return None
+    def populate_fields_from_magnetic_structure(self, magnetic_structure, electron_beam):
+        if isinstance(magnetic_structure, Undulator):
+            self.energy           = round(magnetic_structure.resonance_energy(electron_beam.gamma()))
+            self.delta_e          = 0.0
+            self.undulator_length = magnetic_structure.length()
+            self.period_length    = magnetic_structure.period_length()
+            self.plot_Kmax        = magnetic_structure.K_vertical()
 
-    @Inputs.trigger
-    def set_trigger_parameters_for_sources(self, trigger):
-        super(OWUndulatorGaussian, self).set_trigger_parameters_for_sources(trigger)
-
-    @Inputs.syned_data
-    def set_syned_data(self, index, syned_data):
-        self.receive_syned_data(syned_data)
-
-    @Inputs.syned_data.insert
-    def insert_syned_data(self, index, syned_data):
-        self.receive_syned_data(syned_data)
-
-    @Inputs.syned_data.remove
-    def remove_syned_data(self, index):
-        pass
-
-    def run_shadow4(self):
-        try:
-            light_source = self.get_lightsource()
-
-            if not light_source is None:  # None if user has canceled the operation
-                set_verbose()
-                self.shadow_output.setText("")
-                sys.stdout = EmittingStream(textWritten=self._write_stdout)
-
-                self._set_plot_quality()
-
-                self.progressBarInit()
-
-                #
-                # script
-                #
-                script = light_source.to_python_code()
-                script += "\n\n# test plot\nfrom srxraylib.plot.gol import plot_scatter"
-                script += "\nrays = beam.get_rays()"
-                script += "\nplot_scatter(1e6 * rays[:, 0], 1e6 * rays[:, 2], title='(X,Z) in microns')"
-                self.shadow4_script.set_code(script)
-                self.progressBarSet(5)
-
-                # run shadow4
-                t00 = time.time()
-                print("***** starting calculation...")
-                output_beam = light_source.get_beam()
-                t11 = time.time() - t00
-                print("***** time for %d rays: %f s, %f min, " % (self.number_of_rays, t11, t11 / 60))
-
-                self.lightsource = light_source
-
-                #
-                # beam plots
-                #
-                self._plot_results(output_beam, None, progressBarValue=80)
-                self.refresh_specific_undulator_plots()
-
-                self.progressBarFinished()
-
-                #
-                # send beam and trigger
-                #
-                self.Outputs.shadow_data.send(ShadowData(beam=output_beam,
-                                                        number_of_rays=self.number_of_rays,
-                                                        beamline=S4Beamline(light_source=light_source)))
-                self.Outputs.trigger.send(TriggerIn(new_object=True))
-        except Exception as exception:
-            try:    self._initialize_tabs()
-            except: pass
-            self.prompt_exception(exception)
-
-    def receive_syned_data(self, data):
-        if data is not None:
-            if isinstance(data, Beamline):
-                if data.get_light_source() is not None:
-                    light_source = data.get_light_source()
-                    # electron parameters
-                    if light_source.get_electron_beam() is not None:
-                        self.populate_fields_from_electron_beam(light_source.get_electron_beam())
-
-                    if isinstance(data.get_light_source().get_magnetic_structure(), Undulator):
-                        light_source = data.get_light_source()
-                        self.energy =  round(light_source.get_magnetic_structure().resonance_energy(light_source.get_electron_beam().gamma()))
-                        self.delta_e = 0.0
-                        self.undulator_length = light_source.get_magnetic_structure().length()
-                        self.period_length = light_source.get_magnetic_structure().period_length()
-                        self.plot_Kmax = light_source.get_magnetic_structure().K_vertical()
-
-                        self.type_of_properties = 2 if self.check_dispersion_presence() else 1
-                        self.set_TypeOfProperties()
-                    else:
-                        self.type_of_properties = 0 # if not ID defined, use electron moments instead of sigmas
-                        self.set_TypeOfProperties()
-                else:
-                    raise ValueError("Syned data not correct: light source not present")
-
-
-            else:
-                raise ValueError("Syned data not correct: it must be Beamline()")
 
 add_widget_parameters_to_module(__name__)
