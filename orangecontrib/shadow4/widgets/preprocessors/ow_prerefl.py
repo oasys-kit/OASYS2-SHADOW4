@@ -1,9 +1,9 @@
 import os, sys
 import numpy
 
-from PyQt5.QtWidgets import QLabel, QMessageBox, QSizePolicy
-from PyQt5.QtGui import QTextCursor, QPixmap
-from PyQt5.QtCore import Qt
+from AnyQt.QtWidgets import QLabel, QMessageBox, QSizePolicy
+from AnyQt.QtGui import QTextCursor, QPixmap
+from AnyQt.QtCore import Qt
 
 from shadow4.physical_models.prerefl.prerefl import PreRefl
 

@@ -4,8 +4,8 @@ from oasys2.widget.widget import OWWidget
 from orangewidget import gui
 from orangewidget.settings import Setting
 
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import QRect
+from AnyQt.QtWidgets import QApplication
+from AnyQt.QtCore import QRect
 
 from oasys2.widget.gui import ConfirmDialog, MessageDialog
 
@@ -21,7 +21,7 @@ class AutomaticElement(OWWidget):
     def __init__(self, show_automatic_box=True):
         super().__init__()
 
-        geom = QApplication.desktop().availableGeometry()
+        geom = QApplication.primaryScreen().geometry()
         self.setGeometry(QRect(round(geom.width()*0.05),
                                round(geom.height()*0.05),
                                round(min(geom.width()*0.98, self.MAX_WIDTH)),

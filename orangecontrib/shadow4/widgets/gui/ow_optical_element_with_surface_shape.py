@@ -1,7 +1,7 @@
 import numpy
 import os
 
-from PyQt5.QtWidgets import QDialog, QGridLayout, QWidget
+from AnyQt.QtWidgets import QDialog, QGridLayout, QWidget
 
 from matplotlib import cm
 from oasys2.widget.gui import FigureCanvas3D
@@ -853,7 +853,7 @@ class ShowImageErrorDataFileDialog(QDialog):
 
 if __name__ == "__main__":
     import sys
-    from PyQt5.QtWidgets import QApplication
+    from AnyQt.QtWidgets import QApplication
     app = QApplication(sys.argv)
     dialog1 = ShowImageErrorDataFileDialog(file_name="/home/srio/Oasys/conic.h5")
     dialog2 = ShowSurfaceErrorDataFileDialog(file_name="/home/srio/Oasys/conic.h5")

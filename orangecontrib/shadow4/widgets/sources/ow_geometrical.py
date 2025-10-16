@@ -2,8 +2,6 @@ import sys
 import time
 import numpy
 
-from PyQt5.QtGui import QPalette, QColor, QFont
-
 from orangewidget import gui
 from orangewidget.settings import Setting
 from orangewidget.widget import Output
@@ -138,23 +136,11 @@ class OWGeometrical(GenericElement, TriggerToolsDecorator):
         button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
 
         button = gui.button(button_box, self, "Run shadow4/source", callback=self.run_shadow4)
-        font = QFont(button.font())
-        font.setBold(True)
-        button.setFont(font)
-        palette = QPalette(button.palette()) # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Blue'))
-        button.setPalette(palette) # assign new palette
-        button.setFixedHeight(45)
+        button.setStyleSheet("color: darkblue; font-weight: bold; height: 45px;")
 
         button = gui.button(button_box, self, "Reset Fields", callback=self.call_reset_settings)
-        font = QFont(button.font())
-        font.setItalic(True)
-        button.setFont(font)
-        palette = QPalette(button.palette()) # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Red'))
-        button.setPalette(palette) # assign new palette
-        button.setFixedHeight(45)
-        button.setFixedWidth(150)
+        button.setStyleSheet("color: darkred; font-weight: bold; font-style: italic; height: 45px; width: 150px;")
+
 
         ################################################################################################################
         self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)

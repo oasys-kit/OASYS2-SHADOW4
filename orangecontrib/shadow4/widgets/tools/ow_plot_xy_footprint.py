@@ -18,7 +18,7 @@ class PlotXYFootprint(_PlotXY):
 add_widget_parameters_to_module(__name__)
 
 '''if __name__ == "__main__":
-    from PyQt5.QtWidgets import QApplication, QMessageBox
+    from AnyQt.QtWidgets import QApplication, QMessageBox
 
 
     def get_beamline():

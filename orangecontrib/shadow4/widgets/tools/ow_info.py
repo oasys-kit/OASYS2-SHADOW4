@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtGui import QTextCursor
-from PyQt5.QtCore import QRect
+from AnyQt.QtWidgets import QApplication
+from AnyQt.QtGui import QTextCursor
+from AnyQt.QtCore import QRect
 
 from orangewidget import gui
 from orangewidget.widget import Input
@@ -40,7 +40,7 @@ class OWInfo(OWWidget):
     def __init__(self):
         super().__init__()
 
-        geom = QApplication.desktop().availableGeometry()
+        geom = QApplication.primaryScreen().geometry()
 
         window_width  = round(min(geom.width()*0.98, self.WIDGET_WIDTH))
         window_height = round(min(geom.height() * 0.95, self.WIDGET_HEIGHT))
@@ -401,9 +401,9 @@ add_widget_parameters_to_module(__name__)
         #              title='(Intensity,Photon Energy)', plot_histograms=0)
         plot_scatter(1e6 * beam.get_column(1, nolost=1), 1e6 * beam.get_column(3, nolost=1), title='(X,Z) in microns')
 
-    from PyQt5.QtWidgets import QApplication
+    from AnyQt.QtWidgets import QApplication
     a = QApplication(sys.argv)
     ow = OWInfo()
     ow.set_shadow_data(ShadowData(beam=beam, footprint=footprint, number_of_rays=0, beamline=beamline))
     ow.show()
-    a.exec_()'''
+    a.exec()'''

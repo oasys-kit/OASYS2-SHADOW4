@@ -1,6 +1,6 @@
 import numpy
 
-from PyQt5.QtWidgets import QDialog, QGridLayout, QWidget, QDialogButtonBox, QFileDialog
+from AnyQt.QtWidgets import QDialog, QGridLayout, QWidget, QDialogButtonBox, QFileDialog
 
 from matplotlib import cm
 from oasys2.widget.gui import FigureCanvas3D, MessageDialog
@@ -347,7 +347,7 @@ class ShowSurfaceShapeDialog(QDialog):
 
 if __name__ == "__main__":
     import sys
-    from PyQt5.QtWidgets import QApplication
+    from AnyQt.QtWidgets import QApplication
     app = QApplication(sys.argv)
     dialog = ShowSurfaceShapeDialog(ccc=[1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,-764,0.0], is_torus=0)
     # dialog = ShowSurfaceShapeDialog(is_torus=1, torus_major_radius=7499.954, torus_minor_radius = 0.046, f_torus=0,

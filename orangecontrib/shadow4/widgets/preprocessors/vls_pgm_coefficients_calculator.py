@@ -1,8 +1,8 @@
 import os, sys, numpy
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QLabel, QApplication, QMessageBox, QSizePolicy
-from PyQt5.QtGui import QTextCursor, QPixmap
+from AnyQt.QtCore import Qt
+from AnyQt.QtWidgets import QLabel, QApplication, QMessageBox, QSizePolicy
+from AnyQt.QtGui import QTextCursor, QPixmap
 
 import orangecanvas.resources as resources
 

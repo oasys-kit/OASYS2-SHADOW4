@@ -99,12 +99,12 @@ add_widget_parameters_to_module(__name__)
 
         return ShadowData(beam=beam, beamline=S4Beamline(light_source=light_source))
 
-    from PyQt5.QtWidgets import QApplication
+    from AnyQt.QtWidgets import QApplication
     a = QApplication(sys.argv)
     ow = OWIdealFZP()
     ow.set_shadow_data(get_test_beam())
     # ow.run_shadow4()
 
     ow.show()
-    a.exec_()
+    a.exec()
     ow.saveSettings()'''

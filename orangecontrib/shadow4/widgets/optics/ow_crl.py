@@ -111,13 +111,13 @@ if __name__ == "__main__":
 
         return ShadowData(beam=beam, beamline=S4Beamline(light_source=light_source))
 
-    from PyQt5.QtWidgets import QApplication
+    from AnyQt.QtWidgets import QApplication
     a = QApplication(sys.argv)
     ow = OWCRL()
     ow.view_type = 2
     ow.set_shadow_data(get_test_beam())
 
     ow.show()
-    a.exec_()
+    a.exec()
     ow.saveSettings()
 '''

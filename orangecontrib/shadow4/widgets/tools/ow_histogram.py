@@ -2,7 +2,7 @@ import sys
 import time
 import numpy
 
-from PyQt5.QtGui import QTextCursor
+from AnyQt.QtGui import QTextCursor
 from orangewidget import gui
 from orangewidget.widget import Input
 
@@ -458,7 +458,7 @@ add_widget_parameters_to_module(__name__)
 
 #######################################
 '''if __name__ == "__main__":
-    from PyQt5.QtWidgets import QApplication, QMessageBox
+    from AnyQt.QtWidgets import QApplication, QMessageBox
 
 
     def get_beamline():

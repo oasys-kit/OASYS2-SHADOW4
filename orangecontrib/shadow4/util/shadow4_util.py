@@ -15,9 +15,8 @@ from numpy import asarray
 import scipy.constants as codata
 
 
-from PyQt5.QtCore import QSettings
-from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel
-from PyQt5.QtGui import QFont, QPalette, QColor
+from AnyQt.QtCore import QSettings
+from AnyQt.QtWidgets import QWidget, QGridLayout
 
 from matplotlib import rcParams
 from matplotlib.patches import FancyArrowPatch, ArrowStyle
@@ -306,168 +305,74 @@ try:
                 self.total_good_rays = gui.lineEdit(info_box_inner, self, "total_good_rays_field", "Total Good Rays", tooltip="Total Good Rays", labelWidth=115, valueType=str, orientation="horizontal")
                 self.total_lost_rays = gui.lineEdit(info_box_inner, self, "total_lost_rays_field", "Total Lost Rays", tooltip="Total Lost Rays", labelWidth=115, valueType=str, orientation="horizontal")
 
-                label_box_1 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
+                label_h_style = "color: blue"
+                label_v_style = "color: red"
 
-                self.label_h = QLabel("FWHM ")
-                self.label_h.setFixedWidth(115)
-                palette =  QPalette(self.label_h.palette())
-                palette.setColor(QPalette.Foreground, QColor('blue'))
-                self.label_h.setPalette(palette)
+                label_box_1 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
+                self.label_h = gui.widgetLabel(label_box_1, "FWHM", labelWidth=115)
+                self.label_h.setStyleSheet(label_h_style)
                 label_box_1.layout().addWidget(self.label_h)
                 self.fwhm_h = gui.lineEdit(label_box_1, self, "fwhm_h_field", "", tooltip="FWHM", labelWidth=115, valueType=str, orientation="horizontal")
 
                 if is_2d:
                     label_box_2 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
-
-                    self.label_v = QLabel("FWHM ")
-                    self.label_v.setFixedWidth(115)
-                    palette =  QPalette(self.label_v.palette())
-                    palette.setColor(QPalette.Foreground, QColor('red'))
-                    self.label_v.setPalette(palette)
+                    self.label_v = gui.widgetLabel(label_box_2, "FWHM", labelWidth=115)
+                    self.label_v.setStyleSheet(label_v_style)
                     label_box_2.layout().addWidget(self.label_v)
                     self.fwhm_v = gui.lineEdit(label_box_2, self, "fwhm_v_field", "", tooltip="FWHM", labelWidth=115, valueType=str, orientation="horizontal")
 
                 label_box_1 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
-
-                self.label_s_h = QLabel("\u03c3 (s.d.)")
-                self.label_s_h.setFixedWidth(115)
-                palette =  QPalette(self.label_s_h.palette())
-                palette.setColor(QPalette.Foreground, QColor('blue'))
-                self.label_s_h.setPalette(palette)
+                self.label_s_h = gui.widgetLabel(label_box_1, "\u03c3", labelWidth=115)
+                self.label_s_h.setStyleSheet(label_h_style)
                 label_box_1.layout().addWidget(self.label_s_h)
                 self.sigma_h = gui.lineEdit(label_box_1, self, "sigma_h_field", "", tooltip="Sigma", labelWidth=115, valueType=str, orientation="horizontal")
 
                 if is_2d:
                     label_box_2 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
-
-                    self.label_s_v = QLabel("\u03c3 (s.d.)")
-                    self.label_s_v.setFixedWidth(115)
-                    palette =  QPalette(self.label_s_v.palette())
-                    palette.setColor(QPalette.Foreground, QColor('red'))
-                    self.label_s_v.setPalette(palette)
+                    self.label_s_v = gui.widgetLabel(label_box_2, "\u03c3", labelWidth=115)
+                    self.label_s_v.setStyleSheet(label_v_style)
                     label_box_2.layout().addWidget(self.label_s_v)
                     self.sigma_v = gui.lineEdit(label_box_2, self, "sigma_v_field", "", tooltip="Sigma", labelWidth=115, valueType=str, orientation="horizontal")
 
                 label_box_1 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
-
-                self.label_c_h = QLabel("centroid ")
-                self.label_c_h.setFixedWidth(115)
-                palette =  QPalette(self.label_c_h.palette())
-                palette.setColor(QPalette.Foreground, QColor('blue'))
-                self.label_c_h.setPalette(palette)
+                self.label_c_h = gui.widgetLabel(label_box_1, "centroid", labelWidth=115)
+                self.label_c_h.setStyleSheet(label_h_style)
                 label_box_1.layout().addWidget(self.label_c_h)
                 self.centroid_h = gui.lineEdit(label_box_1, self, "centroid_h_field", "", tooltip="Centroid", labelWidth=115, valueType=str, orientation="horizontal")
 
                 if is_2d:
                     label_box_2 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
-
-                    self.label_c_v = QLabel("centroid ")
-                    self.label_c_v.setFixedWidth(115)
-                    palette =  QPalette(self.label_c_v.palette())
-                    palette.setColor(QPalette.Foreground, QColor('red'))
-                    self.label_c_v.setPalette(palette)
+                    self.label_c_v = gui.widgetLabel(label_box_2, "centroid", labelWidth=115)
+                    self.label_c_v.setStyleSheet(label_v_style)
                     label_box_2.layout().addWidget(self.label_c_v)
                     self.centroid_v = gui.lineEdit(label_box_2, self, "centroid_v_field", "", tooltip="Sigma", labelWidth=115, valueType=str, orientation="horizontal")
 
+                read_only_style = "color: darkblue; background-color: rgb(243, 240, 160); font-weight: bold;"
+
                 self.intensity.setReadOnly(True)
-                font = QFont(self.intensity.font())
-                font.setBold(True)
-                self.intensity.setFont(font)
-                palette = QPalette(self.intensity.palette())
-                palette.setColor(QPalette.Text, QColor('dark blue'))
-                palette.setColor(QPalette.Base, QColor(243, 240, 160))
-                self.intensity.setPalette(palette)
-
+                self.intensity.setStyleSheet(read_only_style)
                 self.flux.setReadOnly(True)
-                font = QFont(self.flux.font())
-                font.setBold(True)
-                self.flux.setFont(font)
-                palette = QPalette(self.flux.palette())
-                palette.setColor(QPalette.Text, QColor('dark blue'))
-                palette.setColor(QPalette.Base, QColor(243, 240, 160))
-                self.flux.setPalette(palette)
-
+                self.flux.setStyleSheet(read_only_style)
                 self.total_rays.setReadOnly(True)
-                font = QFont(self.total_rays.font())
-                font.setBold(True)
-                self.total_rays.setFont(font)
-                palette = QPalette(self.intensity.palette())
-                palette.setColor(QPalette.Text, QColor('dark blue'))
-                palette.setColor(QPalette.Base, QColor(243, 240, 160))
-                self.total_rays.setPalette(palette)
-
+                self.total_rays.setStyleSheet(read_only_style)
                 self.total_good_rays.setReadOnly(True)
-                font = QFont(self.total_good_rays.font())
-                font.setBold(True)
-                self.total_good_rays.setFont(font)
-                palette = QPalette(self.total_good_rays.palette())
-                palette.setColor(QPalette.Text, QColor('dark blue'))
-                palette.setColor(QPalette.Base, QColor(243, 240, 160))
-                self.total_good_rays.setPalette(palette)
-
+                self.total_good_rays.setStyleSheet(read_only_style)
                 self.total_lost_rays.setReadOnly(True)
-                font = QFont(self.total_lost_rays.font())
-                font.setBold(True)
-                self.total_lost_rays.setFont(font)
-                palette = QPalette(self.total_lost_rays.palette())
-                palette.setColor(QPalette.Text, QColor('dark blue'))
-                palette.setColor(QPalette.Base, QColor(243, 240, 160))
-                self.total_lost_rays.setPalette(palette)
-
+                self.total_lost_rays.setStyleSheet(read_only_style)
                 self.fwhm_h.setReadOnly(True)
-                font = QFont(self.fwhm_h.font())
-                font.setBold(True)
-                self.fwhm_h.setFont(font)
-                palette = QPalette(self.fwhm_h.palette())
-                palette.setColor(QPalette.Text, QColor('dark blue'))
-                palette.setColor(QPalette.Base, QColor(243, 240, 160))
-                self.fwhm_h.setPalette(palette)
-
+                self.fwhm_h.setStyleSheet(read_only_style)
                 self.sigma_h.setReadOnly(True)
-                font = QFont(self.sigma_h.font())
-                font.setBold(True)
-                self.sigma_h.setFont(font)
-                palette = QPalette(self.sigma_h.palette())
-                palette.setColor(QPalette.Text, QColor('dark blue'))
-                palette.setColor(QPalette.Base, QColor(243, 240, 160))
-                self.sigma_h.setPalette(palette)
-
+                self.sigma_h.setStyleSheet(read_only_style)
                 self.centroid_h.setReadOnly(True)
-                font = QFont(self.centroid_h.font())
-                font.setBold(True)
-                self.centroid_h.setFont(font)
-                palette = QPalette(self.centroid_h.palette())
-                palette.setColor(QPalette.Text, QColor('dark blue'))
-                palette.setColor(QPalette.Base, QColor(243, 240, 160))
-                self.centroid_h.setPalette(palette)
+                self.centroid_h.setStyleSheet(read_only_style)
 
                 if is_2d:
                     self.fwhm_v.setReadOnly(True)
-                    font = QFont(self.fwhm_v.font())
-                    font.setBold(True)
-                    self.fwhm_v.setFont(font)
-                    palette = QPalette(self.fwhm_v.palette())
-                    palette.setColor(QPalette.Text, QColor('dark blue'))
-                    palette.setColor(QPalette.Base, QColor(243, 240, 160))
-                    self.fwhm_v.setPalette(palette)
-
+                    self.fwhm_v.setStyleSheet(read_only_style)
                     self.sigma_v.setReadOnly(True)
-                    font = QFont(self.sigma_v.font())
-                    font.setBold(True)
-                    self.sigma_v.setFont(font)
-                    palette = QPalette(self.sigma_v.palette())
-                    palette.setColor(QPalette.Text, QColor('dark blue'))
-                    palette.setColor(QPalette.Base, QColor(243, 240, 160))
-                    self.sigma_v.setPalette(palette)
-
+                    self.sigma_v.setStyleSheet(read_only_style)
                     self.centroid_v.setReadOnly(True)
-                    font = QFont(self.centroid_v.font())
-                    font.setBold(True)
-                    self.centroid_v.setFont(font)
-                    palette = QPalette(self.centroid_v.palette())
-                    palette.setColor(QPalette.Text, QColor('dark blue'))
-                    palette.setColor(QPalette.Base, QColor(243, 240, 160))
-                    self.centroid_v.setPalette(palette)
+                    self.centroid_v.setStyleSheet(read_only_style)
 
             def set_flux(self, flux=None):
                 if flux is None:
@@ -1676,8 +1581,8 @@ except:
     pass
 
 try:
-    from PyQt5.QtWidgets import QApplication, QVBoxLayout
-    from PyQt5.QtCore import QCoreApplication
+    from AnyQt.QtWidgets import QApplication, QVBoxLayout
+    from AnyQt.QtCore import QCoreApplication
 
     class MathTextLabel(QWidget):
         def __init__(self, mathText, size=None, parent=None, **kwargs):

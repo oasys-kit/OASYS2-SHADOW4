@@ -1,13 +1,12 @@
 import os, sys, code, itertools
 
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QFileDialog
+from AnyQt.QtWidgets import QFileDialog, QMessageBox, QPlainTextEdit
 from orangewidget import gui
 from oasys2.widget import gui as oasysgui
 
-from PyQt5.QtWidgets import QWidget, QVBoxLayout
-from PyQt5.QtGui import QTextCursor
-from PyQt5.QtCore import Qt
+from AnyQt.QtWidgets import QWidget, QVBoxLayout
+from AnyQt.QtGui import QTextCursor
+from AnyQt.QtCore import Qt
 
 
 class PythonScript(QWidget):
@@ -51,9 +50,9 @@ class PythonScript(QWidget):
                 file.write(str(self.code_area.toPlainText()))
                 file.close()
 
-                QtWidgets.QMessageBox.information(self, "Information",
+                QMessageBox.information(self, "Information",
                                               "File " + file_name + " written to disk",
-                                              QtWidgets.QMessageBox.Ok)
+                                              QMessageBox.Ok)
 
 
     def clear(self):
@@ -93,9 +92,9 @@ def interleave(seq1, seq2):
     yield leading
 
 
-class PythonConsole(QtWidgets.QPlainTextEdit, code.InteractiveConsole):
+class PythonConsole(QPlainTextEdit, code.InteractiveConsole):
     def __init__(self, locals=None, parent=None):
-        QtWidgets.QPlainTextEdit.__init__(self, parent)
+        QPlainTextEdit.__init__(self, parent)
         code.InteractiveConsole.__init__(self, locals)
         self.history, self.historyInd = [""], 0
         self.loop = self.interact()
@@ -198,9 +197,9 @@ class PythonConsole(QtWidgets.QPlainTextEdit, code.InteractiveConsole):
             self.complete()
         elif event.key() in [Qt.Key_Left, Qt.Key_Backspace]:
             if self.textCursor().position() > self.newPromptPos:
-                QtWidgets.QPlainTextEdit.keyPressEvent(self, event)
+                QPlainTextEdit.keyPressEvent(self, event)
         else:
-            QtWidgets.QPlainTextEdit.keyPressEvent(self, event)
+            QPlainTextEdit.keyPressEvent(self, event)
 
     def historyUp(self):
         self.setLine(self.history[self.historyInd])
@@ -252,7 +251,7 @@ class PythonConsole(QtWidgets.QPlainTextEdit, code.InteractiveConsole):
 
 if __name__ == "__main__":
 
-    from PyQt5.QtWidgets import QApplication
+    from AnyQt.QtWidgets import QApplication
     app = QApplication([])
 
     widget = QWidget()
@@ -273,4 +272,4 @@ if __name__ == "__main__":
 
     widget.show()
 
-    app.exec_()
+    app.exec()

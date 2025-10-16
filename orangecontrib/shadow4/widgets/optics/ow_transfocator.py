@@ -1,7 +1,7 @@
 import numpy, copy, os
 
-from PyQt5.QtWidgets import QWidget, QMessageBox, QVBoxLayout
-from PyQt5.QtCore import Qt
+from AnyQt.QtWidgets import QWidget, QMessageBox, QVBoxLayout
+from AnyQt.QtCore import Qt
 
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -903,12 +903,12 @@ add_widget_parameters_to_module(__name__)
 
         return ShadowData(beam=beam, beamline=S4Beamline(light_source=light_source))
 
-    from PyQt5.QtWidgets import QApplication
+    from AnyQt.QtWidgets import QApplication
     a = QApplication(sys.argv)
     ow = OWTransfocator()
     ow.view_type = 2
     ow.set_shadow_data(get_test_beam())
 
     ow.show()
-    a.exec_()
+    a.exec()
     ow.saveSettings()'''

@@ -1,5 +1,5 @@
 import copy
-from PyQt5.QtWidgets import QMessageBox
+from AnyQt.QtWidgets import QMessageBox
 
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -184,7 +184,7 @@ add_widget_parameters_to_module(__name__)
 
 '''if __name__ == "__main__":
     import sys
-    from PyQt5.QtWidgets import QApplication
+    from AnyQt.QtWidgets import QApplication
 
     def get_test_beam():
         from orangecontrib.shadow4.util.shadow4_objects import ShadowData
@@ -211,5 +211,5 @@ add_widget_parameters_to_module(__name__)
     ow.set_shadow_data(get_test_beam())
 
     ow.show()
-    a.exec_()
+    a.exec()
     ow.saveSettings()'''

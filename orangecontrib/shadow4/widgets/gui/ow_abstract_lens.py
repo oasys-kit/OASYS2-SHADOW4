@@ -1,6 +1,6 @@
 import numpy, copy
 
-from PyQt5.QtWidgets import QMessageBox
+from AnyQt.QtWidgets import QMessageBox
 
 from orangewidget import gui
 from orangewidget.settings import Setting

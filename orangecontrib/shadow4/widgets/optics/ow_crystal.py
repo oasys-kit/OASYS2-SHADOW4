@@ -1,6 +1,6 @@
 import numpy
 
-from PyQt5.QtWidgets import QMessageBox
+from AnyQt.QtWidgets import QMessageBox
 
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -575,10 +575,10 @@ add_widget_parameters_to_module(__name__)
         beam = light_source.get_beam()
         return ShadowData(beam=beam, beamline=S4Beamline(light_source=light_source))
 
-    from PyQt5.QtWidgets import QApplication
+    from AnyQt.QtWidgets import QApplication
     a = QApplication(sys.argv)
     ow = OWCrystal()
     ow.set_shadow_data(get_test_beam())
     ow.show()
-    a.exec_()
+    a.exec()
     ow.saveSettings()'''

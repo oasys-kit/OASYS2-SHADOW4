@@ -1,8 +1,8 @@
 import sys
 import numpy
 
-from PyQt5.QtGui import QTextCursor
-from PyQt5.QtWidgets import QApplication
+from AnyQt.QtGui import QTextCursor
+from AnyQt.QtWidgets import QApplication
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys2.widget import gui as oasysgui
