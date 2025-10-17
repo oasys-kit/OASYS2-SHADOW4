@@ -38,7 +38,11 @@ class OWUndulatorGaussian(OWSynchrotronSource):
     plot_Kmax = Setting(2.0)
     plot_max_harmonic_number = Setting(11)
 
+
+
     def __init__(self):
+        self.__is_init = True
+
         super().__init__(show_energy_spread=True)
 
         tab_bas = oasysgui.createTabPage(self.tabs_control_area, "Undulator Setting")
@@ -93,14 +97,18 @@ class OWUndulatorGaussian(OWSynchrotronSource):
         # undulator plots
         self.add_specific_undulator_plots()
 
-        self.set_visibility()
+        self.__is_init = False
 
+        self.set_visibility()
         orangegui.rubber(self.controlArea)
         orangegui.rubber(self.mainArea)
+
+
     
     def set_TypeOfProperties(self):
         super(OWUndulatorGaussian, self).set_TypeOfProperties()
-        self.set_visibility_energy_spread()
+
+        if not self.__is_init: self.set_visibility_energy_spread()
     
     def set_visibility_energy_spread(self): # to be filled in the upper class
         self.box_energy_spread_local.setVisible(self.flag_energy_spread == 1)

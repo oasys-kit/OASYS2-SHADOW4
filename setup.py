@@ -54,7 +54,7 @@ import sys
 from setuptools import find_packages, setup
 
 NAME = 'OASYS2-shadow4'
-VERSION = '0.0.3'
+VERSION = '0.0.4'
 ISRELEASED = False
 
 DESCRIPTION = 'oasys2-shadow4: Oasys 2 widgets for shadow4'
@@ -88,9 +88,9 @@ SETUP_REQUIRES = (
                   )
 
 INSTALL_REQUIRES = (
-    'oasys2>=0.0.1',
-    'shadow4>=0.1.62',
-    'xoppylib>=1.0.42', # used in Bragg preprocessor... todo: maybe move that part to crystalpy?
+    'oasys2>=0.0.7',
+    'shadow4>=0.1.65',
+    'xoppylib>=1.0.43', # used in Bragg preprocessor... todo: maybe move that part to crystalpy?
 )
 
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
