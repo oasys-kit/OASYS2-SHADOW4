@@ -54,7 +54,7 @@ import sys
 from setuptools import find_packages, setup
 
 NAME = 'OASYS2-shadow4'
-VERSION = '0.0.4'
+VERSION = '0.0.5'
 ISRELEASED = False
 
 DESCRIPTION = 'oasys2-shadow4: Oasys 2 widgets for shadow4'
@@ -88,7 +88,7 @@ SETUP_REQUIRES = (
                   )
 
 INSTALL_REQUIRES = (
-    'oasys2>=0.0.7',
+    'oasys2>=0.0.11',
     'shadow4>=0.1.65',
     'xoppylib>=1.0.43', # used in Bragg preprocessor... todo: maybe move that part to crystalpy?
 )
@@ -99,6 +99,7 @@ PACKAGE_DATA = {
     "orangecontrib.shadow4.widgets.sources":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.shadow4.widgets.optics": ["icons/*.png", "icons/*.jpg"],
     "orangecontrib.shadow4.widgets.preprocessors": ["icons/*.png", "icons/*.jpg"],
+    "orangecontrib.shadow4.widgets.loops":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.shadow4.widgets.tools":["icons/*.png", "icons/*.jpg"],
     }
 
@@ -108,6 +109,7 @@ ENTRY_POINTS = {
             "SHADOW4 Sources = orangecontrib.shadow4.widgets.sources",
             "SHADOW4 Optics = orangecontrib.shadow4.widgets.optics",
             "SHADOW4 Preprocessors = orangecontrib.shadow4.widgets.preprocessors",
+            "SHADOW4 Loops = orangecontrib.shadow4.widgets.loops",
             "SHADOW4 Tools = orangecontrib.shadow4.widgets.tools",
     ),
     'oasys2.menus' : ("shadow4menu = orangecontrib.shadow4.menu",)

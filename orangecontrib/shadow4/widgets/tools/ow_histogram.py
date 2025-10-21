@@ -3,6 +3,7 @@ import time
 import numpy
 
 from AnyQt.QtGui import QTextCursor
+
 from orangewidget import gui
 from orangewidget.widget import Input
 

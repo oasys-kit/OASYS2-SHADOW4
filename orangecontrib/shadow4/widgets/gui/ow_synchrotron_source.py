@@ -58,7 +58,7 @@ from syned.beamline.beamline import Beamline
 
 from orangecontrib.shadow4.widgets.gui.ow_electron_beam import OWElectronBeam
 from orangecontrib.shadow4.util.shadow4_objects import ShadowData
-from orangecontrib.shadow4.util.shadow4_util import TriggerToolsDecorator
+from orangecontrib.shadow4.util.shadow4_util import TriggerToolsDecorator, TriggerIn
 
 from shadow4.tools.logger import set_verbose
 from shadow4.beamline.s4_beamline import S4Beamline
@@ -183,6 +183,7 @@ class OWSynchrotronSource(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator
                 self.Outputs.shadow_data.send(ShadowData(beam=output_beam,
                                                          number_of_rays=self.number_of_rays,
                                                          beamline=S4Beamline(light_source=light_source)))
+                self.Outputs.trigger.send(TriggerIn(new_object=True))
         except Exception as exception:
             try:    self._initialize_tabs()
             except: pass

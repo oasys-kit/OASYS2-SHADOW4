@@ -113,56 +113,67 @@ class ShadowData:
         if not self.__beam is None:
             self.__beam.write_h5(file_name)
 
-    def duplicate(self, copy_rays=True):
-        beam = S4Beam()
-        if copy_rays: beam.rays = copy.deepcopy(self.beam.rays)
+    def duplicate(self, copy_rays=True, copy_beamline=True):
+        beam      = S4Beam()
+        footprint = None if self.__footprint is None else S4Beam()
 
-        new_shadow_beam = ShadowData(beam=beam)
+        if copy_rays:
+            beam.rays = copy.deepcopy(self.beam.rays)
+            if not self.footprint is None:
+                footprint = S4Beam()
+                footprint.rays = copy.deepcopy(self.footprint.rays)
+
+        new_shadow_beam = ShadowData(beam=beam,
+                                     footprint=footprint)
+
         new_shadow_beam.scanning_data = self.__scanning_data
         new_shadow_beam.initial_flux  = self.__initial_flux
-        new_shadow_beam.beamline = self.__beamline.duplicate()
+
+        if copy_beamline: new_shadow_beam.beamline = self.__beamline.duplicate()
 
         return new_shadow_beam
 
     @classmethod
-    def merge_beams(cls, beam_1, beam_2, which_flux=3, merge_history=1):
-        if beam_1 and beam_2:
+    def merge_beams(cls, data_1, data_2, which_flux=3, which_beamline=0):
+        if data_1 and data_2:
+            data_1: ShadowData = data_1
+            data_2: ShadowData = data_2
+
+            has_footprint = not (data_1.footprint is None or data_2.footprint is None)
+
             rays_1 = None
             rays_2 = None
+            footprint_rays_1 = None
+            footprint_rays_2 = None
 
-            if len(getattr(beam_1.beam, "rays", numpy.zeros(0))) > 0: rays_1 = copy.deepcopy(beam_1.beam.rays)
-            if len(getattr(beam_2.beam, "rays", numpy.zeros(0))) > 0: rays_2 = copy.deepcopy(beam_2.beam.rays)
+            if len(getattr(data_1.beam, "rays", numpy.zeros(0))) > 0: rays_1 = copy.deepcopy(data_1.beam.rays)
+            if len(getattr(data_2.beam, "rays", numpy.zeros(0))) > 0: rays_2 = copy.deepcopy(data_2.beam.rays)
+            if has_footprint:
+                if len(getattr(data_1.footprint, "rays", numpy.zeros(0))) > 0: footprint_rays_1 = copy.deepcopy(data_1.footprint.rays)
+                if len(getattr(data_2.footprint, "rays", numpy.zeros(0))) > 0: footprint_rays_2 = copy.deepcopy(data_2.footprint.rays)
 
-            merged_beam = beam_1.duplicate(copy_rays=False, history=True)
+            merged_beam : ShadowData = data_1.duplicate(copy_rays=False, copy_beamline=False)
 
-            merged_beam.oe_number = beam_1.oe_number
-            merged_beam.beam.rays = numpy.append(rays_1, rays_2, axis=0)
-
+            merged_beam.beam.rays        = numpy.append(rays_1, rays_2, axis=0)
             merged_beam.beam.rays[:, 11] = numpy.arange(1, len(merged_beam.beam.rays) + 1, 1) # ray_index
 
+            if has_footprint:
+                merged_beam.footprint.rays        = numpy.append(footprint_rays_1, footprint_rays_2, axis=0)
+                merged_beam.footprint.rays[:, 11] = numpy.arange(1, len(merged_beam.footprint.rays) + 1, 1)  # ray_index
+
             if which_flux ==1 :
-                if not beam_1.initial_flux is None:
-                    merged_beam.initial_flux = beam_1.initial_flux
+                if not data_1.initial_flux is None:
+                    merged_beam.initial_flux = data_1.initial_flux
             elif which_flux == 2:
-                if not beam_2.initial_flux is None:
-                    merged_beam.initial_flux = beam_2.initial_flux
+                if not data_2.initial_flux is None:
+                    merged_beam.initial_flux = data_2.initial_flux
             else:
-                if not beam_1.initial_flux is None and not beam_2.initial_flux is None:
-                    merged_beam.initial_flux = beam_1.initial_flux + beam_2.initial_flux
+                if not data_1.initial_flux is None and not data_2.initial_flux is None:
+                    merged_beam.initial_flux = data_1.initial_flux + data_2.initial_flux
 
-            if merge_history > 0:
-                if beam_1.history and beam_2.history:
-                    if len(beam_1.history) == len(beam_2.history):
-                        for index in range(1, beam_1.oe_number + 1):
-                            history_element_1 =  beam_1.get_oe_history(index)
-                            history_element_2 =  beam_2.get_oe_history(index)
-
-                            merged_history_element = merged_beam.get_oe_history(index)
-                            merged_history_element.input_data = ShadowData.merge_beams(history_element_1.input_data, history_element_2.input_data, which_flux, merge_history=(merge_history != 1))
-                    else:
-                        raise ValueError("Histories must have the same path to be merged")
-                else:
-                    raise ValueError("Both beams must have a history to be merged")
+            if which_beamline == 0:   merged_beam.beamline = data_1.beamline
+            elif which_beamline == 1: merged_beam.beamline = data_2.beamline
+            else:                     merged_beam.beamline = None
 
             return merged_beam
         else:
@@ -174,31 +185,6 @@ class ShadowData:
 
 
 # TODO: review all preprocessor data
-
-# class ShadowPreProcessorData:
-#     NONE = "None"
-#
-#     def __init__(self,
-#                  bragg_data_file=NONE,
-#                  m_layer_data_file_dat=NONE,
-#                  m_layer_data_file_sha=NONE,
-#                  prerefl_data_file=NONE,
-#                  error_profile_data_file=NONE,
-#                  error_profile_x_dim=0.0,
-#                  error_profile_y_dim=0.0,
-#                  error_profile_x_slope=0.0,
-#                  error_profile_y_slope=0.0):
-#         super().__init__()
-#
-#         self.bragg_data_file = bragg_data_file
-#         self.m_layer_data_file_dat = m_layer_data_file_dat
-#         self.m_layer_data_file_sha = m_layer_data_file_sha
-#         self.prerefl_data_file = prerefl_data_file
-#         self.error_profile_data_file = error_profile_data_file
-#         self.error_profile_x_dim = error_profile_x_dim
-#         self.error_profile_y_dim = error_profile_y_dim
-#         self.error_profile_x_slope = error_profile_x_slope
-#         self.error_profile_y_slope = error_profile_y_slope
 
 class MLayerPreProcessorData:
     NONE = "None"

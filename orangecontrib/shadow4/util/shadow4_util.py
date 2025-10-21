@@ -57,10 +57,7 @@ class ShadowCongruence():
         try:
             rows = file.readlines()
 
-
             if len(rows) < 10: raise Exception("Bragg file malformed, please check input")
-
-
 
             if "# Bragg version," in rows[0]:
                 pass # version 2
@@ -1349,6 +1346,9 @@ class TriggerToolsDecorator(object):
 
     def set_trigger_parameters_for_sources(self, trigger):
         if trigger and trigger.new_object == True:
+            if trigger.has_additional_parameter("seed_increment"):
+                self.seed += trigger.get_additional_parameter("seed_increment")
+
             if trigger.has_additional_parameter("variable_name"):
                 variable_name         = trigger.get_additional_parameter("variable_name").strip()
                 variable_display_name = trigger.get_additional_parameter("variable_display_name").strip()
@@ -1361,7 +1361,7 @@ class TriggerToolsDecorator(object):
 
                 setattr(self, variable_name, variable_value)
 
-        self.run_shadow4()
+            self.run_shadow4()
 
     def set_trigger_parameters_for_optics(self, trigger): # TODO: complete
         if trigger and trigger.new_object == True:
@@ -1373,8 +1373,7 @@ class TriggerToolsDecorator(object):
 
                 setattr(self, variable_name, variable_value)
 
-        if self.input_data is not None:
-            self.run_shadow4()
+            if self.input_data is not None: self.run_shadow4()
 
 class Properties(object):
     def __init__(self, props=None):
@@ -1502,14 +1501,14 @@ class Properties(object):
             self._keymap[key] = oldkey
 
     def escape(self, value):
-        newvalue = value.replace(':','\:')
-        newvalue = newvalue.replace('=','\=')
+        newvalue = value.replace(':','\\:')
+        newvalue = newvalue.replace('=','\\=')
 
         return newvalue
 
     def unescape(self, value):
-        newvalue = value.replace('\:',':')
-        newvalue = newvalue.replace('\=','=')
+        newvalue = value.replace('\\:',':')
+        newvalue = newvalue.replace('\\=','=')
 
         return newvalue
 

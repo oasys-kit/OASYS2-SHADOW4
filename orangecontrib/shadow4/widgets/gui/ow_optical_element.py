@@ -51,9 +51,7 @@ class OWOpticalElement(GenericElement, WidgetDecorator, TriggerToolsDecorator):
     oe_orientation_angle_user_value = Setting(0.0)
 
     def __init__(self, show_automatic_box=True, has_footprint=False, show_tab_advanced_settings=True, show_tab_help=False):
-        super().__init__(show_automatic_box=show_automatic_box,
-                         has_footprint=has_footprint,
-                         )
+        super().__init__(show_automatic_box=show_automatic_box, has_footprint=has_footprint)
 
         #
         # main buttons
@@ -108,7 +106,6 @@ class OWOpticalElement(GenericElement, WidgetDecorator, TriggerToolsDecorator):
         if show_tab_advanced_settings:
             self.populate_advanced_setting_subtabs(advanced_setting_subtabs)
 
-
         #########################################################
         # Help
         #########################################################
@@ -122,10 +119,6 @@ class OWOpticalElement(GenericElement, WidgetDecorator, TriggerToolsDecorator):
             label.setPixmap(QPixmap(self.help_path).scaledToWidth(self.CONTROL_AREA_WIDTH-20))
 
             help_box.layout().addWidget(label)
-
-
-
-
 
         gui.rubber(self.controlArea)
         gui.rubber(self.mainArea)
