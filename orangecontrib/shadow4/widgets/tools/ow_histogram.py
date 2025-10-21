@@ -423,10 +423,10 @@ plot(ticket['bin_path'], ticket['histogram_path'],
 
         if x in [1, 2, 3] and self.is_conversion_active():
             xum        += " [\u03BCm]"
-            auto_title += " [$\mu$m]"
+            auto_title += " [$\\mu$m]"
         elif x in [4, 5, 6] and self.is_conversion_active():
             xum        += " [\u03BCrad]"
-            auto_title += " [$\mu$rad]"
+            auto_title += " [$\\mu$rad]"
         else:
             xum        += " " + S4Beam.column_units()[self.x_column_index]
             auto_title += " " + S4Beam.column_units()[self.x_column_index]

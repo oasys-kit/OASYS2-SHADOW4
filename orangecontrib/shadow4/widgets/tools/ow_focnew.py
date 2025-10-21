@@ -188,7 +188,7 @@ class FocNew(AutomaticElement):
         self.plot_canvas_x = plot_multi_data1D(y, ylist,
                                                title="title",
                                                xtitle="Y [m]",
-                                               ytitle="<X> or <Z> or <X,Z> [$\mu$m]",
+                                               ytitle="<X> or <Z> or <X,Z> [$\\mu$m]",
                                                ytitles=["X","Z","X,Z combined"],
                                                flag_common_abscissas=1)
 
@@ -201,7 +201,7 @@ class FocNew(AutomaticElement):
                                                 ticket['list_x'] + ticket['list_z'],
                                                 title="title",
                                                 xtitle="Y [m]",
-                                                ytitle="<H> or <V> [$\mu$m]",
+                                                ytitle="<H> or <V> [$\\mu$m]",
                                                 ytitles=ticket['list_x_label'] + ticket['list_z_label'],
                                                 flag_common_abscissas=0)
 

@@ -780,8 +780,8 @@ class ShowSurfaceErrorDataFileDialog(QDialog):
 
         sloperms = profiles_simulation.slopes(zz_slopes, xx, yy, return_only_rms=1)
 
-        title = ' Slope error rms in X: %g $\mu$rad' % (sloperms[0]*1e6) +  \
-                ' in Y: %g $\mu$rad' % (sloperms[1]*1e6) + '\n' + \
+        title = ' Slope error rms in X: %g $\\mu$rad' % (sloperms[0]*1e6) +  \
+                ' in Y: %g $\\mu$rad' % (sloperms[1]*1e6) + '\n' + \
                 ' Figure error rms: %g nm' % (zz.std()*1e9)
 
         axis.set_title(title)
@@ -812,8 +812,8 @@ class ShowImageErrorDataFileDialog(QDialog):
 
         sloperms = profiles_simulation.slopes(zz_slopes, dataX, dataY, return_only_rms=1)
 
-        title = ' Slope error rms in X: %g $\mu$rad' % (sloperms[0]*1e6) +  \
-                ' in Y: %g $\mu$rad' % (sloperms[1]*1e6) + '\n' + \
+        title = ' Slope error rms in X: %g $\\mu$rad' % (sloperms[0]*1e6) +  \
+                ' in Y: %g $\\mu$rad' % (sloperms[1]*1e6) + '\n' + \
                 ' Figure error rms: %g nm' % (data2D.std()*1e9)
         ##################
 

@@ -210,10 +210,10 @@ class GenericElement(AutomaticElement):
         return ["X,Z", "X',Z'", "X,X'", "Z,Z'", "Energy"]
 
     def _get_x_titles(self):
-        return [r'X [$\mu$m]', "X' [$\mu$rad]", r'X [$\mu$m]', r'Z [$\mu$m]', "Energy [eV]"]
+        return [r'X [$\\mu$m]', "X' [$\\mu$rad]", r'X [$\\mu$m]', r'Z [$\\mu$m]', "Energy [eV]"]
 
     def _get_y_titles(self):
-        return [r'Z [$\mu$m]', "Z' [$\mu$rad]", "X' [$\mu$rad]", "Z' [$\mu$rad]", "Number of Rays"]
+        return [r'Z [$\\mu$m]', "Z' [$\\mu$rad]", "X' [$\\mu$rad]", "Z' [$\\mu$rad]", "Number of Rays"]
 
     def _get_x_um(self):
         return ["X [" + u"\u03BC" + "m]", "X' [" + u"\u03BC" + "rad]", "X [" + u"\u03BC" + "m]", "Z [" + u"\u03BC" + "m]", "[eV]"]

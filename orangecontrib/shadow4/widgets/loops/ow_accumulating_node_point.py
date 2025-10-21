@@ -146,42 +146,39 @@ class AccumulatingLoopPoint(AutomaticElement):
 
                 intensity = beam.histo1(1, nolost=1, ref=23)['intensity']
 
-                self.current_number_of_rays += nr_good
-                self.current_intensity += intensity
-                self.le_current_intensity.setText("{:10.3f}".format(self.current_intensity))
-                self.current_number_of_lost_rays += nr_lost
+                self.current_number_of_rays       += nr_good
+                self.current_intensity            += intensity
+                self.current_number_of_lost_rays  += nr_lost
                 self.current_number_of_total_rays += nr_total
 
-                if (self.kind_of_accumulation == 0 and self.current_number_of_rays <= self.number_of_accumulated_rays) or \
-                   (self.kind_of_accumulation == 1 and self.current_intensity <= self.number_of_accumulated_rays):
-                    if self.keep_go_rays == 1:
-                        beam.rays      = copy.deepcopy(beam.rays[go])
-                        if not footprint is None: footprint.rays = copy.deepcopy(footprint.rays[go])
+                self.le_current_intensity.setText("{:10.3f}".format(self.current_intensity))
 
-                    if not self.input_data is None:
-                        self.input_data = ShadowData.merge_beams(self.input_data, input_data, which_flux=3, which_beamline=0)
-                    else:
-                        beam.rays[:, 11] = numpy.arange(1, len(beam.rays) + 1, 1) # ray_index
-                        if not footprint is None: footprint.rays[:, 11] = numpy.arange(1, len(footprint.rays) + 1, 1)
+                if self.keep_go_rays == 1:
+                    beam.rays = copy.deepcopy(beam.rays[go])
+                    if not footprint is None: footprint.rays = copy.deepcopy(footprint.rays[go])
 
-                        self.input_data = input_data
+                if not self.input_data is None:
+                    self.input_data = ShadowData.merge_beams(self.input_data, input_data, which_flux=3, which_beamline=0)
+                else:
+                    beam.rays[:, 11] = numpy.arange(1, len(beam.rays) + 1, 1)  # ray_index
+                    if not footprint is None: footprint.rays[:, 11] = numpy.arange(1, len(footprint.rays) + 1, 1)
 
-                    self.input_data.scanning_data = scanning_data
+                    self.input_data = input_data
 
+                self.input_data.scanning_data = scanning_data
+
+                if (self.kind_of_accumulation == 0 and self.current_number_of_rays < self.number_of_accumulated_rays) or \
+                   (self.kind_of_accumulation == 1 and self.current_intensity < self.number_of_accumulated_rays):
                     self.Outputs.trigger.send(TriggerIn(new_object=True))
                 else:
-                    if self.is_automatic_run:
-                        self.send_signal()
+                    self.send_signal()
 
-                        self.current_number_of_rays = 0
-                        self.current_intensity = 0.0
-                        self.current_number_of_lost_rays = 0
-                        self.current_number_of_total_rays = 0
-                        self.input_data = None
-                    else:
-                        QMessageBox.critical(self, "Error",
-                                                   "Number of Accumulated Rays reached, please push \'Send Signal\' button",
-                                                   QMessageBox.Ok)
+                    self.current_number_of_rays       = 0
+                    self.current_intensity            = 0.0
+                    self.current_number_of_lost_rays  = 0
+                    self.current_number_of_total_rays = 0
+
+                    self.input_data = None
 
 
 add_widget_parameters_to_module(__name__)

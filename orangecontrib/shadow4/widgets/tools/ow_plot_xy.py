@@ -522,10 +522,10 @@ plot_image_with_histograms(ticket['histogram'], ticket['bin_h_center'], ticket['
         def get_strings(um, auto_title, col, index):
             if col in [1, 2, 3] and self.is_conversion_active():
                 um         += " [\u03BCm]"
-                auto_title += " [$\mu$m]"
+                auto_title += " [$\\mu$m]"
             elif col in [4, 5, 6] and self.is_conversion_active():
                 um         += " [\u03BCrad]"
-                auto_title += " [$\mu$rad]"
+                auto_title += " [$\\mu$rad]"
             else:
                 um         += " " + S4Beam.column_units()[index]
                 auto_title += " " + S4Beam.column_units()[index]
