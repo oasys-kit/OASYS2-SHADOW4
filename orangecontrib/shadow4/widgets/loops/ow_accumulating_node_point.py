@@ -1,6 +1,5 @@
 import copy
 import numpy
-from typing import Final
 
 from AnyQt.QtWidgets import QMessageBox
 
@@ -51,10 +50,6 @@ class AccumulatingLoopPoint(AutomaticElement):
     current_number_of_lost_rays = 0
 
     keep_go_rays = Setting(1)
-
-    #################################
-    process_last: Final[bool] = False
-    #################################
 
     def __init__(self):
         super().__init__(show_automatic_box=False)
