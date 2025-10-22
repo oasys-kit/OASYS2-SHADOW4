@@ -583,7 +583,7 @@ class OWOpticalElementWithSurfaceShape(OWOpticalElement):
         if not oasys_data is None:
             if not oasys_data.error_profile_data is None:
                 try:
-                    surface_data = oasys_data.error_profile_data.oasys_surface_data
+                    surface_data = oasys_data.error_profile_data.surface_data
 
                     self.ms_defect_file_name = surface_data.surface_data_file
                     self.modified_surface = 1
@@ -639,19 +639,18 @@ class OWOpticalElementWithSurfaceShape(OWOpticalElement):
             print(">> Current limits: ", self.dim_x_minus, self.dim_x_plus, self.dim_y_minus, self.dim_x_plus)
 
             if (xx.min() > -self.dim_x_minus) or \
-                    (xx.max() > self.dim_x_plus) or \
-                    (yy.min() > -self.dim_y_minus) or \
-                    (yy.max() > self.dim_y_plus):
+               (xx.max() > self.dim_x_plus) or \
+               (yy.min() > -self.dim_y_minus) or \
+               (yy.max() > self.dim_y_plus):
                 if ConfirmDialog.confirmed(parent=self,
                                            message="Dimensions of this O.E. must be changed in order to ensure congruence with the error profile surface, accept?",
-                                           title="Confirm Modification",
-                                           width=600):
+                                           title="Confirm Modification"):
                     self.is_infinite = 0
                     self.oe_shape = 0
-                    self.dim_x_minus = numpy.min((-xx.min(), self.dim_x_minus))
-                    self.dim_x_plus = numpy.min((xx.max(), self.dim_x_plus))
-                    self.dim_y_minus = numpy.min((-yy.min(), self.dim_y_minus))
-                    self.dim_y_plus = numpy.min((yy.max(), self.dim_y_plus))
+                    self.dim_x_minus = -numpy.min((xx.min(), -self.dim_x_minus))
+                    self.dim_x_plus  = numpy.max((xx.max(), self.dim_x_plus))
+                    self.dim_y_minus = -numpy.min((yy.min(), -self.dim_y_minus))
+                    self.dim_y_plus  = numpy.max((yy.max(), self.dim_y_plus))
 
                     print(">> NEW limits: ", self.dim_x_minus, self.dim_x_plus, self.dim_y_minus, self.dim_x_plus)
 
