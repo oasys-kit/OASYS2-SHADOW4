@@ -37,11 +37,11 @@ from orangecontrib.shadow4.widgets.gui.ow_optical_element_with_surface_shape_ren
 class OWOpticalElementWithSurfaceShape(OWOpticalElement):
 
     class Inputs:
-        shadow_data       = OWOpticalElement.Inputs.shadow_data
-        trigger           = OWOpticalElement.Inputs.trigger
-        syned_data        = OWOpticalElement.Inputs.syned_data
-        surface_data      = MultiInput("Oasys Surface Data", OasysSurfaceData, default=True, auto_summary=False)
-        preprocessor_data = MultiInput("Oasys PreProcessor Data", OasysPreProcessorData, default=True, auto_summary=False)
+        shadow_data             = OWOpticalElement.Inputs.shadow_data
+        trigger                 = OWOpticalElement.Inputs.trigger
+        syned_data              = OWOpticalElement.Inputs.syned_data
+        oasys_surface_data      = MultiInput("Oasys Surface Data", OasysSurfaceData, default=True, auto_summary=False)
+        oasys_preprocessor_data = MultiInput("Oasys PreProcessor Data", OasysPreProcessorData, default=True, auto_summary=False)
 
     #########################################################
     # surface shape
@@ -567,15 +567,15 @@ class OWOpticalElementWithSurfaceShape(OWOpticalElement):
 
         if not is_init: self.__change_icon_from_surface_type()
 
-    @Inputs.preprocessor_data
+    @Inputs.oasys_preprocessor_data
     def set_preprocessor_data(self, index, preprocessor_data):
         self.set_oasys_preprocessor_data(preprocessor_data)
 
-    @Inputs.preprocessor_data.insert
+    @Inputs.oasys_preprocessor_data.insert
     def insert_preprocessor_data(self, index, preprocessor_data):
         self.set_oasys_preprocessor_data(preprocessor_data)
 
-    @Inputs.preprocessor_data.remove
+    @Inputs.oasys_preprocessor_data.remove
     def remove_preprocessor_data(self, index):
         pass
 
@@ -583,7 +583,7 @@ class OWOpticalElementWithSurfaceShape(OWOpticalElement):
         if not oasys_data is None:
             if not oasys_data.error_profile_data is None:
                 try:
-                    surface_data = oasys_data.error_profile_data.surface_data
+                    surface_data = oasys_data.error_profile_data.oasys_surface_data
 
                     self.ms_defect_file_name = surface_data.surface_data_file
                     self.modified_surface = 1
@@ -593,15 +593,15 @@ class OWOpticalElementWithSurfaceShape(OWOpticalElement):
                 except Exception as exception:
                     self.prompt_exception(exception)
 
-    @Inputs.surface_data
+    @Inputs.oasys_surface_data
     def set_surface_data(self, index, preprocessor_data):
         self.set_oasys_surface_data(preprocessor_data)
 
-    @Inputs.surface_data.insert
+    @Inputs.oasys_surface_data.insert
     def insert_surface_data(self, index, preprocessor_data):
         self.set_oasys_surface_data(preprocessor_data)
 
-    @Inputs.surface_data.remove
+    @Inputs.oasys_surface_data.remove
     def remove_surface_data(self, index):
         pass
 

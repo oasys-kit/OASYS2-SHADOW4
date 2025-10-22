@@ -26,8 +26,8 @@ class OWRefractiveInterface(OWOpticalElementWithSurfaceShape):
         shadow_data               = OWOpticalElementWithSurfaceShape.Inputs.shadow_data
         trigger                   = OWOpticalElementWithSurfaceShape.Inputs.trigger
         syned_data                = OWOpticalElementWithSurfaceShape.Inputs.syned_data
-        surface_data              = OWOpticalElementWithSurfaceShape.Inputs.surface_data
-        preprocessor_data         = OWOpticalElementWithSurfaceShape.Inputs.preprocessor_data
+        surface_data              = OWOpticalElementWithSurfaceShape.Inputs.oasys_surface_data
+        preprocessor_data         = OWOpticalElementWithSurfaceShape.Inputs.oasys_preprocessor_data
         prerefl_preprocessor_data = MultiInput("PreRefl PreProcessor Data", PreReflPreProcessorData, default=True, auto_summary=False)
 
 

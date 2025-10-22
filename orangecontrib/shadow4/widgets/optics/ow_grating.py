@@ -25,8 +25,8 @@ class _OWGrating(OWOpticalElementWithSurfaceShape):
         shadow_data               = OWOpticalElementWithSurfaceShape.Inputs.shadow_data
         trigger                   = OWOpticalElementWithSurfaceShape.Inputs.trigger
         syned_data                = OWOpticalElementWithSurfaceShape.Inputs.syned_data
-        surface_data              = OWOpticalElementWithSurfaceShape.Inputs.surface_data
-        preprocessor_data         = OWOpticalElementWithSurfaceShape.Inputs.preprocessor_data
+        oasys_surface_data        = OWOpticalElementWithSurfaceShape.Inputs.oasys_surface_data
+        oasys_preprocessor_data   = OWOpticalElementWithSurfaceShape.Inputs.oasys_preprocessor_data
         vls_pgm_preprocessor_data = Input("VLS-PGM PreProcessor Data", VlsPgmPreProcessorData, default=True, auto_summary=False)
 
     #########################################################

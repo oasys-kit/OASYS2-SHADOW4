@@ -29,8 +29,8 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
         shadow_data               = OWOpticalElementWithSurfaceShape.Inputs.shadow_data
         trigger                   = OWOpticalElementWithSurfaceShape.Inputs.trigger
         syned_data                = OWOpticalElementWithSurfaceShape.Inputs.syned_data
-        surface_data              = OWOpticalElementWithSurfaceShape.Inputs.surface_data
-        preprocessor_data         = OWOpticalElementWithSurfaceShape.Inputs.preprocessor_data
+        oasys_surface_data        = OWOpticalElementWithSurfaceShape.Inputs.oasys_surface_data
+        oasys_preprocessor_data   = OWOpticalElementWithSurfaceShape.Inputs.oasys_preprocessor_data
         prerefl_preprocessor_data = MultiInput("PreRefl PreProcessor Data", PreReflPreProcessorData, default=True, auto_summary=False)
         vls_pgm_preprocessor_data = Input("VLS-PGM PreProcessor Data", VlsPgmPreProcessorData, default=True, auto_summary=False)
 
