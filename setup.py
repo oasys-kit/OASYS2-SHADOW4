@@ -53,8 +53,8 @@ import os
 import sys
 from setuptools import find_packages, setup
 
-NAME = 'OASYS2-shadow4'
-VERSION = '0.0.9'
+NAME = 'OASYS2-SHADOW4'
+VERSION = '0.0.10'
 ISRELEASED = False
 
 DESCRIPTION = 'oasys2-shadow4: Oasys 2 widgets for shadow4'
