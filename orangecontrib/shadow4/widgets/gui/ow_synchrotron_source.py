@@ -135,8 +135,10 @@ class OWSynchrotronSource(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator
         else:
             return None
 
-    def run_shadow4(self):
+    def run_shadow4(self, scanning_data: ShadowData.ScanningData = None):
         try:
+            if not scanning_data: scanning_data = None
+
             self.check_data()
 
             light_source = self.get_light_source()
@@ -148,6 +150,7 @@ class OWSynchrotronSource(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator
                 sys.stdout = EmittingStream(textWritten=self._write_stdout)
 
                 self._set_plot_quality()
+
                 self.progressBarInit()
 
                 #
@@ -175,19 +178,23 @@ class OWSynchrotronSource(OWElectronBeam, WidgetDecorator, TriggerToolsDecorator
                 self._plot_results(output_beam, None, progressBarValue=80)
                 self.refresh_specific_plots()
 
-                self.progressBarFinished()
 
                 #
                 # send beam and trigger
                 #
-                self.Outputs.shadow_data.send(ShadowData(beam=output_beam,
-                                                         number_of_rays=self.number_of_rays,
-                                                         beamline=S4Beamline(light_source=light_source)))
+                output_data = ShadowData(beam=output_beam,
+                                         number_of_rays=self.number_of_rays,
+                                         beamline=S4Beamline(light_source=light_source))
+                output_data.scanning_data = scanning_data
+
+                self.Outputs.shadow_data.send(output_data)
                 self.Outputs.trigger.send(TriggerIn(new_object=True))
         except Exception as exception:
             try:    self._initialize_tabs()
             except: pass
             self.prompt_exception(exception)
+        finally:
+            self.progressBarFinished()
 
     def build_light_source(self, electron_beam, flag_emittance): raise NotImplementedError
     def populate_fields_from_magnetic_structure(self, magnetic_structure, electron_beam): raise NotImplementedError

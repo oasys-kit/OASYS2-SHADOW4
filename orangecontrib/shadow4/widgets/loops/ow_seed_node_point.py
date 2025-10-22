@@ -148,8 +148,6 @@ class SourceSeedLoopPoint(OWLoopWidget):
         self.start_button.setEnabled(False)
         self.setStatusMessage("Running " + self.get_object_name() + " " + str(self.current_new_object) + " of " + str(self.number_of_new_objects))
 
-        print("PD1", self.current_new_object)
-
         self.Outputs.trigger_out.send(TriggerOut(new_object=True, additional_parameters={"seed_increment" : self.seed_increment}))
 
     def stopLoop(self):
@@ -189,8 +187,6 @@ class SourceSeedLoopPoint(OWLoopWidget):
                     self.setStatusMessage("")
                     self.Outputs.trigger_out.send(TriggerOut(new_object=False))
                 elif trigger.new_object:
-                    print("PD2", self.current_new_object)
-
                     if self.current_new_object == 0:
                         QMessageBox.critical(self, "Error", "Loop has to be started properly: press the button Start", QMessageBox.Ok)
                         return

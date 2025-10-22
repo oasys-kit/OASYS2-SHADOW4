@@ -14,6 +14,9 @@ from orangecontrib.shadow4.util.shadow4_objects import ShadowData
 from orangecontrib.shadow4.util.shadow4_util import ShadowPlot, ShadowCongruence
 from orangecontrib.shadow4.util.python_script import PythonScript
 
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module=__name__)
+
 class GenericElement(AutomaticElement):
     IMAGE_WIDTH  = 860
     IMAGE_HEIGHT = 545
@@ -172,7 +175,6 @@ class GenericElement(AutomaticElement):
                         self._plot_histo_preview(output_beam, progressBarValue + 20, variables[4], plot_canvas_index=4, title=titles[4], xtitle=xtitles[4], ytitle=ytitles[4])
                         if self.has_footprint: self._plot_xy_preview(footprint, progressBarValue + 20, 2, 1, plot_canvas_index=5, title="Footprint", xtitle="Y [m]", ytitle="X [m]", is_footprint=True)
 
-
                     elif self.view_type == 0:
                         self._plot_xy_detailed(output_beam, progressBarValue + 4, variables[0][0], variables[0][1], plot_canvas_index=0, title=titles[0], xtitle=xtitles[0], ytitle=ytitles[0], xum=xums[0], yum=yums[0])
                         self._plot_xy_detailed(output_beam, progressBarValue + 8, variables[1][0], variables[1][1], plot_canvas_index=1, title=titles[1], xtitle=xtitles[1], ytitle=ytitles[1], xum=xums[1], yum=yums[1])
@@ -210,10 +212,10 @@ class GenericElement(AutomaticElement):
         return ["X,Z", "X',Z'", "X,X'", "Z,Z'", "Energy"]
 
     def _get_x_titles(self):
-        return [r'X [$\\mu$m]', "X' [$\\mu$rad]", r'X [$\\mu$m]', r'Z [$\\mu$m]', "Energy [eV]"]
+        return [r'X [$\mu$m]', "X' [$\\mu$rad]", r'X [$\mu$m]', r'Z [$\mu$m]', "Energy [eV]"]
 
     def _get_y_titles(self):
-        return [r'Z [$\\mu$m]', "Z' [$\\mu$rad]", "X' [$\\mu$rad]", "Z' [$\\mu$rad]", "Number of Rays"]
+        return [r'Z [$\mu$m]', "Z' [$\\mu$rad]", "X' [$\\mu$rad]", "Z' [$\\mu$rad]", "Number of Rays"]
 
     def _get_x_um(self):
         return ["X [" + u"\u03BC" + "m]", "X' [" + u"\u03BC" + "rad]", "X [" + u"\u03BC" + "m]", "Z [" + u"\u03BC" + "m]", "[eV]"]

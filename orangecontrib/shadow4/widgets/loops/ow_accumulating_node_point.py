@@ -180,5 +180,4 @@ class AccumulatingLoopPoint(AutomaticElement):
 
                     self.input_data = None
 
-
 add_widget_parameters_to_module(__name__)

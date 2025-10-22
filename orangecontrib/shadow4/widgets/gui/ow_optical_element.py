@@ -166,7 +166,6 @@ class OWOpticalElement(GenericElement, WidgetDecorator, TriggerToolsDecorator):
         gui.comboBox(self.orientation_box, self, "oe_orientation_angle", label="O.E. Orientation Angle [deg]",
                      labelWidth=390,
                      items=[0, 90, 180, 270, "Other value..."],
-                     valueType=float,
                      sendSelectedValue=False, orientation="horizontal", callback=self.oe_orientation_angle_user,
                      tooltip="oe_orientation_angle" )
         self.oe_orientation_angle_user_value_le = oasysgui.widgetBox(self.orientation_box, "", addSpace=False,
@@ -278,13 +277,13 @@ class OWOpticalElement(GenericElement, WidgetDecorator, TriggerToolsDecorator):
     def remove_syned_data(self, index):
         pass
 
-    def run_shadow4(self):
+    def run_shadow4(self, scanning_data: ShadowData.ScanningData = None):
         if self.input_data is None:
             self.prompt_exception(ValueError("No input beam"))
             return
+        if not scanning_data: scanning_data = None
 
         try:
-            self.progressBarInit()
             set_verbose()
             self.shadow_output.setText("")
 
@@ -315,28 +314,32 @@ class OWOpticalElement(GenericElement, WidgetDecorator, TriggerToolsDecorator):
             #
             # run
             #
-            self.progressBarInit()
             output_beam, footprint = element.trace_beam()
 
             self._post_trace_operations(output_beam, footprint, element, beamline)
 
             self._set_plot_quality()
+
+            self.progressBarInit()
+
             self._plot_results(output_beam, footprint, progressBarValue=80)
-
             self._plot_additional_results(output_beam, footprint, element, beamline)
-
-            self.progressBarFinished()
 
             #
             # send beam and trigger
             #
-            self.Outputs.shadow_data.send(ShadowData(beam=output_beam, beamline=beamline, footprint=footprint))
+            output_data = ShadowData(beam=output_beam, beamline=beamline, footprint=footprint)
+            output_data.scanning_data = scanning_data
+
+            self.Outputs.shadow_data.send(output_data)
             self.Outputs.trigger.send(TriggerIn(new_object=True))
 
         except Exception as exception:
             try:    self._initialize_tabs()
             except: pass
             self.prompt_exception(exception)
+        finally:
+            self.progressBarFinished()
 
     def _post_trace_operations(self, output_beam, footprint, element, beamline): pass
     def _plot_additional_results(self, output_beam, footprint, element, beamline): pass

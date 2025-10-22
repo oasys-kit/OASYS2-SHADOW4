@@ -1334,6 +1334,7 @@ class ShadowPhysics:
 
 
 from orangewidget.widget import Input, Output
+from orangecontrib.shadow4.util.shadow4_objects import ShadowData
 
 class TriggerToolsDecorator(object):
     @classmethod
@@ -1355,25 +1356,69 @@ class TriggerToolsDecorator(object):
                 variable_value        = trigger.get_additional_parameter("variable_value")
                 variable_um           = trigger.get_additional_parameter("variable_um")
 
-                print(">>>>> trigger contains variable(s): ")
-                print(">>>>> name(s): ", variable_name, variable_display_name)
-                print(">>>>> values(s): ", variable_value, type(variable_value), variable_um)
+                def check_number(x):
+                    try:    return float(x)
+                    except: return x
 
-                setattr(self, variable_name, variable_value)
+                if "," in variable_name:
+                    variable_names = variable_name.split(",")
 
-            self.run_shadow4()
+                    if isinstance(variable_value, str) and "," in variable_value:
+                        variable_values = variable_value.split(",")
+                        for variable_name, variable_value in zip(variable_names, variable_values):
+                            setattr(self, variable_name.strip(), check_number(variable_value))
+                            self.check_options(variable_name)
+                    else:
+                        for variable_name in variable_names:
+                            setattr(self, variable_name.strip(), check_number(variable_value))
+                            self.check_options(variable_name)
+                else:
+                    setattr(self, variable_name, check_number(variable_value))
+                    self.check_options(variable_name)
+
+                scanning_data = ShadowData.ScanningData(variable_name, variable_value, variable_display_name, variable_um)
+            else:
+                scanning_data = None
+
+            self.run_shadow4(scanning_data=scanning_data)
+
+    def check_options(self, variable_name):
+        pass
 
     def set_trigger_parameters_for_optics(self, trigger): # TODO: complete
-        if trigger and trigger.new_object == True:
-            if trigger.has_additional_parameter("variable_name"):
-                variable_name         = trigger.get_additional_parameter("variable_name").strip()
-                variable_display_name = trigger.get_additional_parameter("variable_display_name").strip()
-                variable_value        = trigger.get_additional_parameter("variable_value")
-                variable_um           = trigger.get_additional_parameter("variable_um")
+        if ShadowCongruence.check_empty_data(self.input_data):
+            if trigger and trigger.new_object == True:
+                if trigger.has_additional_parameter("variable_name"):
+                    variable_name         = trigger.get_additional_parameter("variable_name").strip()
+                    variable_display_name = trigger.get_additional_parameter("variable_display_name").strip()
+                    variable_value        = trigger.get_additional_parameter("variable_value")
+                    variable_um           = trigger.get_additional_parameter("variable_um")
 
-                setattr(self, variable_name, variable_value)
+                    def check_number(x):
+                        try:    return float(x)
+                        except: return x
 
-            if self.input_data is not None: self.run_shadow4()
+                    if "," in variable_name:
+                        variable_names = variable_name.split(",")
+
+                        if isinstance(variable_value, str) and "," in variable_value:
+                            variable_values = variable_value.split(",")
+                            for variable_name, variable_value in zip(variable_names, variable_values):
+                                setattr(self, variable_name.strip(), check_number(variable_value))
+                                self.check_options(variable_name)
+                        else:
+                            for variable_name in variable_names:
+                                setattr(self, variable_name.strip(), check_number(variable_value))
+                                self.check_options(variable_name)
+                    else:
+                        setattr(self, variable_name, check_number(variable_value))
+                        self.check_options(variable_name)
+
+                    scanning_data = ShadowData.ScanningData(variable_name, variable_value, variable_display_name, variable_um)
+                else:
+                    scanning_data = None
+
+                self.run_shadow4(scanning_data=scanning_data)
 
 class Properties(object):
     def __init__(self, props=None):

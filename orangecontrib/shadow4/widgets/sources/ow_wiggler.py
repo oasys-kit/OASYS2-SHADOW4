@@ -1,12 +1,7 @@
-import sys
-import time
-
 from orangewidget import gui as orangegui
 from orangewidget.settings import Setting
 
 from oasys2.widget import gui as oasysgui
-from oasys2.widget.util.widget_util import EmittingStream
-from oasys2.widget.util.widget_objects import TriggerIn
 from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
 from oasys2.widget.util import congruence
 
@@ -14,13 +9,9 @@ from syned.storage_ring.magnetic_structures.insertion_device import InsertionDev
 
 from shadow4.sources.wiggler.s4_wiggler import S4Wiggler
 from shadow4.sources.wiggler.s4_wiggler_light_source import S4WigglerLightSource
-from shadow4.beamline.s4_beamline import S4Beamline
-from shadow4.tools.logger import set_verbose
 
 from orangecontrib.shadow4.widgets.gui.ow_synchrotron_source import OWSynchrotronSource
 from orangecontrib.shadow4.widgets.gui.plots import plot_data1D
-from orangecontrib.shadow4.util.shadow4_objects import ShadowData
-from orangecontrib.shadow4.util.shadow4_util import TriggerToolsDecorator
 
 class OWWiggler(OWSynchrotronSource):
     name = "Wiggler Light Source"

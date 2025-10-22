@@ -272,7 +272,7 @@ class OWGrid(GenericElement, TriggerToolsDecorator):
     def set_trigger_parameters_for_optics(self, trigger):
         super(OWGrid, self).set_trigger_parameters_for_optics(trigger)
 
-    def run_shadow4(self):
+    def run_shadow4(self, scanning_data: ShadowData.ScanningData = None):
         try:
             set_verbose()
             self.shadow_output.setText("")
@@ -311,9 +311,12 @@ class OWGrid(GenericElement, TriggerToolsDecorator):
             #
             # send beam and trigger
             #
-            self.Outputs.shadow_data.send(ShadowData(beam=output_beam,
-                                                     number_of_rays=output_beam.get_number_of_rays(),
-                                                     beamline=S4Beamline(light_source=light_source)))
+            output_data = ShadowData(beam=output_beam,
+                                     number_of_rays=output_beam.get_number_of_rays(),
+                                     beamline=S4Beamline(light_source=light_source))
+            output_data.scanning_data = scanning_data
+
+            self.Outputs.shadow_data.send(output_data)
             self.Outputs.trigger.send(TriggerIn(new_object=True))
         except Exception as exception:
             try:    self._initialize_tabs()

@@ -166,7 +166,7 @@ class OWBragg(OWWidget):
         gui.comboBox(box, self, "plot_flag", tooltip="plot_flag",
                      label="Scan plot", addSpace=True,
                      items=['No', 'energy-scan', 'grazing angle-scan'],
-                     valueType=int, orientation="horizontal", labelWidth=270, callback=self.do_plots)
+                     orientation="horizontal", labelWidth=270, callback=self.do_plots)
 
         self.box_plots = gui.widgetBox(tab_plots, "Optional scan plots", orientation="vertical")
 
@@ -206,7 +206,7 @@ class OWBragg(OWWidget):
                      # items=["v1 [default]","v2 [from DABAX list]","v2 [from XRayServer list]"],
                      items=["from DABAX list (version 2)", "from XRayServer list (version 2)"],
                      sendSelectedValue=False,
-                     valueType=int, orientation="horizontal", labelWidth=350)
+                     orientation="horizontal", labelWidth=350)
         self.show_at(self.unitFlags()[idx], box)
 
         # widget index 0.1
@@ -215,7 +215,7 @@ class OWBragg(OWWidget):
         gui.comboBox(box2, self, "DESCRIPTOR_DABAX", tooltip="DESCRIPTOR_DABAX",
                      label=self.unitLabels()[idx], addSpace=True,
                      items=self.crystals_dabax, sendSelectedValue=False,
-                     valueType=int, orientation="horizontal", labelWidth=350)
+                     orientation="horizontal", labelWidth=350)
         self.show_at(self.unitFlags()[idx], box2)
 
         # widget index 0.2
@@ -224,7 +224,7 @@ class OWBragg(OWWidget):
         gui.comboBox(box3, self, "DESCRIPTOR_XRAYSERVER", tooltip="DESCRIPTOR_XRAYSERVER",
                      label=self.unitLabels()[idx], addSpace=True,
                      items=self.crystals_xrayserver, sendSelectedValue=False,
-                     valueType=int, orientation="horizontal", labelWidth=350)
+                     orientation="horizontal", labelWidth=350)
         self.show_at(self.unitFlags()[idx], box3)
 
         # widget index 1

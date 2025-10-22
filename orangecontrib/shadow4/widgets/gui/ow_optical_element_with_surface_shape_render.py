@@ -177,7 +177,7 @@ class ShowSurfaceShapeDialog(QDialog):
             gui.comboBox(surface_box, self, "branch",
                          label="solution index", addSpace=False,
                          items=['0', '1'],
-                         valueType=int, orientation="horizontal", callback=self.refresh)
+                         orientation="horizontal", callback=self.refresh)
 
             le_0.setReadOnly(self.read_only)
             le_1.setReadOnly(self.read_only)

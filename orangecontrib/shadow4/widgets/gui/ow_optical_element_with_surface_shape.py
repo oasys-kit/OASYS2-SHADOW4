@@ -222,7 +222,6 @@ class OWOpticalElementWithSurfaceShape(OWOpticalElement):
             gui.comboBox(box_1, self, "surface_shape_type", label="Figure",
                          labelWidth=390,
                          items=["Plane", "Sphere", "Ellipsoid", "Hyperboloid", "Paraboloid", "Toroid", "Conic coefficients"],
-                         valueType=int,
                          sendSelectedValue=False, orientation="horizontal", callback=self.surface_shape_tab_visibility,
                          tooltip="surface_shape_type")
 
@@ -376,7 +375,6 @@ class OWOpticalElementWithSurfaceShape(OWOpticalElement):
         gui.comboBox(self.cylinder_orientation_box, self, "cylinder_orientation",
                      label="Cylinder Orientation (deg) [CCW from X axis]", labelWidth=350,
                      items=[0, 90],
-                     valueType=float,
                      sendSelectedValue=False, orientation="horizontal", tooltip="cylinder_orientation")
 
         view_shape_box = oasysgui.widgetBox(subtab_surface_shape, "Calculated Surface Shape", addSpace=False, orientation="vertical")

@@ -242,7 +242,7 @@ class OWElectronBeam(GenericElement):
         self.electron_beam_etap_h       = round(etap_x, 8)
         self.electron_beam_etap_v       = round(etap_y, 8)
 
-    def run_shadow4(self): raise NotImplementedError
+    def run_shadow4(self, scanning_data = None): raise NotImplementedError
 
     def _check_dispersion_reset(self):
         proceed = True

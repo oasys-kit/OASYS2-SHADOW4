@@ -187,7 +187,7 @@ class OWMLayer(OWWidget):
 
         gui.comboBox(box, self, "flag_graded", label="graded ML", tooltip="flag_graded", addSpace=True,
                      items=['No (Constant)', 'laterally graded', 'depth graded', 'both'],
-                     valueType=int, orientation="horizontal", labelWidth=270, callback=self.set_visibility)
+                     orientation="horizontal", labelWidth=270, callback=self.set_visibility)
 
 
         #
@@ -252,7 +252,7 @@ class OWMLayer(OWWidget):
         gui.comboBox(self.box_lateral, self, "grade_coeffs_flag", tooltip="grade_coeffs_flag",
                      label="Coeffs from", addSpace=True,
                      items=['External definition', 'Calculate for an ellipse'],
-                     valueType=int, orientation="horizontal", labelWidth=270, callback=self.set_visibility)
+                     orientation="horizontal", labelWidth=270, callback=self.set_visibility)
 
         self.box_lateral_coeffs = gui.widgetBox(self.box_lateral, "laterally graded coeffs F=a[0]+a[1] Y+a[2] Y^2+a[3] Y^3",
                                          orientation="vertical")

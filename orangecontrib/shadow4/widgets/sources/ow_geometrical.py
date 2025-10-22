@@ -23,7 +23,6 @@ from orangecontrib.shadow4.util.shadow4_util import TriggerToolsDecorator
 from oasys2.widget.util.widget_objects import TriggerIn
 
 class OWGeometrical(GenericElement, TriggerToolsDecorator):
-
     name = "Geometrical Source"
     description = "Shadow Source: Geometrical Source"
     icon = "icons/geometrical.png"
@@ -702,7 +701,7 @@ class OWGeometrical(GenericElement, TriggerToolsDecorator):
     def set_trigger_parameters_for_optics(self, trigger):
         super(OWGeometrical, self).set_trigger_parameters_for_optics(trigger)
 
-    def run_shadow4(self):
+    def run_shadow4(self, scanning_data: ShadowData.ScanningData = None):
         try:
             set_verbose()
             self.shadow_output.setText("")
@@ -747,9 +746,12 @@ class OWGeometrical(GenericElement, TriggerToolsDecorator):
             #
             # send beam and trigger
             #
-            self.Outputs.shadow_data.send(ShadowData(beam=output_beam,
-                                                     number_of_rays=self.number_of_rays,
-                                                     beamline=S4Beamline(light_source=light_source)))
+            output_data = ShadowData(beam=output_beam,
+                                     number_of_rays=self.number_of_rays,
+                                     beamline=S4Beamline(light_source=light_source))
+            output_data.scanning_data = scanning_data
+
+            self.Outputs.shadow_data.send(output_data)
             self.Outputs.trigger.send(TriggerIn(new_object=True))
         except Exception as exception:
             try:    self._initialize_tabs()
