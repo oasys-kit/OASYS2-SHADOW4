@@ -1,8 +1,6 @@
 import copy
 import numpy
 
-from AnyQt.QtWidgets import QMessageBox
-
 from orangewidget import gui
 from orangewidget.widget import Input, Output
 
