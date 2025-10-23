@@ -82,7 +82,7 @@ class OWGrid(GenericElement, TriggerToolsDecorator):
 
         button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
 
-        button = gui.button(button_box, self, "Run shadow4/source", callback=self.run_shadow4)
+        button = gui.button(button_box, self, "Run Shadow4/Source", callback=self.run_shadow4)
         button.setStyleSheet("color: darkblue; font-weight: bold; height: 45px;")
 
         button = gui.button(button_box, self, "Reset Fields", callback=self.call_reset_settings)
