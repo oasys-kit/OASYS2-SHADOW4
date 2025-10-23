@@ -14,6 +14,7 @@ from oasys2.widget.util.widget_util import EmittingStream
 
 from syned.widget.widget_decorator import WidgetDecorator
 from syned.beamline.element_coordinates import ElementCoordinates
+from syned.beamline.beamline import Beamline
 
 from shadow4.tools.logger import set_verbose
 
@@ -36,6 +37,7 @@ class OWOpticalElement(GenericElement, WidgetDecorator, TriggerToolsDecorator):
     class Outputs:
         shadow_data = Output("Shadow Data", ShadowData, id="Shadow Data", default=True, auto_summary=False)
         trigger     = TriggerToolsDecorator.get_trigger_output()
+        syned_data  = Output("Syned Data", Beamline, id="Syned Data", default=True, auto_summary=False)
 
     #########################################################
     # Position
@@ -332,6 +334,7 @@ class OWOpticalElement(GenericElement, WidgetDecorator, TriggerToolsDecorator):
             output_data.scanning_data = scanning_data
 
             self.Outputs.shadow_data.send(output_data)
+            self.Outputs.syned_data.send(beamline)
             self.Outputs.trigger.send(TriggerIn(new_object=True))
 
         except Exception as exception:
