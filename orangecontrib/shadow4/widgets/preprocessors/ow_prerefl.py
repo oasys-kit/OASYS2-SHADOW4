@@ -37,7 +37,7 @@ class OWPrerefl(OWWidget):
     keywords = ["xoppy", "xsh_prerefl"]
 
     class Outputs:
-        preprocessor_data = Output("PreRefl PreProcessor Data", PreReflPreProcessorData, id="PreRefl PreProcessor Data", default=True, auto_summary=False)
+        preprocessor_data = Output("PreRefl PreProcessor Data", PreReflPreProcessorData, default=True, auto_summary=False)
 
     want_main_area = True
 

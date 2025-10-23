@@ -36,7 +36,7 @@ class OWMLayer(OWWidget):
     keywords = ["preprocessor", "pre_mlayer"]
 
     class Outputs:
-        preprocessor_data = Output("MLayer PreProcessor Data", MLayerPreProcessorData, id="MLayer PreProcessor Data", default=True, auto_summary=False)
+        preprocessor_data = Output("MLayer PreProcessor Data", MLayerPreProcessorData, default=True, auto_summary=False)
 
     want_main_area = True
 

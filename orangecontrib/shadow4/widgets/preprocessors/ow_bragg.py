@@ -45,7 +45,7 @@ class OWBragg(OWWidget):
     keywords = ["oasys", "bragg"]
 
     class Outputs:
-        preprocessor_data = Output("Bragg PreProcessor Data", BraggPreProcessorData, id="Bragg PreProcessor Data", default=True, auto_summary=False)
+        preprocessor_data = Output("Bragg PreProcessor Data", BraggPreProcessorData, default=True, auto_summary=False)
 
     want_main_area = True
 

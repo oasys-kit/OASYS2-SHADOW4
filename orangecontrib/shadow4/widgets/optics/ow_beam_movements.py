@@ -33,7 +33,7 @@ class OWBeamMovement(GenericElement, WidgetDecorator, TriggerToolsDecorator):
         syned_data  = WidgetDecorator.syned_input_data(multi_input=True)
 
     class Outputs:
-        shadow_data = Output("Shadow Data", ShadowData, id="Shadow Data", default=True, auto_summary=False)
+        shadow_data = Output("Shadow Data", ShadowData, default=True, auto_summary=False)
         trigger = TriggerToolsDecorator.get_trigger_output()
 
     #########################################################

@@ -1339,11 +1339,11 @@ from orangecontrib.shadow4.util.shadow4_objects import ShadowData
 class TriggerToolsDecorator(object):
     @classmethod
     def get_trigger_input(cls):
-        return Input("Trigger", TriggerOut, id="Trigger", default=True, auto_summary=False)
+        return Input("Trigger", TriggerOut, default=True, auto_summary=False)
 
     @classmethod
     def get_trigger_output(cls):
-       return Output("Trigger", TriggerIn, id="Trigger", default=True, auto_summary=False)
+       return Output("Trigger", TriggerIn, default=True, auto_summary=False)
 
     def set_trigger_parameters_for_sources(self, trigger):
         if trigger and trigger.new_object == True:

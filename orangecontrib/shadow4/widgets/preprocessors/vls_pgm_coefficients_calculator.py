@@ -32,7 +32,7 @@ class OWVlsPgmCoefficientsCalculator(OWWidget):
     keywords = ["oasys", "vls", "pgm"]
 
     class Outputs:
-        preprocessor_data = Output("VLS-PGM PreProcessor Data", VlsPgmPreProcessorData, id="VLS-PGM PreProcessor Data", default=True, auto_summary=False)
+        preprocessor_data = Output("VLS-PGM PreProcessor Data", VlsPgmPreProcessorData, default=True, auto_summary=False)
 
     want_main_area = True
 

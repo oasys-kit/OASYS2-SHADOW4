@@ -31,7 +31,7 @@ class AccumulatingLoopPoint(AutomaticElement):
         shadow_data = Input("Shadow Data", ShadowData, default=True, auto_summary=False)
 
     class Outputs:
-        shadow_data = Output("Shadow Data", ShadowData, id="Shadow Data", default=True, auto_summary=False)
+        shadow_data = Output("Shadow Data", ShadowData, default=True, auto_summary=False)
         trigger     = TriggerToolsDecorator.get_trigger_output()
 
     IMAGE_WIDTH = 878
@@ -158,7 +158,7 @@ class AccumulatingLoopPoint(AutomaticElement):
                     if not footprint is None: footprint.rays = copy.deepcopy(footprint.rays[go])
 
                 if not self.input_data is None:
-                    self.input_data = ShadowData.merge_beams(self.input_data, input_data, which_flux=3, which_beamline=0)
+                    self.input_data = ShadowData.merge_shadow_data(self.input_data, input_data, which_flux=3, which_beamline=0)
                 else:
                     beam.rays[:, 11] = numpy.arange(1, len(beam.rays) + 1, 1)  # ray_index
                     if not footprint is None: footprint.rays[:, 11] = numpy.arange(1, len(footprint.rays) + 1, 1)

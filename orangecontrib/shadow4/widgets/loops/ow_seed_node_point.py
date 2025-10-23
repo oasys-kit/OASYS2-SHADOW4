@@ -72,10 +72,10 @@ class SourceSeedLoopPoint(OWLoopWidget):
     keywords = ["data", "file", "load", "read"]
 
     class Inputs:
-        trigger_in = Input("Trigger", TriggerIn, id="Trigger", default=True, auto_summary=False)
+        trigger_in = Input("Trigger", TriggerIn, default=True, auto_summary=False)
 
     class Outputs:
-        trigger_out = Output("Trigger", TriggerOut, id="Trigger", default=True, auto_summary=False)
+        trigger_out = Output("Trigger", TriggerOut, default=True, auto_summary=False)
 
     want_main_area = 0
 

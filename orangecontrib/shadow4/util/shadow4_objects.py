@@ -134,7 +134,7 @@ class ShadowData:
         return new_shadow_beam
 
     @classmethod
-    def merge_beams(cls, data_1, data_2, which_flux=3, which_beamline=0):
+    def merge_shadow_data(cls, data_1, data_2, which_flux=3, which_beamline=0):
         if data_1 and data_2:
             data_1: ShadowData = data_1
             data_2: ShadowData = data_2

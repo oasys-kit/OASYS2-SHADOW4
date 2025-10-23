@@ -32,7 +32,7 @@ class OWGeometrical(GenericElement, TriggerToolsDecorator):
         trigger     = TriggerToolsDecorator.get_trigger_input()
 
     class Outputs:
-        shadow_data = Output("Shadow Data", ShadowData, id="Shadow Data", default=True, auto_summary=False)
+        shadow_data = Output("Shadow Data", ShadowData, default=True, auto_summary=False)
         trigger     = TriggerToolsDecorator.get_trigger_output()
 
     number_of_rays = Setting(5000)

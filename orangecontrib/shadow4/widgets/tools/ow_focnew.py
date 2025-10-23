@@ -2,7 +2,6 @@ import sys
 import numpy
 
 from AnyQt.QtGui import QTextCursor
-from AnyQt.QtWidgets import QApplication
 
 from orangewidget import gui
 from orangewidget.settings import Setting
