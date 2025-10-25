@@ -6,7 +6,7 @@ from orangewidget.settings import Setting
 from oasys2.widget import gui as oasysgui
 from oasys2.widget.util import congruence
 from oasys2.widget.widget import OWAction
-from oasys2.widget.gui import ConfirmDialog
+from oasys2.widget.gui import ConfirmDialog, Styles
 
 from orangecontrib.shadow4.widgets.gui.ow_generic_element import GenericElement
 
@@ -50,19 +50,19 @@ class OWElectronBeam(GenericElement):
         self.runaction.triggered.connect(self.run_shadow4)
         self.addAction(self.runaction)
 
-        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
+        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal", width=self.CONTROL_AREA_WIDTH-5)
 
         button = gui.button(button_box, self, "Run Shadow4/Source", callback=self.run_shadow4)
-        button.setStyleSheet("color: darkblue; font-weight: bold; height: 45px;")
+        button.setStyleSheet(Styles.button_blue)
 
         button = gui.button(button_box, self, "Reset Fields", callback=self.call_reset_settings)
-        button.setStyleSheet("color: darkred; font-weight: bold; font-style: italic; height: 45px; width: 150px;")
+        button.setStyleSheet(Styles.button_red)
 
         self.tabs_control_area = oasysgui.tabWidget(self.controlArea)
         self.tabs_control_area.setFixedHeight(self.TABS_AREA_HEIGHT)
         self.tabs_control_area.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
-        self.tab_electron_beam = oasysgui.createTabPage(self.tabs_control_area, "Electron Beam Setting")
+        self.tab_electron_beam = oasysgui.createTabPage(self.tabs_control_area, "Electron Beam")
 
         self.electron_beam_box = oasysgui.widgetBox(self.tab_electron_beam, "Electron Beam/Machine Parameters", addSpace=False, orientation="vertical")
 

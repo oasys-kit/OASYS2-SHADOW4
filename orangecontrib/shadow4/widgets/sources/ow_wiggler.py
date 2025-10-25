@@ -51,7 +51,7 @@ class OWWiggler(OWSynchrotronSource):
     def __init__(self):
         super().__init__()
 
-        tab_wiggler = oasysgui.createTabPage(self.tabs_control_area, "Wiggler Setting")
+        tab_wiggler = oasysgui.createTabPage(self.tabs_control_area, "Wiggler")
 
         # wiggler parameters box
         left_box_3 = oasysgui.widgetBox(tab_wiggler, "Wiggler Parameters", addSpace=False, orientation="vertical", height=200)
@@ -112,7 +112,7 @@ class OWWiggler(OWSynchrotronSource):
 
 
         # wiggler adv settings
-        tab_advanced = oasysgui.createTabPage(self.tabs_control_area, "Advanced Setting")
+        tab_advanced = oasysgui.createTabPage(self.tabs_control_area, "Advanced")
         left_box_adv = oasysgui.widgetBox(tab_advanced, "Advanced settings", addSpace=False, orientation="vertical", height=200)
         oasysgui.lineEdit(left_box_adv, self, "ng_e", "Number of Points in energy scan", labelWidth=260, tooltip="ng_e", valueType=int, orientation="horizontal")
         oasysgui.lineEdit(left_box_adv, self, "ng_j", "Number of Points in e trajectory (per period)", labelWidth=280, tooltip="ng_j", valueType=int, orientation="horizontal")

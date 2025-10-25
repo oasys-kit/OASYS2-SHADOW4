@@ -77,7 +77,7 @@ class _PlotXY(AutomaticElement):
     def __init__(self, allow_retrace=True):
         super().__init__()
 
-        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
+        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal", width=self.CONTROL_AREA_WIDTH-5)
 
         gui.button(button_box, self, "Refresh", callback=self.plot_results, height=45)
         gui.button(button_box, self, "Save Current Plot", callback=self.save_results, height=45)

@@ -32,7 +32,7 @@ class OWBendingMagnet(OWSynchrotronSource):
     def __init__(self):
         super().__init__()
 
-        tab_bas = oasysgui.createTabPage(self.tabs_control_area, "Bending Magnet Setting")
+        tab_bas = oasysgui.createTabPage(self.tabs_control_area, "Bending Magnet")
 
         #
         box_1 = oasysgui.widgetBox(tab_bas, "Bending Magnet Parameters", addSpace=True, orientation="vertical")
@@ -47,7 +47,7 @@ class OWBendingMagnet(OWSynchrotronSource):
 
 
         # bm adv settings
-        tab_advanced = oasysgui.createTabPage(self.tabs_control_area, "Advanced Setting")
+        tab_advanced = oasysgui.createTabPage(self.tabs_control_area, "Advanced")
 
         box_3 = oasysgui.widgetBox(tab_advanced, "Advanced settings", addSpace=True, orientation="vertical")
         oasysgui.lineEdit(box_3, self, "ng_e", "Spectrum number of points", tooltip="ng_e", labelWidth=250, valueType=int, orientation="horizontal")

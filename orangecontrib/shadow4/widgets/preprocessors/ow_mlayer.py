@@ -102,9 +102,9 @@ class OWMLayer(OWWidget):
     IMAGE_HEIGHT = 545
 
     MAX_WIDTH          = 1320
-    MAX_HEIGHT         = 700
+    MAX_HEIGHT         = 720
     CONTROL_AREA_WIDTH = 405
-    TABS_AREA_HEIGHT   = 630
+    TABS_AREA_HEIGHT   = 615
 
     usage_path = os.path.join(resources.package_dirname("orangecontrib.shadow4.widgets.gui"), "misc", "premlayer_usage.png")
 

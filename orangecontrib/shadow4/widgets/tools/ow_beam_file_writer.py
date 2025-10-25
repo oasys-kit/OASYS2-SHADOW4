@@ -47,7 +47,7 @@ class BeamFileWriter(OWWidget):
         self.addAction(self.runaction)
 
         self.setFixedWidth(590)
-        self.setFixedHeight(190)
+        self.setFixedHeight(210)
 
         left_box_1 = oasysgui.widgetBox(self.controlArea, "Shadow4 File Selection", addSpace=True, orientation="vertical",
                                          width=570, height=110)
@@ -66,6 +66,7 @@ class BeamFileWriter(OWWidget):
 
         button = gui.button(self.controlArea, self, "Write Shadow4 File", callback=self.write_file)
         button.setFixedHeight(45)
+        button.setFixedWidth(570)
 
         gui.rubber(self.controlArea)
 

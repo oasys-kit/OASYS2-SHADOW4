@@ -3,7 +3,7 @@ import sys, numpy
 
 from AnyQt.QtWidgets import QMessageBox
 
-
+from oasys2.widget.gui import Styles
 from orangewidget import gui
 from orangewidget.settings import Setting
 from orangewidget.widget import Input, Output
@@ -85,7 +85,7 @@ class MergeBeams(OWWidget):
         button_box = oasysgui.widgetBox(gen_box, "", addSpace=False, orientation="horizontal")
 
         button = gui.button(button_box, self, "Merge Data and Send", callback=self.merge_data)
-        button.setStyleSheet("color: darkblue; font-weight: bold; height: 45px;")
+        button.setStyleSheet(Styles.button_blue)
 
         weight_box = oasysgui.widgetBox(gen_box, "Relative Weights", addSpace=False, orientation="vertical")
 

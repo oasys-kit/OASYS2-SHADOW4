@@ -45,7 +45,7 @@ class OWUndulatorGaussian(OWSynchrotronSource):
 
         super().__init__(show_energy_spread=True)
 
-        tab_bas = oasysgui.createTabPage(self.tabs_control_area, "Undulator Setting")
+        tab_bas = oasysgui.createTabPage(self.tabs_control_area, "Undulator")
 
         #
         box_1 = oasysgui.widgetBox(tab_bas, "Undulator Parameters", addSpace=True, orientation="vertical")
@@ -65,7 +65,7 @@ class OWUndulatorGaussian(OWSynchrotronSource):
         #
         # advanced settings
         #
-        tab_advanced = oasysgui.createTabPage(self.tabs_control_area, "Advanced Setting")
+        tab_advanced = oasysgui.createTabPage(self.tabs_control_area, "Advanced")
         # arrays
         left_box_11 = oasysgui.widgetBox(tab_advanced, "Flux normalization", addSpace=False, orientation="vertical")
 

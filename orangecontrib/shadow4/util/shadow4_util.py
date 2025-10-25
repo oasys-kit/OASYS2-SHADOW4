@@ -25,8 +25,10 @@ from orangewidget.gui import OWComponent
 
 from oasys2.widget import gui
 from oasys2.widget.util import congruence
-from oasys2.widget.util.widget_util import get_sigma, get_fwhm, get_average
+from oasys2.widget.gui import Styles
 from oasys2.widget.util.widget_objects import TriggerIn, TriggerOut
+
+from srxraylib.util.histograms import get_sigma, get_fwhm, get_average
 
 from shadow4.beam.s4_beam import S4Beam
 
@@ -344,7 +346,7 @@ try:
                     label_box_2.layout().addWidget(self.label_c_v)
                     self.centroid_v = gui.lineEdit(label_box_2, self, "centroid_v_field", "", tooltip="Sigma", labelWidth=115, valueType=str, orientation="horizontal")
 
-                read_only_style = "color: darkblue; background-color: rgb(243, 240, 160); font-weight: bold;"
+                read_only_style = Styles.line_edit_read_only
 
                 self.intensity.setReadOnly(True)
                 self.intensity.setStyleSheet(read_only_style)

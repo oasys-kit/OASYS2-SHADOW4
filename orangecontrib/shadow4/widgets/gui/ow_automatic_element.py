@@ -7,6 +7,7 @@ from orangewidget.settings import Setting
 from AnyQt.QtWidgets import QApplication
 from AnyQt.QtCore import QRect
 
+import oasys2.widget.gui as oasysgui
 from oasys2.widget.gui import ConfirmDialog, MessageDialog
 
 class AutomaticElement(OWWidget):
@@ -14,7 +15,7 @@ class AutomaticElement(OWWidget):
     is_automatic_run = Setting(True)
 
     MAX_WIDTH          = 1320
-    MAX_HEIGHT         = 700
+    MAX_HEIGHT         = 720
     CONTROL_AREA_WIDTH = 405
     TABS_AREA_HEIGHT   = 560
 
@@ -31,8 +32,11 @@ class AutomaticElement(OWWidget):
         self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
 
         if show_automatic_box:
-            self.general_options_box = gui.widgetBox(self.controlArea, "General Options", addSpace=True, orientation="horizontal")
+            self.general_options_box = oasysgui.widgetBox(self.controlArea, "General Options", addSpace=True, orientation="horizontal", width=self.CONTROL_AREA_WIDTH-5)
             gui.checkBox(self.general_options_box, self, 'is_automatic_run', 'Automatic Execution')
+            self.TABS_AREA_HEIGHT = 555
+        else:
+            self.TABS_AREA_HEIGHT = 615
 
     def call_reset_settings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Fields?"):

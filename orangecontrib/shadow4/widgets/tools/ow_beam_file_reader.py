@@ -40,7 +40,7 @@ class BeamFileReader(OWWidget):
         self.addAction(self.runaction)
 
         self.setFixedWidth(590)
-        self.setFixedHeight(150)
+        self.setFixedHeight(170)
 
         left_box_1 = oasysgui.widgetBox(self.controlArea, "Shadow4 File Selection", addSpace=True, orientation="vertical",
                                          width=570, height=70)
@@ -55,6 +55,7 @@ class BeamFileReader(OWWidget):
 
         button = gui.button(self.controlArea, self, "Read Shadow4 File", callback=self.read_file)
         button.setFixedHeight(45)
+        button.setFixedWidth(570)
 
         gui.rubber(self.controlArea)
 

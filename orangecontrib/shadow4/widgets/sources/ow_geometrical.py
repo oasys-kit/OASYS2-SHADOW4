@@ -10,6 +10,7 @@ from oasys2.widget import gui as oasysgui
 from oasys2.widget.widget import OWAction
 from oasys2.widget.util import congruence
 from oasys2.widget.util.widget_util import EmittingStream
+from oasys2.widget.gui import Styles
 from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
 
 from orangecontrib.shadow4.util.shadow4_objects import ShadowData
@@ -132,25 +133,25 @@ class OWGeometrical(GenericElement, TriggerToolsDecorator):
         self.runaction.triggered.connect(self.run_shadow4)
         self.addAction(self.runaction)
 
-        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
+        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal", width=self.CONTROL_AREA_WIDTH-5)
 
         button = gui.button(button_box, self, "Run Shadow4/Source", callback=self.run_shadow4)
-        button.setStyleSheet("color: darkblue; font-weight: bold; height: 45px;")
+        button.setStyleSheet(Styles.button_blue)
 
         button = gui.button(button_box, self, "Reset Fields", callback=self.call_reset_settings)
-        button.setStyleSheet("color: darkred; font-weight: bold; font-style: italic; height: 45px; width: 150px;")
+        button.setStyleSheet(Styles.button_red)
 
 
         ################################################################################################################
         self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
 
         tabs_setting = oasysgui.tabWidget(self.controlArea)
-        tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT + 60)
+        tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
         tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH - 5)
 
-        tab_basic = oasysgui.createTabPage(tabs_setting, "Basic Setting")
-        tab_geometry = oasysgui.createTabPage(tabs_setting, "Geometry Setting")
-        tab_energy = oasysgui.createTabPage(tabs_setting, "Energy/Polarization Setting")
+        tab_basic = oasysgui.createTabPage(tabs_setting, "General")
+        tab_geometry = oasysgui.createTabPage(tabs_setting, "Geometry")
+        tab_energy = oasysgui.createTabPage(tabs_setting, "Energy/Polarization")
 
         ##############################
         # MONTECARLO

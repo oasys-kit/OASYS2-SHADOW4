@@ -130,7 +130,8 @@ class Histogram(AutomaticElement):
     def __init__(self):
         super().__init__()
 
-        self.refresh_button = gui.button(self.controlArea, self, "Refresh", callback=self.plot_results, height=45)
+        self.refresh_button = gui.button(self.controlArea, self, "Refresh", callback=self.plot_results,
+                                         height=45, width=self.CONTROL_AREA_WIDTH-5)
         gui.separator(self.controlArea, 10)
 
         self.tabs_setting = oasysgui.tabWidget(self.controlArea)

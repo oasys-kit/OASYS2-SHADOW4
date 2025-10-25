@@ -6,7 +6,7 @@ from orangewidget.widget import Input, Output
 
 from orangewidget.settings import Setting
 from oasys2.widget import gui as oasysgui
-from oasys2.widget.gui import ConfirmDialog
+from oasys2.widget.gui import ConfirmDialog, Styles
 from oasys2.widget.util.widget_objects import TriggerIn
 from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
 
@@ -54,7 +54,7 @@ class AccumulatingLoopPoint(AutomaticElement):
         self.is_automatic_run = True
 
         self.setFixedWidth(570)
-        self.setFixedHeight(410)
+        self.setFixedHeight(380)
 
         self.controlArea.setFixedWidth(560)
 
@@ -64,7 +64,7 @@ class AccumulatingLoopPoint(AutomaticElement):
         self.start_button.setFixedHeight(45)
 
         button = gui.button(button_box, self, "Reset Accumulation", callback=self.callResetSettings)
-        button.setStyleSheet("color: darkblue; font-weight: bold; height: 45px;")
+        button.setStyleSheet(Styles.button_blue)
 
         left_box_1 = oasysgui.widgetBox(self.controlArea, "Accumulating Loop Management", addSpace=False, orientation="vertical", height=260)
 
@@ -90,11 +90,11 @@ class AccumulatingLoopPoint(AutomaticElement):
 
         le = oasysgui.lineEdit(left_box_1, self, "current_number_of_rays", "Current number of good rays", labelWidth=350, valueType=int, orientation="horizontal")
         le.setReadOnly(True)
-        le.setStyleSheet("color: darkblue; background-color: rgb(243, 240, 160); font-weight: bold;")
+        le.setStyleSheet(Styles.line_edit_read_only)
 
         self.le_current_intensity = oasysgui.lineEdit(left_box_1, self, "current_intensity", "Current intensity", labelWidth=350, valueType=float, orientation="horizontal")
         self.le_current_intensity.setReadOnly(True)
-        self.le_current_intensity.setStyleSheet("color: darkblue; background-color: rgb(243, 240, 160); font-weight: bold;")
+        self.le_current_intensity.setStyleSheet(Styles.line_edit_read_only)
 
         le = oasysgui.lineEdit(left_box_1, self, "current_number_of_lost_rays", "Current number of lost rays", labelWidth=350, valueType=int, orientation="horizontal")
         le.setReadOnly(True)

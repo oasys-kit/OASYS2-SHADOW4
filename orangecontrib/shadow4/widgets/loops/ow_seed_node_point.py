@@ -56,7 +56,7 @@ from orangewidget.widget import Input, Output
 from orangewidget.settings import Setting
 from oasys2.widget import gui as oasysgui
 from oasys2.widget.widget import OWLoopWidget, OWAction
-from oasys2.widget.gui import ConfirmDialog
+from oasys2.widget.gui import ConfirmDialog, Styles
 from oasys2.widget.util.widget_objects import TriggerIn, TriggerOut
 from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
 
@@ -108,7 +108,7 @@ class SourceSeedLoopPoint(OWLoopWidget):
         self.addAction(self.runaction)
 
         self.setFixedWidth(400)
-        self.setFixedHeight(250)
+        self.setFixedHeight(270)
 
         button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=True, orientation="horizontal")
 
@@ -135,7 +135,7 @@ class SourceSeedLoopPoint(OWLoopWidget):
 
         self.le_current_new_object = oasysgui.lineEdit(left_box_1, self, "current_new_object", "Current New " + self.get_object_name(), labelWidth=250, valueType=int, orientation="horizontal")
         self.le_current_new_object.setReadOnly(True)
-        self.le_current_new_object.setStyleSheet("color: darkblue; background-color: rgb(243, 240, 160); font-weight: bold;")
+        self.le_current_new_object.setStyleSheet(Styles.line_edit_read_only)
 
         gui.separator(left_box_1)
 

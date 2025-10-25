@@ -11,6 +11,7 @@ from orangewidget.widget import Input, Output
 from oasys2.widget.widget import OWAction
 from oasys2.widget import gui as oasysgui
 from oasys2.widget.util.widget_util import EmittingStream
+from oasys2.widget.gui import Styles
 
 from syned.widget.widget_decorator import WidgetDecorator
 from syned.beamline.element_coordinates import ElementCoordinates
@@ -62,13 +63,13 @@ class OWOpticalElement(GenericElement, WidgetDecorator, TriggerToolsDecorator):
         self.runaction.triggered.connect(self.run_shadow4)
         self.addAction(self.runaction)
 
-        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
+        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal", width=self.CONTROL_AREA_WIDTH-5)
 
         button = gui.button(button_box, self, "Run Shadow4/Trace", callback=self.run_shadow4)
-        button.setStyleSheet("color: darkblue; font-weight: bold; height: 45px;")
+        button.setStyleSheet(Styles.button_blue)
 
         button = gui.button(button_box, self, "Reset Fields", callback=self.call_reset_settings)
-        button.setStyleSheet("color: darkred; font-weight: bold; font-style: italic; height: 45px; width: 150px;")
+        button.setStyleSheet(Styles.button_red)
 
         #
         # tabs

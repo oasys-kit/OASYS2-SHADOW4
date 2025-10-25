@@ -62,8 +62,9 @@ except:
 
 from oasys2.widget import gui as oasysgui
 from oasys2.widget.gui import FigureCanvas3D
-from oasys2.widget.util.widget_util import get_sigma, get_average
 from oasys2.widget.util.scanning import HistogramData
+
+from srxraylib.util.histograms import get_sigma, get_average
 
 from orangecontrib.shadow4.util.shadow4_util import ShadowPlot
 

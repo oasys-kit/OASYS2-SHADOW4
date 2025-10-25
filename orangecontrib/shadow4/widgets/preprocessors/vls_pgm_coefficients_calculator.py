@@ -89,7 +89,7 @@ class OWVlsPgmCoefficientsCalculator(OWWidget):
         self.addAction(self.runaction)
 
         self.setFixedWidth(1170)
-        self.setFixedHeight(500)
+        self.setFixedHeight(550)
 
         gui.separator(self.controlArea)
 
