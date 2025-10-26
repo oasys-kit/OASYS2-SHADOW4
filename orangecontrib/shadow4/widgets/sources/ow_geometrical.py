@@ -724,8 +724,6 @@ class OWGeometrical(GenericElement, TriggerToolsDecorator):
 
             print(light_source.info())
 
-            print(light_source.get_info())
-
             self.progressBarSet(5)
 
             # run shadow4
@@ -739,8 +737,6 @@ class OWGeometrical(GenericElement, TriggerToolsDecorator):
             # beam plots
             #
             self._plot_results(output_beam, None, progressBarValue=80)
-
-
 
             self.progressBarFinished()
 
