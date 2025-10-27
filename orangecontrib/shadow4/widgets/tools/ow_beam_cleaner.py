@@ -91,14 +91,11 @@ class BeamCleaner(OWWidget, TriggerToolsDecorator):
         if ShadowCongruence.check_empty_data(shadow_data):
             output_data = shadow_data.duplicate()
 
-            if ShadowCongruence.check_empty_beam(input_beam=output_data.beam):
-                if ShadowCongruence.check_good_beam(input_beam=output_data.beam):
-
-                    good = numpy.where(output_data.beam.rays[:, 9] == 1)
-                    output_data.beam.rays = copy.deepcopy(output_data.beam.rays[good])
+            if ShadowCongruence.check_good_beam(input_beam=output_data.beam):
+                good = numpy.where(output_data.beam.rays[:, 9] == 1)
+                output_data.beam.rays = copy.deepcopy(output_data.beam.rays[good])
 
             self.Outputs.shadow_data.send(output_data)
             self.Outputs.trigger.send(TriggerIn(new_object=True))
-
 
 add_widget_parameters_to_module(__name__)
