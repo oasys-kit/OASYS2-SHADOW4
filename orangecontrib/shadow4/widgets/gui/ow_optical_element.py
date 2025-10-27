@@ -281,10 +281,20 @@ class OWOpticalElement(GenericElement, WidgetDecorator, TriggerToolsDecorator):
         pass
 
     def run_shadow4(self, scanning_data: ShadowData.ScanningData = None):
+        '''
+
+        :param scanning_data: these data come from a direct loop attached to this oe, the method managing the trigger is sending them.
+                              It is not None with a scanning variable or scanning file looper attached. Nested loops are not allowed, so if the
+                              input_data attribute contains scanning_data (from a thermal loop, for example), they will be used and the parameter is ignored.
+                              Nevertheless, in such a case, the scanning_data parameter, should be None.
+        '''
+
+
         if self.input_data is None:
             self.prompt_exception(ValueError("No input beam"))
             return
-        if not scanning_data: scanning_data = None
+        if not scanning_data: scanning_data = None # For some not yet understood problem, the variable is False by default instead of None.
+        if not self.input_data.scanning_data is None: scanning_data = self.input_data.scanning_data # from a loop starting elsewhere
 
         try:
             set_verbose()
