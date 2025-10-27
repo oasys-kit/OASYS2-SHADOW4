@@ -2,7 +2,7 @@
 Optics
 """
 
-NAME = "Shadow4 \u23F5 Optics"
+NAME = "Shadow4 \u23F5 Optical Elements"
 
 DESCRIPTION = "Optics."
 
