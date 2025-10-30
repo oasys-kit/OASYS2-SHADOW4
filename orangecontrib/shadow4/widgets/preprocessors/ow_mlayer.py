@@ -20,6 +20,7 @@ from shadow4.physical_models.mlayer.mlayer import MLayer
 from oasys2.widget.util.widget_util import EmittingStream
 from orangecontrib.shadow4.util.shadow4_objects import MLayerPreProcessorData
 from orangecontrib.shadow4.util.shadow4_util import ShadowPhysics
+from orangecontrib.shadow4.util import materials_library
 
 from orangecontrib.shadow4.widgets.gui.plots import plot_data1D, plot_data2D
 
@@ -480,6 +481,8 @@ class OWMLayer(OWWidget):
                              ell_photon_energy=self.ell_photon_energy,
                              GRADE_DEPTH=GRADE_DEPTH,
                              LIST_N_THICK_GAMMA_ROUGHE_ROUGHO_FROM_TOP_TO_BOTTOM=LIST_N_THICK_GAMMA_ROUGHE_ROUGHO_FROM_TOP_TO_BOTTOM,
+                             use_xraylib_or_dabax=1,
+                             dabax=materials_library,
                              )
 
             # this is for just info
