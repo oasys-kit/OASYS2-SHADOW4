@@ -1,10 +1,13 @@
 import numpy
 
-from AnyQt.QtWidgets import QDialog, QGridLayout, QWidget, QDialogButtonBox, QFileDialog
+from AnyQt.QtWidgets import QGridLayout, QWidget, QDialogButtonBox, QFileDialog
 
 from matplotlib import cm
 from oasys2.widget.gui import FigureCanvas3D, MessageDialog
 from matplotlib.figure import Figure
+
+from orangewidget.gui import ControlledCallFront
+
 try:    from mpl_toolkits.mplot3d import Axes3D  # plot 3D
 except: pass
 
@@ -12,8 +15,8 @@ except: pass
 from orangewidget import gui
 
 from oasys2.widget import gui as oasysgui
+from oasys2.widget.widget import OWDialog
 from oasys2.widget.util import congruence
-
 from oasys2.widget.util.widget_util import write_surface_file
 
 from shadow4.optical_surfaces.s4_toroid import S4Toroid
@@ -24,7 +27,7 @@ from shadow4.beamline.optical_elements.mirrors.s4_additional_numerical_mesh_mirr
 
 #todo: add S4Mesh and S4AdditionalMesh
 
-class ShowSurfaceShapeDialog(QDialog):
+class ShowSurfaceShapeDialog(OWDialog):
     def __init__(self, parent=None,
                  is_torus=0,
                  ccc=None, branch=0,
@@ -33,8 +36,6 @@ class ShowSurfaceShapeDialog(QDialog):
                  bin_x=100, bin_y=100,
                  read_only=0,
                  ):
-
-
         self.parent = parent
         self.ccc = ccc
         self.x_min = x_min
@@ -59,7 +60,6 @@ class ShowSurfaceShapeDialog(QDialog):
         self.c9 = ccc[8]
         self.c10 = ccc[9]
         self.branch = branch
-
 
         self.read_only = read_only
 
@@ -109,7 +109,8 @@ class ShowSurfaceShapeDialog(QDialog):
         #
         # initialize window
         #
-        QDialog.__init__(self, parent)
+        super(ShowSurfaceShapeDialog, self).__init__(parent)
+
         self.setWindowTitle('O.E. Surface Shape')
         self.setFixedWidth(1000)
 
@@ -195,8 +196,6 @@ class ShowSurfaceShapeDialog(QDialog):
         oasysgui.lineEdit(limits_box, self, "x_max", "x<sub>max</sub> [m]", labelWidth=70, valueType=float, orientation="horizontal", callback=self.refresh)
         oasysgui.lineEdit(limits_box, self, "y_min", "y<sub>min</sub> [m]", labelWidth=70, valueType=float, orientation="horizontal", callback=self.refresh)
         oasysgui.lineEdit(limits_box, self, "y_max", "y<sub>max</sub> [m]", labelWidth=70, valueType=float, orientation="horizontal", callback=self.refresh)
-
-
 
         export_box = oasysgui.widgetBox(container, "Export", addSpace=False, orientation="vertical", width=220)
 

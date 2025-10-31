@@ -1,11 +1,13 @@
 import numpy
 import os
 
-from AnyQt.QtWidgets import QDialog, QGridLayout, QWidget
+from AnyQt.QtWidgets import QGridLayout, QWidget
 
 from matplotlib import cm
 from oasys2.widget.gui import FigureCanvas3D
 from matplotlib.figure import Figure
+
+
 try:    from mpl_toolkits.mplot3d import Axes3D  # plot 3D
 except: pass
 
@@ -20,7 +22,7 @@ from orangewidget.settings import Setting
 from orangewidget.widget import MultiInput
 from oasys2.widget import gui as oasysgui
 from oasys2.widget.gui import ConfirmDialog
-
+from oasys2.widget.widget import OWDialog
 from oasys2.widget.util.widget_util import read_surface_file
 from oasys2.widget.util.widget_objects import OasysPreProcessorData, OasysSurfaceData
 
@@ -748,10 +750,9 @@ class OWOpticalElementWithSurfaceShape(OWOpticalElement):
                 return Ellipse(a_axis_min=-self.dim_x_minus, a_axis_max=self.dim_x_plus,
                                b_axis_min=-self.dim_y_minus, b_axis_max=self.dim_y_plus)
 
-
-class ShowSurfaceErrorDataFileDialog(QDialog):
+class ShowSurfaceErrorDataFileDialog(OWDialog):
     def __init__(self, parent=None, file_name=None):
-        QDialog.__init__(self, parent)
+        super(ShowSurfaceErrorDataFileDialog, self).__init__(parent)
         self.setWindowTitle('Surface Error Profile')
         self.setFixedHeight(700)
         layout = QGridLayout(self)
@@ -795,9 +796,9 @@ class ShowSurfaceErrorDataFileDialog(QDialog):
 
         self.setLayout(layout)
 
-class ShowImageErrorDataFileDialog(QDialog):
+class ShowImageErrorDataFileDialog(OWDialog):
     def __init__(self, parent=None, file_name=None):
-        QDialog.__init__(self, parent)
+        super(ShowImageErrorDataFileDialog, self).__init__(parent)
         self.setWindowTitle('Surface Error Profile')
         # self.setFixedHeight(700)
         layout = QGridLayout(self)
