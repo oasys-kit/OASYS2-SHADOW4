@@ -1,10 +1,12 @@
-import os
-import pickle
+import sys
 
-from AnyQt.QtWidgets import QMessageBox
+import os
 
 from orangewidget import gui
 from orangewidget.settings import Setting
+
+from AnyQt.QtWidgets import QMessageBox
+
 from orangewidget.widget import Input, Output
 
 from oasys2.widget import gui as oasysgui
@@ -14,6 +16,7 @@ from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
 
 from orangecontrib.shadow4.util.shadow4_objects import ShadowData
 from orangecontrib.shadow4.util.shadow4_util import ShadowCongruence
+
 
 class BeamFileWriter(OWWidget):
     name = "Shadow4 File Writer"
@@ -28,14 +31,13 @@ class BeamFileWriter(OWWidget):
     want_main_area = 0
 
     shadow_data_file_name = Setting("")
-    is_automatic_run      = Setting(1)
+    is_automatic_run = Setting(1)
 
     class Inputs:
         shadow_data = Input("Shadow Data", ShadowData, default=True, auto_summary=False)
 
     class Outputs:
         shadow_data = Output("Shadow Data", ShadowData, default=True, auto_summary=False)
-
 
     input_data = None
 
@@ -49,8 +51,9 @@ class BeamFileWriter(OWWidget):
         self.setFixedWidth(590)
         self.setFixedHeight(210)
 
-        left_box_1 = oasysgui.widgetBox(self.controlArea, "Shadow4 File Selection", addSpace=True, orientation="vertical",
-                                         width=570, height=110)
+        left_box_1 = oasysgui.widgetBox(self.controlArea, "Shadow4 File Selection", addSpace=True,
+                                        orientation="vertical",
+                                        width=570, height=110)
 
         gui.checkBox(left_box_1, self, 'is_automatic_run', 'Automatic Execution')
 
@@ -58,8 +61,9 @@ class BeamFileWriter(OWWidget):
 
         figure_box = oasysgui.widgetBox(left_box_1, "", addSpace=True, orientation="horizontal", width=550, height=35)
 
-        self.le_shadow_data_file_name = oasysgui.lineEdit(figure_box, self, "shadow_data_file_name", "Shadow4 File Name",
-                                                    labelWidth=120, valueType=str, orientation="horizontal")
+        self.le_shadow_data_file_name = oasysgui.lineEdit(figure_box, self, "shadow_data_file_name",
+                                                          "Shadow4 File Name",
+                                                          labelWidth=120, valueType=str, orientation="horizontal")
         self.le_shadow_data_file_name.setFixedWidth(330)
 
         gui.button(figure_box, self, "...", callback=self.selectFile)
@@ -71,7 +75,9 @@ class BeamFileWriter(OWWidget):
         gui.rubber(self.controlArea)
 
     def selectFile(self):
-        self.le_shadow_data_file_name.setText(oasysgui.selectSaveFileFromDialog(self, self.shadow_data_file_name, default_file_name="s4_data.pkl", file_extension_filter="Pickle Files (*.pkl)"))
+        self.le_shadow_data_file_name.setText(
+            oasysgui.selectSaveFileFromDialog(self, self.shadow_data_file_name, default_file_name="s4_data.h5",
+                                              file_extension_filter="HDF5 Files (*.h5 *.hdf5 *.hdf)"))
 
     @Inputs.shadow_data
     def set_shadow_data(self, input_data: ShadowData):
@@ -86,13 +92,17 @@ class BeamFileWriter(OWWidget):
 
         if self.is_automatic_run: self.write_file()
 
+
     def write_file(self):
         self.setStatusMessage("")
 
         try:
             if ShadowCongruence.check_empty_data(self.input_data):
                 if congruence.checkFileName(self.shadow_data_file_name):
-                    with open(self.shadow_data_file_name, "wb") as f:  pickle.dump(self.input_data, f)
+                    _ = self.input_data.beam.write_h5(self.shadow_data_file_name,
+                                                      overwrite=True,
+                                                      simulation_name='run001',
+                                                      beam_name='begin')
 
                     _, file_name = os.path.split(self.shadow_data_file_name)
 
@@ -104,4 +114,10 @@ class BeamFileWriter(OWWidget):
         except Exception as exception:
             QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
 
+
 add_widget_parameters_to_module(__name__)
+
+if __name__ == "__main__":
+    from orangewidget.utils.widgetpreview import WidgetPreview
+
+    WidgetPreview(BeamFileWriter).run()

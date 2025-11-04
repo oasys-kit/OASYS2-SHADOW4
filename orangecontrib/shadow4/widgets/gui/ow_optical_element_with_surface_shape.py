@@ -626,39 +626,34 @@ class OWOpticalElementWithSurfaceShape(OWOpticalElement):
 
         if xx is None or yy is None or zz is None: xx, yy, zz = read_surface_file(surface_data_file)
 
-        ask_for_fix = 0
-        if self.is_infinite: ask_for_fix = 1
-        if self.oe_shape != 0: ask_for_fix = 1
-        if (xx.min() > -self.dim_x_minus) or \
-                (xx.max() > self.dim_x_plus) or \
-                (yy.min() > -self.dim_y_minus) or \
-                (yy.max() > self.dim_y_plus):
-            ask_for_fix = 1
-
+        ask_for_fix = False
+        if   self.is_infinite or self.oe_shape != 0:
+            ask_for_fix = True
+        elif (xx.min() > -self.dim_x_minus) or \
+             (xx.max() < self.dim_x_plus) or \
+             (yy.min() > -self.dim_y_minus) or \
+             (yy.max() < self.dim_y_plus):
+            ask_for_fix = True
 
         if ask_for_fix:
             print(">> File limits: ", xx.min(), xx.max(), yy.min(), yy.max())
             print(">> Current limits: ", self.dim_x_minus, self.dim_x_plus, self.dim_y_minus, self.dim_x_plus)
 
-            if (xx.min() > -self.dim_x_minus) or \
-               (xx.max() > self.dim_x_plus) or \
-               (yy.min() > -self.dim_y_minus) or \
-               (yy.max() > self.dim_y_plus):
-                if ConfirmDialog.confirmed(parent=self,
-                                           message="Dimensions of this O.E. must be changed in order to ensure congruence with the error profile surface, accept?",
-                                           title="Confirm Modification"):
-                    self.is_infinite = 0
-                    self.oe_shape = 0
-                    self.dim_x_minus = -numpy.min((xx.min(), -self.dim_x_minus))
-                    self.dim_x_plus  = numpy.max((xx.max(), self.dim_x_plus))
-                    self.dim_y_minus = -numpy.min((yy.min(), -self.dim_y_minus))
-                    self.dim_y_plus  = numpy.max((yy.max(), self.dim_y_plus))
+            if ConfirmDialog.confirmed(parent=self,
+                                       message="Dimensions of this O.E. must be changed in order to ensure congruence with the error profile surface, accept?",
+                                       title="Confirm Modification"):
+                self.is_infinite = 0
+                self.oe_shape    = 0
+                self.dim_x_minus = -numpy.max((xx.min(), -self.dim_x_minus))
+                self.dim_x_plus  = numpy.min((xx.max(), self.dim_x_plus))
+                self.dim_y_minus = -numpy.max((yy.min(), -self.dim_y_minus))
+                self.dim_y_plus  = numpy.min((yy.max(), self.dim_y_plus))
 
-                    print(">> NEW limits: ", self.dim_x_minus, self.dim_x_plus, self.dim_y_minus, self.dim_x_plus)
+                print(">> NEW limits: ", self.dim_x_minus, self.dim_x_plus, self.dim_y_minus, self.dim_x_plus)
 
-                    self.dimensions_tab_visibility()
-                else:
-                    print(">> **NOT CHANGED** limits: ", self.dim_x_minus, self.dim_x_plus, self.dim_y_minus, self.dim_x_plus)
+                self.dimensions_tab_visibility()
+            else:
+                print(">> **NOT CHANGED** limits: ", self.dim_x_minus, self.dim_x_plus, self.dim_y_minus, self.dim_x_plus)
 
     def view_surface_error_data_file(self):
         try:

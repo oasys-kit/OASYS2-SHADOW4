@@ -1,21 +1,30 @@
-import os
-import pickle
-
-from AnyQt.QtWidgets import QMessageBox
+import sys
 
 from orangewidget import gui
 from orangewidget.settings import Setting
+
+
 from orangewidget.widget import Output
 
 from oasys2.widget import gui as oasysgui
+from oasys2.widget.widget import OWAction
 from oasys2.widget.util import congruence
-from oasys2.widget.widget import OWWidget, OWAction
+from oasys2.widget.util.widget_util import EmittingStream
+from oasys2.widget.gui import Styles
 from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
+from oasys2.widget.util.widget_objects import TriggerIn
+
 
 from orangecontrib.shadow4.util.shadow4_objects import ShadowData
+from orangecontrib.shadow4.widgets.gui.ow_generic_element import GenericElement
 
+from shadow4.beamline.s4_beamline import S4Beamline
+from shadow4.tools.logger import set_verbose
+from shadow4.sources.s4_light_source_from_file import S4LightSourceFromFile
 
-class BeamFileReader(OWWidget):
+from orangecontrib.shadow4.util.shadow4_util import TriggerToolsDecorator
+
+class BeamFileReader(GenericElement, TriggerToolsDecorator):
     name = "Shadow4 File Reader"
     description = "Tools: Shadow File Reader"
     icon = "icons/beam_file_reader.png"
@@ -25,56 +34,114 @@ class BeamFileReader(OWWidget):
     category = "Tools"
     keywords = ["data", "file", "load", "read"]
 
-    want_main_area = 0
+    want_main_area = 1
 
-    shadow_data_file_name = Setting("")
+    file_name       = Setting("")
+    simulation_name = Setting("run001")
+    beam_name       = Setting("begin")
 
     class Outputs:
         shadow_data = Output("Shadow Data", ShadowData, default=True, auto_summary=False)
+        trigger = TriggerToolsDecorator.get_trigger_output()
 
     def __init__(self):
-        super().__init__()
+        super().__init__(show_automatic_box=False, has_footprint=False)
 
         self.runaction = OWAction("Read Shadow4 File", self)
         self.runaction.triggered.connect(self.read_file)
         self.addAction(self.runaction)
 
-        self.setFixedWidth(590)
-        self.setFixedHeight(170)
+        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal", width=self.CONTROL_AREA_WIDTH-5)
+        button = gui.button(button_box, self, "Read Shadow4 File", callback=self.read_file)
+        button.setStyleSheet(Styles.button_blue)
 
-        left_box_1 = oasysgui.widgetBox(self.controlArea, "Shadow4 File Selection", addSpace=True, orientation="vertical",
-                                         width=570, height=70)
+        button = gui.button(button_box, self, "Reset Fields", callback=self.call_reset_settings)
+        button.setStyleSheet(Styles.button_red)
 
-        figure_box = oasysgui.widgetBox(left_box_1, "", addSpace=True, orientation="horizontal", width=550, height=35)
+        self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
 
-        self.le_shadow_data_file_name = oasysgui.lineEdit(figure_box, self, "shadow_data_file_name", "Shadow4 File Name",
-                                                    labelWidth=120, valueType=str, orientation="horizontal")
-        self.le_shadow_data_file_name.setFixedWidth(330)
+        tabs_setting = oasysgui.tabWidget(self.controlArea)
+        tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
+        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH - 5)
 
-        gui.button(figure_box, self, "...", callback=self.selectFile)
+        tab_basic = oasysgui.createTabPage(tabs_setting, "General")
 
-        button = gui.button(self.controlArea, self, "Read Shadow4 File", callback=self.read_file)
-        button.setFixedHeight(45)
-        button.setFixedWidth(570)
+        left_box_1 = oasysgui.widgetBox(tab_basic, "Shadow4 File Selection", addSpace=True, orientation="vertical")
+
+        figure_box = oasysgui.widgetBox(left_box_1, "", addSpace=True, orientation="horizontal")
+
+        self.le_file_name = oasysgui.lineEdit(figure_box, self, "file_name", "Shadow4 h5 File Name",
+                                                    labelWidth=170, valueType=str, orientation="horizontal")
+
+        gui.button(figure_box, self, "...", callback=self.select_file)
 
         gui.rubber(self.controlArea)
+        gui.rubber(self.mainArea)
 
-    def selectFile(self):
-        self.le_shadow_data_file_name.setText(oasysgui.selectFileFromDialog(self, self.shadow_data_file_name, "Open Shadow4 File", file_extension_filter="Pickle Files (*.pkl)"))
+    def select_file(self):
+        self.le_file_name.setText(oasysgui.selectFileFromDialog(self, self.file_name, "Open Shadow4 File", file_extension_filter="HDF5 Files (*.h5 *.hdf5 *.hdf)"))
 
-    def read_file(self):
+    def read_file(self, scanning_data: ShadowData.ScanningData = None):
         self.setStatusMessage("")
 
         try:
-            if congruence.checkFileName(self.shadow_data_file_name):
-                with open(self.shadow_data_file_name, "rb") as f:  shadow_data = pickle.load(f)
+            set_verbose()
+            self.shadow_output.setText("")
+            sys.stdout = EmittingStream(textWritten=self._write_stdout)
 
-                _, file_name = os.path.split(self.shadow_data_file_name)
+            self._set_plot_quality()
 
-                self.setStatusMessage("Current: " + file_name)
+            self.progressBarInit()
 
-                self.Outputs.shadow_data.send(shadow_data)
+            light_source = self.get_lightsource()
+
+            # script
+            script = light_source.to_python_code()
+            script += "\n\n# test plot\nfrom srxraylib.plot.gol import plot_scatter"
+            script += "\nrays = beam.get_rays()"
+            script += "\nplot_scatter(1e6 * rays[:, 0], 1e6 * rays[:, 2], title='(X,Z) in microns')"
+            self.shadow4_script.set_code(script)
+
+            print(light_source.info())
+            print(light_source.get_info())
+
+            self.progressBarSet(5)
+
+            # run shadow4
+            output_beam = light_source.get_beam()
+
+            # beam plots
+            self._plot_results(output_beam, None, progressBarValue=80)
+            self.progressBarFinished()
+
+            # send beam and trigger
+            output_data = ShadowData(beam=output_beam,
+                                     number_of_rays=output_beam.N,
+                                     beamline=S4Beamline(light_source=light_source))
+            output_data.scanning_data = scanning_data
+
+            self.Outputs.shadow_data.send(output_data)
+            self.Outputs.trigger.send(TriggerIn(new_object=True))
         except Exception as exception:
-            QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
+            try:    self._initialize_tabs()
+            except: pass
+            self.prompt_exception(exception)
+
+    def get_lightsource(self):
+        return S4LightSourceFromFile(
+            name=self.name,
+            file_name=self.file_name,
+            simulation_name=self.simulation_name,
+            beam_name=self.beam_name)
 
 add_widget_parameters_to_module(__name__)
+
+if __name__ == "__main__":
+    from AnyQt.QtWidgets import QApplication
+
+    a = QApplication(sys.argv)
+    ow = BeamFileReader()
+    ow.file_name = "/nobackup/gurb1/srio/Oasys/tmp4.h5"
+    ow.show()
+    a.exec_()
+    ow.saveSettings()
