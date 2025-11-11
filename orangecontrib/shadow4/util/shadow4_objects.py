@@ -1,6 +1,7 @@
 
 import os, copy, numpy
 from shadow4.beam.s4_beam import S4Beam
+from shadow4.beamline.s4_beamline import S4Beamline
 
 class ShadowData:
     class ScanningData(object):
@@ -38,7 +39,11 @@ class ShadowData:
         def get_additional_parameter(self, name):
             return self.__additional_parameters[name]
 
-    def __init__(self, beam=None, footprint=None, number_of_rays=0, beamline=None):
+    def __init__(self,
+                 beam: S4Beam=None,
+                 footprint: S4Beam=None,
+                 number_of_rays:int=0,
+                 beamline:S4Beamline=None):
         if (beam is None):
             if number_of_rays > 0: self.__beam = S4Beam(number_of_rays)
             else:                  self.__beam = S4Beam()
@@ -52,39 +57,39 @@ class ShadowData:
         self.__beamline      = beamline  # added by srio
 
     @property
-    def beam(self):
+    def beam(self) -> S4Beam:
         return self.__beam
 
     @beam.setter
-    def beam(self, beam):
+    def beam(self, beam: S4Beam):
         self.__beam = beam
 
     @property
-    def footprint(self):
+    def footprint(self) -> S4Beam:
         return self.__footprint
 
     @footprint.setter
-    def footprint(self, footprint):
+    def footprint(self, footprint: S4Beam):
         self._footprint = footprint
 
     @property
-    def beamline(self):
+    def beamline(self) -> S4Beamline:
         return self.__beamline
 
     @beamline.setter
-    def beamline(self, beamline):
+    def beamline(self, beamline: S4Beamline):
         self.__beamline = beamline
 
     @property
-    def initial_flux(self):
+    def initial_flux(self) -> float:
         return self.__initial_flux
 
     @initial_flux.setter
-    def initial_flux(self, initial_flux):
+    def initial_flux(self, initial_flux: float):
         self.__initial_flux = initial_flux
 
     @property
-    def scanning_data(self):
+    def scanning_data(self) -> ScanningData:
         return self.__scanning_data
 
     @scanning_data.setter

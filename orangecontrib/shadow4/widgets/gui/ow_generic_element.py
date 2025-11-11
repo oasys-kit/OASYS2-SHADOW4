@@ -86,8 +86,14 @@ class GenericElement(AutomaticElement):
     def _check_not_interactive_conditions(self, input_data : ShadowData):
         not_interactive = False
 
-        if not (input_data is None or input_data.scanning_data is None):
-            not_interactive = input_data.scanning_data.has_additional_parameter("total_power")
+        if not input_data is None:
+            # LR 11/11/25
+            # this is to fix a weird behavior, scanning_data is initialized as False even if it should be None by default.
+            # The root cause is not identified, yet. I
+            if not input_data.scanning_data: input_data.scanning_data = None
+
+            if not input_data.scanning_data is None:
+                not_interactive = input_data.scanning_data.has_additional_parameter("total_power")
 
         return not_interactive
 
