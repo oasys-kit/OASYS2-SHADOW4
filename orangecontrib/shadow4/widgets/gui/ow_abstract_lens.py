@@ -20,7 +20,7 @@ class OWAbstractLens(OWOpticalElement):
     has_finite_diameter     = Setting(0)
     diameter                = Setting(632.0)
     is_cylinder             = Setting(0)
-    cylinder_angle          = Setting(0.0)
+    cylinder_angle          = Setting(0)
     ri_calculation_mode     = Setting(0)
     prerefl_file            = Setting("<none>")
     refraction_index        = Setting(1.0)
