@@ -92,8 +92,7 @@ class BeamCleaner(OWWidget, TriggerToolsDecorator):
             output_data = shadow_data.duplicate()
 
             if ShadowCongruence.check_good_beam(input_beam=output_data.beam):
-                good = numpy.where(output_data.beam.rays[:, 9] == 1)
-                output_data.beam.rays = copy.deepcopy(output_data.beam.rays[good])
+                output_data.beam.clean_lost_rays()
 
             self.Outputs.shadow_data.send(output_data)
             self.Outputs.trigger.send(TriggerIn(new_object=True))
