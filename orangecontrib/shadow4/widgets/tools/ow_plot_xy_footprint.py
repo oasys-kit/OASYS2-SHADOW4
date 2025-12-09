@@ -1,6 +1,8 @@
 from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
 
 from orangecontrib.shadow4.widgets.tools.ow_plot_xy import _PlotXY
+from shadow4.beam.s4_beam import S4Beam
+
 
 class PlotXYFootprint(_PlotXY):
     name = "Plot XY Footprint"
@@ -13,7 +15,10 @@ class PlotXYFootprint(_PlotXY):
 
     def get_beam_to_plot(self, return_str=False):
         if return_str: return "footprint"
-        else:          return self.input_data.footprint
+        else:
+            if isinstance(self.input_data.footprint, S4Beam): return self.input_data.footprint
+            elif isinstance(self.input_data.footprint, list): return self.input_data.footprint[0]
+            else: raise ValueError("Input data must be of type S4Beam, or list")
 
 add_widget_parameters_to_module(__name__)
 

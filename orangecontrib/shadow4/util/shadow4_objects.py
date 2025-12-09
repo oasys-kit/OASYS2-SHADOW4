@@ -125,8 +125,18 @@ class ShadowData:
         if copy_rays:
             beam.rays = copy.deepcopy(self.beam.rays)
             if not self.footprint is None:
-                footprint = S4Beam()
-                footprint.rays = copy.deepcopy(self.footprint.rays)
+                if isinstance(self.footprint, S4Beam):
+                    footprint = S4Beam()
+                    footprint.rays = copy.deepcopy(self.footprint.rays)
+                elif isinstance(self.footprint, list):
+                    footprint = []
+                    for _fp in self.footprint:
+                        if not isinstance(_fp, S4Beam): raise ValueError("footprint is not a S4Beam")
+                        fp = S4Beam()
+                        fp.rays = copy.deepcopy(_fp.rays)
+                        footprint.append(fp)
+                else:
+                    raise ValueError("footprint is not a S4Beam")
 
         new_shadow_beam = ShadowData(beam=beam,
                                      footprint=footprint)
