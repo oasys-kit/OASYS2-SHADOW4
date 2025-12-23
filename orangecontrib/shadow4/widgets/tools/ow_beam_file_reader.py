@@ -143,5 +143,5 @@ if __name__ == "__main__":
     ow = BeamFileReader()
     ow.file_name = "/nobackup/gurb1/srio/Oasys/tmp4.h5"
     ow.show()
-    a.exec_()
+    a.exec()
     ow.saveSettings()
