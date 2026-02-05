@@ -30,7 +30,6 @@ class OWRefractiveInterface(OWOpticalElementWithSurfaceShape):
         preprocessor_data         = OWOpticalElementWithSurfaceShape.Inputs.oasys_preprocessor_data
         prerefl_preprocessor_data = MultiInput("PreRefl PreProcessor Data", PreReflPreProcessorData, default=True, auto_summary=False)
 
-
     optical_constants_refraction_index = Setting(0)
     refraction_index_in_object_medium  = Setting(0.0)
     attenuation_in_object_medium       = Setting(0.0)
@@ -40,9 +39,6 @@ class OWRefractiveInterface(OWOpticalElementWithSurfaceShape):
     file_prerefl_for_image_medium      = Setting("<none>")
 
     priority = 3.1
-
-    inputs = copy.deepcopy(OWOpticalElementWithSurfaceShape.inputs)
-    inputs.append(("PreRefl PreProcessor Data", PreReflPreProcessorData, "set_PreReflPreProcessorData"))
 
     def __init__(self):
         super().__init__(has_footprint=False, switch_icons=False)
