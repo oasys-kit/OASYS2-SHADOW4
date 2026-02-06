@@ -49,7 +49,7 @@ class OWTransfocator(OWOpticalElement):
     diameter = Setting([0.632, 0.894])
 
     is_cylinder = Setting([0, 0])
-    cylinder_angle = Setting([0.0, 0.0])
+    cylinder_angle = Setting([0, 0])
 
     ri_calculation_mode = Setting([0, 0])
     prerefl_file = Setting([NONE_SPECIFIED, NONE_SPECIFIED])
@@ -586,8 +586,9 @@ class OWTransfocator(OWOpticalElement):
         for box in self.crl_box_array:
             box.setupUI()
 
+from orangewidget.gui import OWComponent
 
-class CRLBox(QWidget):
+class CRLBox(QWidget, OWComponent):
     n_lenses = 30
     slots_empty = 0
     piling_thickness = 625e-4
@@ -600,7 +601,7 @@ class CRLBox(QWidget):
     diameter = 0.0
 
     is_cylinder = 1
-    cylinder_angle = 0.0
+    cylinder_angle = 0
 
     ri_calculation_mode = 0
     prerefl_file = OWTransfocator.NONE_SPECIFIED
@@ -630,7 +631,7 @@ class CRLBox(QWidget):
                  has_finite_diameter=0,
                  diameter=0.0,
                  is_cylinder=1,
-                 cylinder_angle=0.0,
+                 cylinder_angle=0,
                  ri_calculation_mode=0,
                  prerefl_file=OWTransfocator.NONE_SPECIFIED,
                  refraction_index=1.0,
@@ -640,7 +641,8 @@ class CRLBox(QWidget):
                  radius=500e-2,
                  thickness=0.001,
                  ):
-        super().__init__(parent)
+        OWComponent.__init__(self, widget=None)
+        QWidget.__init__(self, parent=parent)
 
         self.setLayout(QVBoxLayout())
         self.layout().setAlignment(Qt.AlignTop)
@@ -671,12 +673,7 @@ class CRLBox(QWidget):
         self.radius = radius
         self.thickness = thickness
 
-        tabs0 = oasysgui.tabWidget(self, height=420, width=self.transfocator.CONTROL_AREA_WIDTH-35)
-
-        tabs = oasysgui.widgetBox(tabs0, "", addSpace=False, orientation="vertical",
-                                     width=self.transfocator.CONTROL_AREA_WIDTH - 45)
-
-        crl_box = tabs
+        crl_box = oasysgui.widgetBox(self, "", addSpace=False, orientation="vertical", height=420, width=self.transfocator.CONTROL_AREA_WIDTH - 50)
 
         oasysgui.lineEdit(crl_box, self, "n_lenses", "Number of lenses", tooltip="n_lenses[i]", labelWidth=260, valueType=int,
                           orientation="horizontal", callback=self.transfocator.dump_n_lenses)
@@ -721,7 +718,7 @@ class CRLBox(QWidget):
 
         ###############
 
-        lens_box = tabs
+        lens_box = crl_box
 
         diameter_box_outer = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="horizontal")
 
