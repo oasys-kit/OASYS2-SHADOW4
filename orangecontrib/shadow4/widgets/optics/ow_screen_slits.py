@@ -10,12 +10,20 @@ from syned.beamline.element_coordinates import ElementCoordinates
 from syned.beamline.shape import Rectangle
 from syned.beamline.shape import Ellipse
 
+from dabax.dabax_xraylib import DabaxXraylib
+from dabax.dabax_files import dabax_crosssec_files
+
 from shadow4.beamline.optical_elements.absorbers.s4_screen import S4ScreenElement, S4Screen
 
 from orangecontrib.shadow4.widgets.gui.ow_optical_element import OWOpticalElement, NO_FILE_SPECIFIED
 
 from orangecanvas.resources import icon_loader
 from orangecanvas.scheme.node import SchemeNode
+
+XRAYLIB_AVAILABLE = True
+
+try: import xraylib
+except: XRAYLIB_AVAILABLE = False
 
 class OWScreenSlits(OWOpticalElement):
     name        = "Generic Beam Screen/Slit/Stopper/Attenuator"
@@ -36,6 +44,10 @@ class OWScreenSlits(OWOpticalElement):
     opt_const_file_name  = Setting(NO_FILE_SPECIFIED)
     material             = Setting("Au")
     density              = Setting(19.3)
+
+    DABAX_CROSSSEC_FILE_INDEX = Setting(0)
+
+
 
     def createdFromNode(self, node):
         super(OWScreenSlits, self).createdFromNode(node)
@@ -74,7 +86,9 @@ class OWScreenSlits(OWOpticalElement):
                 else:                              return self.oe_names[6], "icons/obstruction_absorber.png"
 
     def __init__(self):
-        super().__init__(has_footprint=False)
+        super().__init__(has_footprint=False, show_tab_advanced_settings=True)
+        self.set_aperturing(is_init=True)
+        self.set_absorption(is_init=True)
 
     def populate_tab_position(self, tab_position):
         self.orientation_box = oasysgui.widgetBox(tab_position, "Optical Element Orientation", addSpace=True, orientation="vertical")
@@ -86,6 +100,9 @@ class OWScreenSlits(OWOpticalElement):
 
     def create_basic_settings_subtabs(self, tabs_basic_settings):
         return oasysgui.createTabPage(tabs_basic_settings, "Beam Stopper Type")  # to be populated
+
+    def create_advanced_settings_subtabs(self, tabs_advanced_settings):
+        return oasysgui.createTabPage(tabs_advanced_settings, "DABAX")  # to be populated
 
     def populate_basic_setting_subtabs(self, basic_setting_subtabs):
         tab_beam_stopper_type = basic_setting_subtabs
@@ -118,7 +135,10 @@ class OWScreenSlits(OWOpticalElement):
         box_absorption = oasysgui.widgetBox(tab_beam_stopper_type, "Absorption Parameters", addSpace=False, orientation="vertical", height=200)
 
         gui.comboBox(box_absorption, self, "absorption", label="Absorption", labelWidth=350,
-                     items=["No", "Yes (using preprocessor file)", "Yes (using dabax)"],
+                     items=["No",
+                            "Yes, using preprocessor file",
+                            "Yes, using xraylib " + "**NOT AVAILABLE**" if not XRAYLIB_AVAILABLE else "",
+                            "Yes, using dabax"],
                      tooltip="absorption",
                      callback=self.set_absorption, sendSelectedValue=False, orientation="horizontal")
 
@@ -148,8 +168,12 @@ class OWScreenSlits(OWOpticalElement):
                           "density [g/cm^3]: ", labelWidth=180, valueType=float,
                           orientation="horizontal", tooltip="density")
 
-        self.set_aperturing(is_init=True)
-        self.set_absorption(is_init=True)
+    def populate_advanced_setting_subtabs(self, advanced_setting_subtabs):
+        self.dabax_crosssec_box = gui.widgetBox(advanced_setting_subtabs)
+        gui.comboBox(self.dabax_crosssec_box, self, "DABAX_CROSSSEC_FILE_INDEX",
+                     label="Cross Sec file", addSpace=True,
+                     items=dabax_crosssec_files(),
+                     orientation="horizontal")
 
     def set_aperturing(self, is_init=False):
         self.box_aperturing_shape.setVisible(self.aperturing == 1)
@@ -162,9 +186,11 @@ class OWScreenSlits(OWOpticalElement):
     def set_absorption(self, is_init=False):
         self.box_thickness.setVisible(self.absorption >= 1)
         self.box_absorption.setVisible(self.absorption == 1)
-        self.box_material.setVisible(self.absorption == 2)
+        self.box_material.setVisible(self.absorption in [2,3])
 
         if not is_init: self.__change_icon_from_oe_type()
+
+        self.dabax_crosssec_box.setVisible(self.absorption == 3)
 
     def select_opt_const_file_name(self):
         self.le_opt_const_file_name.setText(oasysgui.selectFileFromDialog(self, self.opt_const_file_name, "Open Opt. Const. File"))
@@ -194,17 +220,25 @@ class OWScreenSlits(OWOpticalElement):
                                                                     b_axis_min=self.slit_center_zaxis - self.slit_height_zaxis*0.5,
                                                                     b_axis_max=self.slit_center_zaxis + self.slit_height_zaxis*0.5)
 
-        absorption = self.absorption if self.absorption < 2 else 3  # no more xraylib
-
         return S4Screen(name=self.getNode().title,
                         boundary_shape=boundary_shape,
-                        i_abs=absorption,
+                        i_abs=self.absorption,
                         i_stop=self.open_slit_solid_stop==1,
                         thick=self.thickness,
                         file_abs=self.opt_const_file_name,
                         material=self.material,
-                        density=self.density)
+                        density=self.density,
+                        dabax=DabaxXraylib(file_CrossSec="%s" % dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX]))
 
     def get_beamline_element_instance(self): return S4ScreenElement()
 
 add_widget_parameters_to_module(__name__)
+
+if __name__ == "__main__":
+    import sys
+    from AnyQt.QtWidgets import QApplication
+    a = QApplication(sys.argv)
+    ow = OWScreenSlits()
+    ow.show()
+    a.exec()
+    ow.saveSettings()
