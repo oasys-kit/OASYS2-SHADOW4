@@ -137,7 +137,7 @@ class OWScreenSlits(OWOpticalElement):
         gui.comboBox(box_absorption, self, "absorption", label="Absorption", labelWidth=350,
                      items=["No",
                             "Yes, using preprocessor file",
-                            "Yes, using xraylib " + "**NOT AVAILABLE**" if not XRAYLIB_AVAILABLE else "",
+                            "Yes, using xraylib " + ("**NOT AVAILABLE**" if not XRAYLIB_AVAILABLE else ""),
                             "Yes, using dabax"],
                      tooltip="absorption",
                      callback=self.set_absorption, sendSelectedValue=False, orientation="horizontal")
