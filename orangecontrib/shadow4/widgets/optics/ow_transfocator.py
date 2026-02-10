@@ -18,6 +18,14 @@ import orangecanvas.resources as resources
 from syned.beamline.shape import Circle, Rectangle
 from syned.beamline.element_coordinates import ElementCoordinates
 
+from dabax.dabax_xraylib import DabaxXraylib
+from dabax.dabax_files import dabax_f1f2_files, dabax_crosssec_files
+
+XRAYLIB_AVAILABLE = True
+
+try: import xraylib
+except: XRAYLIB_AVAILABLE = False
+
 from shadow4.beamline.optical_elements.refractors.s4_transfocator import S4Transfocator, S4TransfocatorElement
 
 from orangecontrib.shadow4.util.shadow4_objects import PreReflPreProcessorData
@@ -61,12 +69,15 @@ class OWTransfocator(OWOpticalElement):
     radius = Setting([100.0, 200.0])
     thickness = Setting([30.0, 30.0])
 
+    DABAX_F1F2_FILE_INDEX = Setting(0)
+    DABAX_CROSSSEC_FILE_INDEX = Setting(0)
+
     input_data = None
 
     help_path = os.path.join(resources.package_dirname("orangecontrib.shadow4.widgets.gui"), "misc", "crl_help.png")
 
     def __init__(self):
-        super().__init__(has_footprint=False, show_tab_advanced_settings=False, show_tab_help=True)
+        super().__init__(has_footprint=False, show_tab_advanced_settings=True, show_tab_help=True)
 
     def populate_tab_position(self, tab_position):
         self.orientation_box = oasysgui.widgetBox(tab_position, "Optical Element Orientation", addSpace=True,
@@ -119,6 +130,27 @@ class OWTransfocator(OWOpticalElement):
 
             self.crl_box_array.append(crl_box)
 
+    def create_advanced_settings_subtabs(self, tabs_advanced_settings):
+        subtab_dabax = oasysgui.createTabPage(tabs_advanced_settings, name="DABAX")
+        return [subtab_dabax]
+
+    def populate_advanced_setting_subtabs(self, advanced_setting_subtabs):
+        super().populate_advanced_setting_subtabs(advanced_setting_subtabs)
+
+        #########################################################
+        # Advanced Settings / DABAX
+        #########################################################
+        self.dabax_box = gui.widgetBox(advanced_setting_subtabs[0], "DABAX Materials Files")
+        gui.comboBox(self.dabax_box, self,
+                    "DABAX_F1F2_FILE_INDEX", tooltip="DABAX_F1F2_FILE_INDEX",
+                     items=dabax_f1f2_files(),
+                     label="f1f2 file", addSpace=True, orientation="horizontal")
+        gui.comboBox(self.dabax_box, self,
+                    "DABAX_CROSSSEC_FILE_INDEX", tooltip="DABAX_CROSSSEC_FILE_INDEX",
+                     items=dabax_crosssec_files(),
+                     label="CrossSec file", addSpace=True, orientation="horizontal")
+
+
     def get_optical_element_instance(self):
         try:
             name = self.getNode().title
@@ -150,28 +182,29 @@ class OWTransfocator(OWOpticalElement):
         try:    name = self.getNode().title
         except: name = "Transfocator"
 
-        ri_calculation_mode = self.ri_calculation_mode if self.ri_calculation_mode < 2 else 3  # no more xraylib
-
         optical_element = S4Transfocator(name=name,
-                                        n_lens=self.n_lenses,
-                                        thickness=thickness,  # syned stuff
-                                        boundary_shape=boundary_shape,
-                                        material=self.material,
-                                        density=self.density,
-                                        piling_thickness=piling_thickness,
-                                        surface_shape=self.surface_shape,
-                                        convex_to_the_beam=self.convex_to_the_beam,
-                                        cylinder_angle=cylinder_angle,
-                                        ri_calculation_mode=ri_calculation_mode,
-                                        prerefl_file=self.prerefl_file,
-                                        refraction_index=self.refraction_index,
-                                        attenuation_coefficient=self.attenuation_coefficient,
-                                        dabax=None,
-                                        radius=radius,
-                                        conic_coefficients1=[[0] * 10] * n,
-                                        conic_coefficients2=[[0] * 10] * n,
-                                        empty_space_after_last_interface=[0.0] * n,
-                                        )
+                            n_lens=self.n_lenses,
+                            thickness=thickness,  # syned stuff
+                            boundary_shape=boundary_shape,
+                            material=self.material,
+                            density=self.density,
+                            piling_thickness=piling_thickness,
+                            surface_shape=self.surface_shape,
+                            convex_to_the_beam=self.convex_to_the_beam,
+                            cylinder_angle=cylinder_angle,
+                            ri_calculation_mode=self.ri_calculation_mode,
+                            prerefl_file=self.prerefl_file,
+                            refraction_index=self.refraction_index,
+                            attenuation_coefficient=self.attenuation_coefficient,
+                            dabax=DabaxXraylib(
+                                file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
+                                file_CrossSec="%s" % dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX],
+                                ),
+                            radius=radius,
+                            conic_coefficients1=[[0] * 10] * n,
+                            conic_coefficients2=[[0] * 10] * n,
+                            empty_space_after_last_interface=[0.0] * n,
+                            )
         return optical_element
 
     def get_beamline_element_instance(self):
@@ -686,10 +719,14 @@ class CRLBox(QWidget, OWComponent):
         # optical constants
         ###############
         self.ri_calculation_mode_combo = gui.comboBox(crl_box, self, "ri_calculation_mode", tooltip="ri_calculation_mode[i]",
-                                                      label="Refraction Index calculation mode", labelWidth=260,
-                                                      items=["User Parameters", "Prerefl File", "Internal (Dabax)"],
-                                                      sendSelectedValue=False, orientation="horizontal",
-                                                      callback=self.set_ri_calculation_mode)
+                          label="Refraction Index calculation mode", labelWidth=260,
+                          items=["User Parameters",
+                                 "Prerefl File",
+                                 "Internal, using xraylib " + ("**NOT AVAILABLE**" if not XRAYLIB_AVAILABLE else ""),
+                                 "Internal, using DABAX",
+                                 ],
+                          sendSelectedValue=False, orientation="horizontal",
+                          callback=self.set_ri_calculation_mode)
 
         self.calculation_mode_1 = oasysgui.widgetBox(crl_box, "", addSpace=False, orientation="vertical")
         oasysgui.lineEdit(self.calculation_mode_1, self, "refraction_index", "Refraction index", tooltip="refraction_index[i]",
@@ -714,7 +751,9 @@ class CRLBox(QWidget, OWComponent):
                         callback=self.transfocator.dump_density)
 
         gui.button(file_box, self, "...", callback=self.selectFilePrerefl)
+
         self.set_ri_calculation_mode()
+
 
         ###############
 
@@ -869,7 +908,7 @@ class CRLBox(QWidget, OWComponent):
 
 add_widget_parameters_to_module(__name__)
 
-'''if __name__ == "__main__":
+if __name__ == "__main__":
     from shadow4.beamline.s4_beamline import S4Beamline
     import sys
     from orangecontrib.shadow4.util.shadow4_objects import ShadowData, PreReflPreProcessorData, VlsPgmPreProcessorData
@@ -908,4 +947,4 @@ add_widget_parameters_to_module(__name__)
 
     ow.show()
     a.exec()
-    ow.saveSettings()'''
+    ow.saveSettings()

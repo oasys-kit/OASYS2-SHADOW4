@@ -228,7 +228,8 @@ class OWScreenSlits(OWOpticalElement):
                         file_abs=self.opt_const_file_name,
                         material=self.material,
                         density=self.density,
-                        dabax=DabaxXraylib(file_CrossSec="%s" % dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX]))
+                        dabax=DabaxXraylib(file_CrossSec="%s" % dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX]),
+                        )
 
     def get_beamline_element_instance(self): return S4ScreenElement()
 

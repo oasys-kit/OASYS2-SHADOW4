@@ -9,10 +9,19 @@ from orangewidget.widget import Input
 
 from syned.beamline.element_coordinates import ElementCoordinates
 
+
+from dabax.dabax_xraylib import DabaxXraylib
+from dabax.dabax_files import dabax_f1f2_files, dabax_crosssec_files
+
 from orangecontrib.shadow4.widgets.gui.ow_optical_element import OWOpticalElement
 from orangecontrib.shadow4.util.shadow4_objects import PreReflPreProcessorData
 
 from orangecontrib.shadow4.util.shadow4_util import ShadowPhysics
+
+XRAYLIB_AVAILABLE = True
+
+try: import xraylib
+except: XRAYLIB_AVAILABLE = False
 
 class OWAbstractLens(OWOpticalElement):
     surface_shape           = Setting(2)
@@ -30,6 +39,9 @@ class OWAbstractLens(OWOpticalElement):
     material                = Setting("Be")
     density                 = Setting(1.484)
 
+    DABAX_F1F2_FILE_INDEX = Setting(0)
+    DABAX_CROSSSEC_FILE_INDEX = Setting(0)
+
     class Inputs:
         shadow_data                = OWOpticalElement.Inputs.shadow_data
         trigger                    = OWOpticalElement.Inputs.trigger
@@ -37,7 +49,8 @@ class OWAbstractLens(OWOpticalElement):
         prerefl_preprocessor_data  = Input("PreRefl PreProcessor Data", PreReflPreProcessorData, default=True, auto_summary=False)
 
     def __init__(self):
-        super().__init__(has_footprint=False, show_tab_advanced_settings=False, show_tab_help=True)
+        super().__init__(has_footprint=False, show_tab_advanced_settings=True, show_tab_help=True)
+        self.set_ri_calculation_mode()
 
     def populate_tab_position(self, tab_position):
         self.orientation_box = oasysgui.widgetBox(tab_position, "Optical Element Orientation", addSpace=True,
@@ -101,7 +114,11 @@ class OWAbstractLens(OWOpticalElement):
 
         gui.comboBox(lens_box, self, "ri_calculation_mode", label="Refraction Index calculation mode", labelWidth=260,
                      tooltip="ri_calculation_mode",
-                     items=["User Parameters", "PreRefl File", "Internal (using dabax)"],
+                     items=["User Parameters",
+                            "PreRefl File",
+                            "Internal, using xraylib " + ("**NOT AVAILABLE**" if not XRAYLIB_AVAILABLE else ""),
+                            "Internal, using DABAX",
+                            ],
                      callback=self.set_ri_calculation_mode,
                      sendSelectedValue=False, orientation="horizontal")
 
@@ -124,7 +141,25 @@ class OWAbstractLens(OWOpticalElement):
         oasysgui.lineEdit(mat_box, self, "density", "density [g/cm3]", tooltip="density",
                                                  labelWidth=110, valueType=float, orientation="horizontal")
 
-        self.set_ri_calculation_mode()
+    def create_advanced_settings_subtabs(self, tabs_advanced_settings):
+        subtab_dabax = oasysgui.createTabPage(tabs_advanced_settings, name="DABAX")
+        return [subtab_dabax]
+
+    def populate_advanced_setting_subtabs(self, advanced_setting_subtabs):
+        super().populate_advanced_setting_subtabs(advanced_setting_subtabs)
+
+        #########################################################
+        # Advanced Settings / DABAX
+        #########################################################
+        self.dabax_box = gui.widgetBox(advanced_setting_subtabs[0], "DABAX Materials Files")
+        gui.comboBox(self.dabax_box, self,
+                    "DABAX_F1F2_FILE_INDEX", tooltip="DABAX_F1F2_FILE_INDEX",
+                     items=dabax_f1f2_files(),
+                     label="f1f2 file", addSpace=True, orientation="horizontal")
+        gui.comboBox(self.dabax_box, self,
+                    "DABAX_CROSSSEC_FILE_INDEX", tooltip="DABAX_CROSSSEC_FILE_INDEX",
+                     items=dabax_crosssec_files(),
+                     label="CrossSec file", addSpace=True, orientation="horizontal")
 
     def set_surface_shape(self):
         self.surface_shape_box.setVisible(self.surface_shape > 0)
@@ -142,6 +177,7 @@ class OWAbstractLens(OWOpticalElement):
         self.calculation_mode_1.setVisible(self.ri_calculation_mode == 0)
         self.calculation_mode_2.setVisible(self.ri_calculation_mode == 1)
         self.calculation_mode_3.setVisible(self.ri_calculation_mode > 1)
+        self.dabax_box.setVisible(self.ri_calculation_mode == 3)
 
     def select_file_prerefl(self):
         self.le_file_prerefl.setText(oasysgui.selectFileFromDialog(self, self.prerefl_file, "Select File Prerefl",

@@ -9,6 +9,9 @@ from orangewidget.widget import MultiInput
 from oasys2.widget import gui as oasysgui
 from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
 
+from dabax.dabax_xraylib import DabaxXraylib
+from dabax.dabax_files import dabax_f1f2_files
+
 from shadow4.beamline.optical_elements.multilayers.s4_toroid_multilayer import S4ToroidMultilayer, S4ToroidMultilayerElement
 from shadow4.beamline.optical_elements.multilayers.s4_conic_multilayer import S4ConicMultilayer, S4ConicMultilayerElement
 from shadow4.beamline.optical_elements.multilayers.s4_plane_multilayer import S4PlaneMultilayer, S4PlaneMultilayerElement
@@ -24,6 +27,11 @@ from shadow4.beamline.optical_elements.multilayers.s4_additional_numerical_mesh_
 from orangecontrib.shadow4.widgets.gui.ow_optical_element_with_surface_shape import OWOpticalElementWithSurfaceShape, SUBTAB_INNER_BOX_WIDTH
 from orangecontrib.shadow4.util.shadow4_objects import MLayerPreProcessorData
 
+XRAYLIB_AVAILABLE = True
+
+try: import xraylib
+except: XRAYLIB_AVAILABLE = False
+
 class _OWMultilayer(OWOpticalElementWithSurfaceShape):
     class Inputs:
         shadow_data              = OWOpticalElementWithSurfaceShape.Inputs.shadow_data
@@ -33,12 +41,14 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
         oasys_preprocessor_data  = OWOpticalElementWithSurfaceShape.Inputs.oasys_preprocessor_data
         mlayer_preprocessor_data = MultiInput("MLayer PreProcessor Data", MLayerPreProcessorData, default=True, auto_summary=False)
 
-    reflectivity_source           = Setting(4) # f_refl
+    reflectivity_source           = Setting(5) # f_refl
     file_refl                     = Setting("<none>")
 
     structure = Setting('[C,Pt]x30+Si')
     period = Setting(50.0)
     Gamma = Setting(0.4)
+
+    DABAX_F1F2_FILE_INDEX = Setting(0)
 
     def __init__(self, switch_icons=True):
         super(_OWMultilayer, self).__init__(switch_icons=switch_icons)
@@ -46,6 +56,7 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
         self.reflection_angle_deg_le.setEnabled(False)
         self.reflection_angle_rad_le.setEnabled(False)
 
+        self.reflectivity_tab_visibility()
 
     def create_basic_settings_specific_subtabs(self, tabs_basic_setting): return oasysgui.createTabPage(tabs_basic_setting, "Reflectivity")
 
@@ -62,7 +73,8 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                             "file 1D: (reflectivity vs angle)",
                             "file 1D: (reflectivity vs energy)",
                             "file 2D: (reflectivity vs energy and angle)",
-                            "Internal (Dabax)",
+                            "Internal, using xraylib " + ("**NOT AVAILABLE**" if not XRAYLIB_AVAILABLE else ""),
+                            "Internal, using DABAX)",
                             ],
                      sendSelectedValue=False, orientation="horizontal",
                      tooltip="reflectivity_source", callback=self.reflectivity_tab_visibility)
@@ -86,13 +98,29 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
 
         oasysgui.widgetLabel(self.box_xraylib_dabax, "(Use preprocessor for graded ML & more options)")
 
-        self.reflectivity_tab_visibility()
+    def create_advanced_settings_subtabs(self, tabs_advanced_settings):
+        [subtab_modified_surface, subtab_oe_movement] =  super().create_advanced_settings_subtabs(tabs_advanced_settings)
+        subtab_dabax = oasysgui.createTabPage(tabs_advanced_settings, name="DABAX")
+        return [subtab_modified_surface, subtab_oe_movement, subtab_dabax]
+
+    def populate_advanced_setting_subtabs(self, advanced_setting_subtabs):
+        super().populate_advanced_setting_subtabs(advanced_setting_subtabs)
+
+        #########################################################
+        # Advanced Settings / DABAX
+        #########################################################
+        self.dabax_box = gui.widgetBox(advanced_setting_subtabs[2], "DABAX Materials Files")
+        gui.comboBox(self.dabax_box, self,
+                    "DABAX_F1F2_FILE_INDEX", tooltip="DABAX_F1F2_FILE_INDEX",
+                     items=dabax_f1f2_files(),
+                     label="f1f2 file", addSpace=True, orientation="horizontal")
 
     #########################################################
     # Reflectvity Methods
     #########################################################
     def reflectivity_tab_visibility(self):
         self.file_refl_box.setVisible(False)
+        self.dabax_box.setVisible(False)
 
         if self.reflectivity_source < 4:
             self.file_refl_box.setVisible(True)
@@ -100,6 +128,9 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
         else:
             self.file_refl_box.setVisible(False)
             self.box_xraylib_dabax.setVisible(True)
+
+        if self.reflectivity_source == 5:
+            self.dabax_box.setVisible(True)
 
     def select_file_refl(self):
         self.le_file_refl.setText(oasysgui.selectFileFromDialog(self, self.file_refl, "Select File with Reflectivity")) #, file_extension_filter="Data Files (*.dat)"))
@@ -145,18 +176,16 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
         try:    name = self.getNode().title
         except: name = "Multilayer"
 
-        reflectivity_source = self.reflectivity_source if self.reflectivity_source < 4 else 5 # no more xraylib
-
-
         if self.surface_shape_type == 0:
             multilayer = S4PlaneMultilayer(
                 name=name,
                 boundary_shape=self.get_boundary_shape(),
-                f_refl=reflectivity_source,
+                f_refl=self.reflectivity_source,
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
+                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
             )
         elif self.surface_shape_type == 1:
             print("FOCUSING DISTANCES: convexity:  ", numpy.logical_not(self.surface_curvature).astype(int))
@@ -178,11 +207,12 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 q_focus=self.get_focusing_q(),
                 grazing_angle=self.get_focusing_grazing_angle(),
                 # inputs related to multilayer reflectivity
-                f_refl=reflectivity_source,
+                f_refl=self.reflectivity_source,
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
+                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
             )
         elif self.surface_shape_type == 2:
             multilayer = S4EllipsoidMultilayer(
@@ -199,11 +229,12 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 q_focus=self.get_focusing_q(),
                 grazing_angle=self.get_focusing_grazing_angle(),
                 # inputs related to multilayer reflectivity
-                f_refl=reflectivity_source,
+                f_refl=self.reflectivity_source,
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
+                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
             )
         elif self.surface_shape_type == 3:
             multilayer = S4HyperboloidMultilayer(
@@ -220,11 +251,12 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 q_focus=self.get_focusing_q(),
                 grazing_angle=self.get_focusing_grazing_angle(),
                 # inputs related to multilayer reflectivity
-                f_refl=reflectivity_source,
+                f_refl=self.reflectivity_source,
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
+                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
             )
         elif self.surface_shape_type == 4:
             multilayer = S4ParaboloidMultilayer(
@@ -241,11 +273,12 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 q_focus=self.get_focusing_q(),
                 grazing_angle=self.get_focusing_grazing_angle(),
                 # inputs related to multilayer reflectivity
-                f_refl=reflectivity_source,
+                f_refl=self.reflectivity_source,
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
+                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
             )
         elif self.surface_shape_type == 5:
             multilayer = S4ToroidMultilayer(
@@ -259,11 +292,12 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 q_focus=self.get_focusing_q(),
                 grazing_angle=self.get_focusing_grazing_angle(),
                 # inputs related to multilayer reflectivity
-                f_refl=reflectivity_source,
+                f_refl=self.reflectivity_source,
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
+                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
             )
         elif self.surface_shape_type == 6:
             multilayer = S4ConicMultilayer(
@@ -275,11 +309,12 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                      self.conic_coefficient_6,self.conic_coefficient_7,self.conic_coefficient_8,
                      self.conic_coefficient_9],
                 # inputs related to multilayer reflectivity
-                f_refl=reflectivity_source,
+                f_refl=self.reflectivity_source,
                 file_refl=self.file_refl,  # preprocessor file fir f_refl=0,2,3,4
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
+                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
             )
 
         # if error is selected...
@@ -331,7 +366,8 @@ class OWMultilayer(_OWMultilayer):
 
 add_widget_parameters_to_module(__name__)
 
-'''if __name__ == "__main__":
+if __name__ == "__main__":
+    import sys
     from shadow4.beamline.s4_beamline import S4Beamline
     from orangecontrib.shadow4.util.shadow4_objects import ShadowData
     def get_test_beam():
@@ -366,4 +402,3 @@ add_widget_parameters_to_module(__name__)
     ow.show()
     a.exec()
     ow.saveSettings()
-'''

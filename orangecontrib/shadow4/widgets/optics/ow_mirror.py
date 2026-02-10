@@ -8,6 +8,9 @@ from orangewidget.widget import Input, MultiInput
 from oasys2.widget import gui as oasysgui
 from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
 
+from dabax.dabax_xraylib import DabaxXraylib
+from dabax.dabax_files import dabax_f1f2_files
+
 from shadow4.beamline.optical_elements.mirrors.s4_toroid_mirror import S4ToroidMirror, S4ToroidMirrorElement
 from shadow4.beamline.optical_elements.mirrors.s4_conic_mirror import S4ConicMirror, S4ConicMirrorElement
 from shadow4.beamline.optical_elements.mirrors.s4_plane_mirror import S4PlaneMirror, S4PlaneMirrorElement
@@ -22,6 +25,11 @@ from shadow4.beamline.optical_elements.mirrors.s4_additional_numerical_mesh_mirr
 
 from orangecontrib.shadow4.widgets.gui.ow_optical_element_with_surface_shape import OWOpticalElementWithSurfaceShape, SUBTAB_INNER_BOX_WIDTH
 from orangecontrib.shadow4.util.shadow4_objects import ShadowData, PreReflPreProcessorData, VlsPgmPreProcessorData
+
+XRAYLIB_AVAILABLE = True
+
+try: import xraylib
+except: XRAYLIB_AVAILABLE = False
 
 class _OWMirror(OWOpticalElementWithSurfaceShape):
 
@@ -49,12 +57,15 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
     coating_density = Setting(2.33)
     coating_roughness = Setting(0.0)
 
+    DABAX_F1F2_FILE_INDEX = Setting(0)
+
     def __init__(self, switch_icons=True):
         super(_OWMirror, self).__init__(switch_icons=switch_icons)
 
         self.reflection_angle_deg_le.setEnabled(False)
         self.reflection_angle_rad_le.setEnabled(False)
 
+        self.reflectivity_tab_visibility()
 
     def create_basic_settings_specific_subtabs(self, tabs_basic_setting): return oasysgui.createTabPage(tabs_basic_setting, "Reflectivity")
 
@@ -90,7 +101,8 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                             "file 1D: (reflectivity vs angle)",
                             "file 1D: (reflectivity vs energy)",
                             "file 2D: (reflectivity vs energy and angle)",
-                            "Internal (Dabax)",
+                            "Internal, using xraylib " + ("**NOT AVAILABLE**" if not XRAYLIB_AVAILABLE else ""),
+                            "Internal, using Dabax",
                             ],
                      callback=self.reflectivity_tab_visibility, sendSelectedValue=False, orientation="horizontal",
                      tooltip="reflectivity_source")
@@ -125,7 +137,22 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                           "Coating roughness rms [A]: ", labelWidth=180, valueType=float,
                           orientation="horizontal", tooltip="coating_roughness")
 
-        self.reflectivity_tab_visibility()
+    def create_advanced_settings_subtabs(self, tabs_advanced_settings):
+        [subtab_modified_surface, subtab_oe_movement] =  super().create_advanced_settings_subtabs(tabs_advanced_settings)
+        subtab_dabax = oasysgui.createTabPage(tabs_advanced_settings, name="DABAX")
+        return [subtab_modified_surface, subtab_oe_movement, subtab_dabax]
+
+    def populate_advanced_setting_subtabs(self, advanced_setting_subtabs):
+        super().populate_advanced_setting_subtabs(advanced_setting_subtabs)
+
+        #########################################################
+        # Advanced Settings / DABAX
+        #########################################################
+        self.dabax_box = gui.widgetBox(advanced_setting_subtabs[2], "DABAX Materials Files")
+        gui.comboBox(self.dabax_box, self,
+                    "DABAX_F1F2_FILE_INDEX", tooltip="DABAX_F1F2_FILE_INDEX",
+                     items=dabax_f1f2_files(),
+                     label="f1f2 file", addSpace=True, orientation="horizontal")
 
     #########################################################
     # Reflectvity Methods
@@ -136,6 +163,7 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
         self.refraction_index_box.setVisible(False)
         self.material_refl_box.setVisible(False)
         self.roughness_refl_box.setVisible(False)
+        self.dabax_box.setVisible(False)
 
         if self.reflectivity_flag == 1:
             self.reflectivity_flag_box.setVisible(True)
@@ -146,11 +174,15 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
         if self.reflectivity_source in [0, 2, 3, 4]:
             self.file_refl_box.setVisible(True)
 
-        if self.reflectivity_source in [5]:
+        if self.reflectivity_source in [5, 6]:
             self.material_refl_box.setVisible(True)
 
-        if self.reflectivity_source in [0, 1, 5]:
+        if self.reflectivity_source in [0, 1, 5, 6]:
             self.roughness_refl_box.setVisible(True)
+
+        if self.reflectivity_flag == 1:
+            if self.reflectivity_source == 6:
+                self.dabax_box.setVisible(True)
 
     def select_file_refl(self):
         self.le_file_refl.setText(oasysgui.selectFileFromDialog(self, self.file_refl, "Select File with Reflectivity")) #, file_extension_filter="Data Files (*.dat)"))
@@ -212,15 +244,13 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
         try:    name = self.getNode().title
         except: name = "Mirror"
 
-        reflectivity_source = self.reflectivity_source if self.reflectivity_source < 5 else 6 # no more xraylib
-
         if self.surface_shape_type == 0:
             mirror = S4PlaneMirror(
                 name=name,
                 boundary_shape=self.get_boundary_shape(),
                 # inputs related to mirror reflectivity
                 f_reflec=self.reflectivity_flag,  # reflectivity of surface: 0=no reflectivity, 1=full polarization
-                f_refl=reflectivity_source,  # 0=prerefl file
+                f_refl=self.reflectivity_source,  # 0=prerefl file
                                              # 1=electric susceptibility
                                              # 2=user defined file (1D reflectivity vs angle)
                                              # 3=user defined file (1D reflectivity vs energy)
@@ -231,7 +261,8 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 refraction_index=1-self.refraction_index_delta+1j*self.refraction_index_beta,  # refraction index (complex) for f_refl=1
                 coating_material=self.coating_material,    # string with coating material formula for f_refl=5,6
                 coating_density=self.coating_density,      # coating material density for f_refl=5,6
-                coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=5,6
+                coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=0,1,5,6
+                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
             )
         elif self.surface_shape_type == 1:
             print("FOCUSING DISTANCES: convexity:  ", numpy.logical_not(self.surface_curvature).astype(int))
@@ -254,7 +285,7 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 grazing_angle=self.get_focusing_grazing_angle(),
                 # inputs related to mirror reflectivity
                 f_reflec=self.reflectivity_flag,  # reflectivity of surface: 0=no reflectivity, 1=full polarization
-                f_refl=reflectivity_source,  # 0=prerefl file
+                f_refl=self.reflectivity_source,  # 0=prerefl file
                                            # 1=electric susceptibility
                                            # 2=user defined file (1D reflectivity vs angle)
                                            # 3=user defined file (1D reflectivity vs energy)
@@ -266,7 +297,8 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 # refraction index (complex) for f_refl=1
                 coating_material=self.coating_material,    # string with coating material formula for f_refl=5,6
                 coating_density=self.coating_density,      # coating material density for f_refl=5,6
-                coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=5,6
+                coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=0,1,5,6
+                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
             )
         elif self.surface_shape_type == 2:
             mirror = S4EllipsoidMirror(
@@ -284,7 +316,7 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 grazing_angle=self.get_focusing_grazing_angle(),
                 # inputs related to mirror reflectivity
                 f_reflec=self.reflectivity_flag,  # reflectivity of surface: 0=no reflectivity, 1=full polarization
-                f_refl=reflectivity_source,  # 0=prerefl file
+                f_refl=self.reflectivity_source,  # 0=prerefl file
                                            # 1=electric susceptibility
                                            # 2=user defined file (1D reflectivity vs angle)
                                            # 3=user defined file (1D reflectivity vs energy)
@@ -296,7 +328,8 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 # refraction index (complex) for f_refl=1
                 coating_material=self.coating_material,    # string with coating material formula for f_refl=5,6
                 coating_density=self.coating_density,      # coating material density for f_refl=5,6
-                coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=5,6
+                coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=0,1,5,6
+                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
             )
         elif self.surface_shape_type == 3:
             mirror = S4HyperboloidMirror(
@@ -314,7 +347,7 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 grazing_angle=self.get_focusing_grazing_angle(),
                 # inputs related to mirror reflectivity
                 f_reflec=self.reflectivity_flag,  # reflectivity of surface: 0=no reflectivity, 1=full polarization
-                f_refl=reflectivity_source,  # 0=prerefl file
+                f_refl=self.reflectivity_source,  # 0=prerefl file
                                            # 1=electric susceptibility
                                            # 2=user defined file (1D reflectivity vs angle)
                                            # 3=user defined file (1D reflectivity vs energy)
@@ -326,7 +359,8 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 # refraction index (complex) for f_refl=1
                 coating_material=self.coating_material,    # string with coating material formula for f_refl=5,6
                 coating_density=self.coating_density,      # coating material density for f_refl=5,6
-                coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=5,6
+                coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=0,1,5,6
+                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
             )
         elif self.surface_shape_type == 4:
             mirror = S4ParaboloidMirror(
@@ -344,7 +378,7 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 grazing_angle=self.get_focusing_grazing_angle(),
                 # inputs related to mirror reflectivity
                 f_reflec=self.reflectivity_flag,  # reflectivity of surface: 0=no reflectivity, 1=full polarization
-                f_refl=reflectivity_source,  # 0=prerefl file
+                f_refl=self.reflectivity_source,  # 0=prerefl file
                                            # 1=electric susceptibility
                                            # 2=user defined file (1D reflectivity vs angle)
                                            # 3=user defined file (1D reflectivity vs energy)
@@ -356,7 +390,8 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 # refraction index (complex) for f_refl=1
                 coating_material=self.coating_material,    # string with coating material formula for f_refl=5,6
                 coating_density=self.coating_density,      # coating material density for f_refl=5,6
-                coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=5,6
+                coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=0,1,5,6
+                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
             )
         elif self.surface_shape_type == 5:
             mirror = S4ToroidMirror(
@@ -371,7 +406,7 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 grazing_angle=self.get_focusing_grazing_angle(),
                 # inputs related to mirror reflectivity
                 f_reflec=self.reflectivity_flag,  # reflectivity of surface: 0=no reflectivity, 1=full polarization
-                f_refl=reflectivity_source,  # 0=prerefl file
+                f_refl=self.reflectivity_source,  # 0=prerefl file
                                            # 1=electric susceptibility
                                            # 2=user defined file (1D reflectivity vs angle)
                                            # 3=user defined file (1D reflectivity vs energy)
@@ -383,7 +418,8 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 # refraction index (complex) for f_refl=1
                 coating_material=self.coating_material,    # string with coating material formula for f_refl=5,6
                 coating_density=self.coating_density,      # coating material density for f_refl=5,6
-                coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=5,6
+                coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=0,1,5,6
+                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
             )
         elif self.surface_shape_type == 6:
             mirror = S4ConicMirror(
@@ -396,7 +432,7 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                      self.conic_coefficient_9],
                 # inputs related to mirror reflectivity
                 f_reflec=self.reflectivity_flag,  # reflectivity of surface: 0=no reflectivity, 1=full polarization
-                f_refl=reflectivity_source,  # 0=prerefl file
+                f_refl=self.reflectivity_source,  # 0=prerefl file
                                            # 1=electric susceptibility
                                            # 2=user defined file (1D reflectivity vs angle)
                                            # 3=user defined file (1D reflectivity vs energy)
@@ -408,7 +444,8 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 # refraction index (complex) for f_refl=1
                 coating_material=self.coating_material,    # string with coating material formula for f_refl=5,6
                 coating_density=self.coating_density,      # coating material density for f_refl=5,6
-                coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=5,6
+                coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=0,1,5,6
+                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
             )
 
         # if error is selected...
@@ -460,7 +497,8 @@ class OWMirror(_OWMirror):
 
 add_widget_parameters_to_module(__name__)
 
-'''if __name__ == "__main__":
+if __name__ == "__main__":
+    import sys
     from shadow4.beamline.s4_beamline import S4Beamline
     def get_test_beam():
         # electron beam
@@ -498,4 +536,4 @@ add_widget_parameters_to_module(__name__)
 
     ow.show()
     a.exec()
-    ow.saveSettings()'''
+    ow.saveSettings()

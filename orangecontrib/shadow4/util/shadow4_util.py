@@ -32,9 +32,6 @@ from srxraylib.util.histograms import get_sigma, get_fwhm, get_average
 
 from shadow4.beam.s4_beam import S4Beam
 
-from orangecontrib.shadow4.util import materials_library as ml
-
-
 class ShadowCongruence():
     @classmethod
     def check_empty_beam(cls, input_beam):

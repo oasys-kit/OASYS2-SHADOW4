@@ -9,6 +9,9 @@ from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
 from syned.beamline.shape import Circle, Rectangle
 from shadow4.beamline.optical_elements.refractors.s4_crl import S4CRL, S4CRLElement
 
+from dabax.dabax_xraylib import DabaxXraylib
+from dabax.dabax_files import dabax_f1f2_files, dabax_crosssec_files
+
 class OWCRL(OWAbstractLens):
     name = "Compound Refractive Lens"
     description = "Shadow Compound Refractive Lens"
@@ -71,6 +74,8 @@ class OWCRL(OWAbstractLens):
                      radius=self.radius * um_to_si,
                      conic_coefficients1=None,  # TODO: add conic coefficient shape to the GUI
                      conic_coefficients2=None,  # TODO: add conic coefficient shape to the GUI
+                     dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
+                                        file_CrossSec="%s" % dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX]),
                      )
 
     def get_beamline_element_instance(self):
@@ -78,8 +83,6 @@ class OWCRL(OWAbstractLens):
 
 add_widget_parameters_to_module(__name__)
 
-
-'''
 if __name__ == "__main__":
     from shadow4.beamline.s4_beamline import S4Beamline
     import sys
@@ -120,4 +123,3 @@ if __name__ == "__main__":
     ow.show()
     a.exec()
     ow.saveSettings()
-'''
