@@ -23,11 +23,11 @@ from orangecontrib.shadow4.util import materials_library
 from orangecontrib.shadow4.util.shadow4_objects import PreReflPreProcessorData
 from orangecontrib.shadow4.util.shadow4_util import ShadowPhysics
 from orangecontrib.shadow4.widgets.gui.plots import plot_data1D, plot_data2D, plot_multi_data1D
-
+from orangecontrib.shadow4.util.python_script import PythonScript
 
 class OWPrerefl(OWWidget):
-    name = "PreRefl"
-    id = "xsh_prerefl"
+    name = "PreRefl (preprocessor for absorbers, mirrors and lenses)"
+    id = "PreRefl"
     description = "Calculation of mirror reflectivity profile"
     icon = "icons/prerefl.png"
     author = "create_widget.py"
@@ -102,7 +102,16 @@ class OWPrerefl(OWWidget):
         tab_out = oasysgui.createTabPage(self.main_tabs, "Output")
         self.plot_tab = oasysgui.createTabPage(self.main_tabs, "Plots (optional scan)")
 
-        tab_bas = oasysgui.createTabPage(tabs_setting, "Reflectivity Settings")
+##############
+        # script tab
+        script_tab = oasysgui.createTabPage(self.main_tabs, "Script")
+        self.shadow4_script = PythonScript()
+        self.shadow4_script.code_area.setFixedHeight(400)
+
+        script_box = gui.widgetBox(script_tab, "Python script", addSpace=True, orientation="horizontal")
+        script_box.layout().addWidget(self.shadow4_script)
+##############
+        tab_bas = oasysgui.createTabPage(tabs_setting, "Settings")
 
         tab_input_plots = oasysgui.createTabPage(tabs_setting, "Plots")
 
@@ -125,7 +134,7 @@ class OWPrerefl(OWWidget):
         self.set_visibility()
 
     def populate_tab_basic_settings(self, tab_bas):
-        box = oasysgui.widgetBox(tab_bas, "Reflectivity Parameters", orientation="vertical")
+        box = oasysgui.widgetBox(tab_bas, "Parameters", orientation="vertical")
         idx = -1
 
         # widget index 0
@@ -279,14 +288,24 @@ class OWPrerefl(OWWidget):
                             E_MIN=self.e_min,
                             E_MAX=self.e_max,
                             E_STEP=self.e_step,
-                            materials_library=materials_library)
+                            materials_library=None)
 
             self.Outputs.preprocessor_data.send(PreReflPreProcessorData(prerefl_data_file=self.prerefl_file))
 
             self.prerefl_instance = PreRefl()
             self.prerefl_instance.read_preprocessor_file(self.prerefl_file)
             self.prerefl_instance.preprocessor_info()
-            self.do_plots()
+
+            script = "# script to create the PreRefl preprocessor file (for absorbers, mirrors and lenses)"
+            script += "\nfrom shadow4.physical_models.prerefl.prerefl import PreRefl"
+            script += '\nPreRefl.prerefl(interactive=False, SYMBOL="%s", DENSITY=%f, FILE="%s", E_MIN=%f, E_MAX=%f, E_STEP=%f, materials_library=None)' % \
+                   (self.symbol, self.density, self.prerefl_file, self.e_min, self.e_max, self.e_step)
+            script +="\n\n"
+
+            script_plot = self.do_plots()
+
+            self.shadow4_script.set_code(script + script_plot)
+
         except Exception as exception:
             QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
             if self.IS_DEVELOP: raise exception
@@ -301,6 +320,14 @@ class OWPrerefl(OWWidget):
         congruence.checkDir(self.prerefl_file)
 
     def do_plots(self):
+
+        script = ""
+        if self.plot_flag != 0:
+            script += "\n# test plot\nfrom srxraylib.plot.gol import plot, plot_image"
+            script += "\nimport numpy as np"
+            script += "\n\nprerefl_instance = PreRefl()"
+            script += "\nprerefl_instance.read_preprocessor_file('%s')" % self.prerefl_file
+            script += "\n"
 
         self.set_visibility()
 
@@ -320,6 +347,13 @@ class OWPrerefl(OWWidget):
                                          xtitle="Photon energy [eV]",
                                          ytitle="(n = 1 - delta + i beta)",
                                          ytitles=['delta', 'beta'])
+
+            script += "\nenergy_array = np.linspace(%f, %f, %d)" % (self.scan_e_from, self.scan_e_to, self.scan_e_n)
+            script += "\nrefraction_index = prerefl_instance.get_refraction_index(energy_array)"
+            script += "\ndelta = 1.0 - refraction_index.real"
+            script += "\nbeta = refraction_index.imag"
+            script += "\nplot(energy_array, delta, energy_array, beta, legend=['delta','beta'], xtitle='Photon energy [eV]')"
+
         elif self.plot_flag == 2:
             energy_array = numpy.linspace(self.scan_e_from, self.scan_e_to, self.scan_e_n)
             att = self.prerefl_instance.get_attenuation_coefficient(energy_array)
@@ -328,6 +362,10 @@ class OWPrerefl(OWWidget):
                                          xtitle="Photon energy [eV]",
                                          ytitle="mu - attenuation coefficient cm^-1",
                                          )
+            script += "\nenergy_array = np.linspace(%f, %f, %d)" % (self.scan_e_from, self.scan_e_to, self.scan_e_n)
+            script += "\natt = prerefl_instance.get_attenuation_coefficient(energy_array)"
+            script += "\nplot(energy_array, att, ytitle='mu - attenuation coefficient cm^-1', xtitle='Photon energy [eV]')"
+
         elif self.plot_flag == 3:
             energy_array = numpy.linspace(self.scan_e_from, self.scan_e_to, self.scan_e_n)
             RS, RP, _ = self.prerefl_instance.reflectivity_fresnel(grazing_angle_mrad=self.scan_a0,
@@ -339,6 +377,13 @@ class OWPrerefl(OWWidget):
                                          xtitle="Photon energy [eV]",
                                          ytitle="Mirror reflectivity @ %.3f mrad" % self.scan_a0,
                                          ytitles=['S-polarized', 'P-polarized'])
+
+            script += "\nenergy_array = np.linspace(%f, %f, %d)" % (self.scan_e_from, self.scan_e_to, self.scan_e_n)
+            script += "\nRS, RP, _ = prerefl_instance.reflectivity_fresnel(grazing_angle_mrad=%f, photon_energy_ev=energy_array, roughness_rms_A=0.0)" % \
+                        (self.scan_a0)
+            script += "\nplot(energy_array, RS, energy_array, RP, legend=['S-polarized', 'P-polarized'], xtitle='Photon energy [eV]', ytitle='Mirror reflectivity @ %.3f mrad')" % \
+                      (self.scan_a0)
+
         elif self.plot_flag == 4:
             angle_array = numpy.linspace(self.scan_a_from, self.scan_a_to, self.scan_a_n)
             RS, RP, _ = self.prerefl_instance.reflectivity_fresnel(grazing_angle_mrad=angle_array,
@@ -351,11 +396,18 @@ class OWPrerefl(OWWidget):
                                          ytitle="Mirror reflectivity @ %.3f eV" % self.scan_e0,
                                          ytitles=['S-polarized', 'P-polarized'])
 
+            script += "\nangle_array = np.linspace(%f, %f, %d)" % (self.scan_a_from, self.scan_a_to, self.scan_a_n)
+            script += "\nRS, RP, _ = prerefl_instance.reflectivity_fresnel(grazing_angle_mrad=angle_array, photon_energy_ev=%f, roughness_rms_A=0.0)" % \
+                        (self.scan_e0)
+            script += "\nplot(angle_array, RS, angle_array, RP, legend=['S-polarized', 'P-polarized'], xtitle='Grazing angle [mrad]', ytitle='Mirror reflectivity @ %.3f eV')" % \
+                      (self.scan_e0)
+
         elif self.plot_flag == 5:
             angle_array = numpy.linspace(self.scan_a_from, self.scan_a_to, self.scan_a_n)
             energy_array = numpy.linspace(self.scan_e_from, self.scan_e_to, self.scan_e_n)
             E = numpy.outer(energy_array, numpy.ones_like(angle_array))
             A = numpy.outer(numpy.ones_like(energy_array), angle_array)
+
             RS, RP, _ = self.prerefl_instance.reflectivity_fresnel(grazing_angle_mrad=A,
                                                                    photon_energy_ev=E,
                                                                    roughness_rms_A=0.0,
@@ -367,8 +419,15 @@ class OWPrerefl(OWWidget):
                                          ytitle="Grazing angle [mrad]",
                                          title="Mirror reflectivity (S-pol)",
                                          )
+            script += "\nangle_array = np.linspace(%f, %f, %d)" % (self.scan_a_from, self.scan_a_to, self.scan_a_n)
+            script += "\nenergy_array = np.linspace(%f, %f, %d)" % (self.scan_e_from, self.scan_e_to, self.scan_e_n)
+            script += "\nE = np.outer(energy_array, np.ones_like(angle_array))"
+            script += "\nA = np.outer(np.ones_like(energy_array), angle_array)"
+            script += "\nRS, RP, _ = prerefl_instance.reflectivity_fresnel(grazing_angle_mrad=A, photon_energy_ev=E, roughness_rms_A=0.0)"
+            script += "\nplot_image(RS, energy_array, angle_array, xtitle='Photon energy [eV]', ytitle='Grazing angle [mrad]', title='Mirror reflectivity (S-pol)', aspect='auto')"
 
         self.plot_tab.layout().addWidget(plot_widget_id)
+        return script
 
     def writeStdOut(self, text):
         cursor = self.shadow_output.textCursor()
