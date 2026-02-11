@@ -1,4 +1,4 @@
-# from dabax.dabax_xraylib import DabaxXraylib
-# materials_library = DabaxXraylib()
+from dabax.dabax_xraylib import DabaxXraylib
+materials_library = DabaxXraylib()
 
 # OASYS2 Shadow4 optionally use Xraylib

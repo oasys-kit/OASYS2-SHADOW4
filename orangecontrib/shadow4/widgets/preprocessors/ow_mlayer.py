@@ -20,7 +20,6 @@ from shadow4.physical_models.mlayer.mlayer import MLayer
 from oasys2.widget.util.widget_util import EmittingStream
 from orangecontrib.shadow4.util.shadow4_objects import MLayerPreProcessorData
 from orangecontrib.shadow4.util.shadow4_util import ShadowPhysics
-from orangecontrib.shadow4.util import materials_library
 
 from orangecontrib.shadow4.widgets.gui.plots import plot_data1D, plot_data2D
 
@@ -482,7 +481,7 @@ class OWMLayer(OWWidget):
                              GRADE_DEPTH=GRADE_DEPTH,
                              LIST_N_THICK_GAMMA_ROUGHE_ROUGHO_FROM_TOP_TO_BOTTOM=LIST_N_THICK_GAMMA_ROUGHE_ROUGHO_FROM_TOP_TO_BOTTOM,
                              use_xraylib_or_dabax=1,
-                             dabax=materials_library,
+                             dabax=None,
                              )
 
             # this is for just info
@@ -585,3 +584,12 @@ class OWMLayer(OWWidget):
         self.shadow_output.ensureCursorVisible()
 
 add_widget_parameters_to_module(__name__)
+
+if __name__ == "__main__":
+    import sys
+    from AnyQt.QtWidgets import QApplication
+    a = QApplication(sys.argv)
+    ow = OWMLayer()
+    ow.show()
+    a.exec()
+    ow.saveSettings()

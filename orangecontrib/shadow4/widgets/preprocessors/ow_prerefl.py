@@ -378,3 +378,12 @@ class OWPrerefl(OWWidget):
         self.shadow_output.ensureCursorVisible()
 
 add_widget_parameters_to_module(__name__)
+
+if __name__ == "__main__":
+    import sys
+    from AnyQt.QtWidgets import QApplication
+    a = QApplication(sys.argv)
+    ow = OWPrerefl()
+    ow.show()
+    a.exec()
+    ow.saveSettings()
