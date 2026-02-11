@@ -43,16 +43,13 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
     # crystal
     #########################################################
 
-
-    ml = DabaxXraylib() # TODO: remove
-
     diffraction_calculation = Setting(1)
 
     file_diffraction_profile = Setting("diffraction_profile.dat")
     user_defined_bragg_angle = Setting(14.223)
     user_defined_asymmetry_angle = Setting(0.0)
 
-    CRYSTALS = ml.Crystal_GetCrystalsList()
+    CRYSTALS = DabaxXraylib().Crystal_GetCrystalsList()
     user_defined_crystal = Setting(0)
 
     user_defined_h = Setting(1)
@@ -75,8 +72,6 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
 
     DABAX_F0_FILE_INDEX = Setting(0)
     DABAX_F1F2_FILE_INDEX = Setting(0)
-    DABAX_CROSSSEC_FILE_INDEX = Setting(0)
-
 
     def __init__(self):
         super(_OWCrystal, self).__init__()
@@ -238,10 +233,6 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                     "DABAX_F1F2_FILE_INDEX", tooltip="DABAX_F1F2_FILE_INDEX",
                      items=dabax_f1f2_files(),
                      label="f1f2 file", addSpace=True, orientation="horizontal")
-        gui.comboBox(self.dabax_box, self,
-                    "DABAX_CROSSSEC_FILE_INDEX", tooltip="DABAX_CROSSSEC_FILE_INDEX",
-                     items=dabax_crosssec_files(),
-                     label="CrossSec file", addSpace=True, orientation="horizontal")
 
     def populate_tab_crystal_geometry(self, subtab_crystal_geometry):
         self.asymmetric_cut_box = oasysgui.widgetBox(subtab_crystal_geometry, "", addSpace=False, orientation="vertical",
@@ -387,7 +378,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
         if self.diffraction_calculation == 1:
             dabax = DabaxXraylib(file_f0="%s" % dabax_f0_files()[self.DABAX_F0_FILE_INDEX],
                                  file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
-                                 file_CrossSec="%s" % dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX]),
+                                 )
         else:
             dabax = None
 

@@ -138,7 +138,7 @@ class OWScreenSlits(OWOpticalElement):
                      items=["No",
                             "Yes, using preprocessor file",
                             "Yes, using xraylib " + ("**NOT AVAILABLE**" if not XRAYLIB_AVAILABLE else ""),
-                            "Yes, using dabax"],
+                            "Yes, using DABAX"],
                      tooltip="absorption",
                      callback=self.set_absorption, sendSelectedValue=False, orientation="horizontal")
 

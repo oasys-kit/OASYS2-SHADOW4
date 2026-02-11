@@ -41,7 +41,7 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
         oasys_preprocessor_data  = OWOpticalElementWithSurfaceShape.Inputs.oasys_preprocessor_data
         mlayer_preprocessor_data = MultiInput("MLayer PreProcessor Data", MLayerPreProcessorData, default=True, auto_summary=False)
 
-    reflectivity_source           = Setting(5) # f_refl
+    reflectivity_source           = Setting(5) # 5=dabax
     file_refl                     = Setting("<none>")
 
     structure = Setting('[C,Pt]x30+Si')
@@ -176,6 +176,11 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
         try:    name = self.getNode().title
         except: name = "Multilayer"
 
+        if self.reflectivity_source == 5:
+            dabax = DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX])
+        else:
+            dabax = None
+
         if self.surface_shape_type == 0:
             multilayer = S4PlaneMultilayer(
                 name=name,
@@ -185,7 +190,7 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
-                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
+                dabax=dabax,
             )
         elif self.surface_shape_type == 1:
             print("FOCUSING DISTANCES: convexity:  ", numpy.logical_not(self.surface_curvature).astype(int))
@@ -212,7 +217,7 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
-                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
+                dabax=dabax,
             )
         elif self.surface_shape_type == 2:
             multilayer = S4EllipsoidMultilayer(
@@ -234,7 +239,7 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
-                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
+                dabax=dabax,
             )
         elif self.surface_shape_type == 3:
             multilayer = S4HyperboloidMultilayer(
@@ -256,7 +261,7 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
-                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
+                dabax=dabax,
             )
         elif self.surface_shape_type == 4:
             multilayer = S4ParaboloidMultilayer(
@@ -278,7 +283,7 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
-                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
+                dabax=dabax,
             )
         elif self.surface_shape_type == 5:
             multilayer = S4ToroidMultilayer(
@@ -297,7 +302,7 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
-                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
+                dabax=dabax,
             )
         elif self.surface_shape_type == 6:
             multilayer = S4ConicMultilayer(
@@ -314,7 +319,7 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
-                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
+                dabax=dabax,
             )
 
         # if error is selected...

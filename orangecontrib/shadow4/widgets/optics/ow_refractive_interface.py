@@ -38,10 +38,10 @@ class OWRefractiveInterface(OWOpticalElementWithSurfaceShape):
         prerefl_preprocessor_data = MultiInput("PreRefl PreProcessor Data", PreReflPreProcessorData, default=True, auto_summary=False)
 
     optical_constants_refraction_index = Setting(0)
-    refraction_index_in_object_medium  = Setting(0.0)
+    refraction_index_in_object_medium  = Setting(1.0)
     attenuation_in_object_medium       = Setting(0.0)
     file_prerefl_for_object_medium     = Setting("<none>")
-    refractive_index_in_image_medium   = Setting(0.0)
+    refractive_index_in_image_medium   = Setting(1.0)
     attenuation_in_image_medium        = Setting(0.0)
     file_prerefl_for_image_medium      = Setting("<none>")
 
@@ -206,6 +206,14 @@ class OWRefractiveInterface(OWOpticalElementWithSurfaceShape):
         try:     name = self.getNode().title
         except:  name = "Refractive Interface"
 
+        if self.optical_constants_refraction_index > 6:
+            dabax = DabaxXraylib(
+                file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
+                file_CrossSec="%s" % dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX],
+                )
+        else:
+            dabax = None
+
         ifc = S4ConicInterface(name=name,
                     boundary_shape=self.get_boundary_shape(),
                     material_object=self.material_object,
@@ -229,8 +237,7 @@ class OWRefractiveInterface(OWOpticalElementWithSurfaceShape):
                                         self.conic_coefficient_7,
                                         self.conic_coefficient_8,
                                         self.conic_coefficient_9],
-                   dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
-                                      file_CrossSec="%s" % dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX]),
+                   dabax=dabax,
                    )
         # if error is selected...
         if self.modified_surface:

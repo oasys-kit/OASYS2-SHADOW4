@@ -44,7 +44,14 @@ class OWLens(OWAbstractLens):
         else:
             cylinder_angle = 0
 
-        ri_calculation_mode = self.ri_calculation_mode if self.ri_calculation_mode < 2 else 3 # no more xraylib
+
+        if self.ri_calculation_mode == 3:
+            dabax = DabaxXraylib(
+                file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
+                file_CrossSec="%s" % dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX],
+            )
+        else:
+            dabax = None
 
         return S4Lens(name=name,
                       boundary_shape=boundary_shape,
@@ -54,15 +61,14 @@ class OWLens(OWAbstractLens):
                       surface_shape=self.surface_shape,
                       convex_to_the_beam=self.convex_to_the_beam,
                       cylinder_angle=cylinder_angle,
-                      ri_calculation_mode=ri_calculation_mode,
+                      ri_calculation_mode=self.ri_calculation_mode,
                       prerefl_file=self.prerefl_file,
                       refraction_index=self.refraction_index,
                       attenuation_coefficient=self.attenuation_coefficient,
                       radius=self.radius*um_to_si,
                       conic_coefficients1=None, # TODO: add conic coefficient shape to the GUI
                       conic_coefficients2=None,  # TODO: add conic coefficient shape to the GUI
-                      dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
-                                         file_CrossSec="%s" % dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX]),
+                      dabax=dabax,
                       )
 
     def get_beamline_element_instance(self):

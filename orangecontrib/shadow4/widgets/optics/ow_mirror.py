@@ -102,7 +102,7 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                             "file 1D: (reflectivity vs energy)",
                             "file 2D: (reflectivity vs energy and angle)",
                             "Internal, using xraylib " + ("**NOT AVAILABLE**" if not XRAYLIB_AVAILABLE else ""),
-                            "Internal, using Dabax",
+                            "Internal, using DABAX",
                             ],
                      callback=self.reflectivity_tab_visibility, sendSelectedValue=False, orientation="horizontal",
                      tooltip="reflectivity_source")
@@ -244,6 +244,10 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
         try:    name = self.getNode().title
         except: name = "Mirror"
 
+        dabax = None
+        if self.reflectivity_flag == 1 and self.reflectivity_source == 6:
+            dabax = DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX])
+
         if self.surface_shape_type == 0:
             mirror = S4PlaneMirror(
                 name=name,
@@ -262,7 +266,7 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 coating_material=self.coating_material,    # string with coating material formula for f_refl=5,6
                 coating_density=self.coating_density,      # coating material density for f_refl=5,6
                 coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=0,1,5,6
-                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
+                dabax=dabax,
             )
         elif self.surface_shape_type == 1:
             print("FOCUSING DISTANCES: convexity:  ", numpy.logical_not(self.surface_curvature).astype(int))
@@ -298,7 +302,7 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 coating_material=self.coating_material,    # string with coating material formula for f_refl=5,6
                 coating_density=self.coating_density,      # coating material density for f_refl=5,6
                 coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=0,1,5,6
-                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
+                dabax=dabax,
             )
         elif self.surface_shape_type == 2:
             mirror = S4EllipsoidMirror(
@@ -329,7 +333,7 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 coating_material=self.coating_material,    # string with coating material formula for f_refl=5,6
                 coating_density=self.coating_density,      # coating material density for f_refl=5,6
                 coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=0,1,5,6
-                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
+                dabax=dabax,
             )
         elif self.surface_shape_type == 3:
             mirror = S4HyperboloidMirror(
@@ -360,7 +364,7 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 coating_material=self.coating_material,    # string with coating material formula for f_refl=5,6
                 coating_density=self.coating_density,      # coating material density for f_refl=5,6
                 coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=0,1,5,6
-                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
+                dabax=dabax,
             )
         elif self.surface_shape_type == 4:
             mirror = S4ParaboloidMirror(
@@ -391,7 +395,7 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 coating_material=self.coating_material,    # string with coating material formula for f_refl=5,6
                 coating_density=self.coating_density,      # coating material density for f_refl=5,6
                 coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=0,1,5,6
-                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
+                dabax=dabax,
             )
         elif self.surface_shape_type == 5:
             mirror = S4ToroidMirror(
@@ -419,7 +423,7 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 coating_material=self.coating_material,    # string with coating material formula for f_refl=5,6
                 coating_density=self.coating_density,      # coating material density for f_refl=5,6
                 coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=0,1,5,6
-                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
+                dabax=dabax,
             )
         elif self.surface_shape_type == 6:
             mirror = S4ConicMirror(
@@ -445,7 +449,7 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 coating_material=self.coating_material,    # string with coating material formula for f_refl=5,6
                 coating_density=self.coating_density,      # coating material density for f_refl=5,6
                 coating_roughness=self.coating_roughness,  # coating material roughness in A for f_refl=0,1,5,6
-                dabax=DabaxXraylib(file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX]),
+                dabax=dabax,
             )
 
         # if error is selected...
