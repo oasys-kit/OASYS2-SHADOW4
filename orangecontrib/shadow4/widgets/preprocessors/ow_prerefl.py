@@ -26,7 +26,7 @@ from orangecontrib.shadow4.widgets.gui.plots import plot_data1D, plot_data2D, pl
 from orangecontrib.shadow4.util.python_script import PythonScript
 
 class OWPrerefl(OWWidget):
-    name = "PreRefl (preprocessor for absorbers, mirrors and lenses)"
+    name = "PreRefl (absorbers, mirrors and lenses)"
     id = "PreRefl"
     description = "Calculation of mirror reflectivity profile"
     icon = "icons/prerefl.png"

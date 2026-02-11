@@ -25,8 +25,8 @@ from orangecontrib.shadow4.widgets.gui.plots import plot_data1D, plot_data2D
 
 
 class OWMLayer(OWWidget):
-    name = "MLayer"
-    id = "pre_mlayer"
+    name = "MLayer (multilayers)"
+    id = "MLayer"
     description = "Calculation of multilayer mirror reflectivity profile"
     icon = "icons/premlayer.png"
     author = "M Sanchez del Rio"

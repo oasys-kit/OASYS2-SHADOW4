@@ -34,8 +34,8 @@ from crystalpy.util.Vector import Vector
 from crystalpy.util.Photon import Photon
 
 class OWBragg(OWWidget):
-    name = "Bragg"
-    id = "xsh_bragg"
+    name = "Bragg (crystals)"
+    id = "Bragg"
     description = "Calculation of crystal diffraction profile"
     icon = "icons/bragg.png"
     author = "create_widget.py"
