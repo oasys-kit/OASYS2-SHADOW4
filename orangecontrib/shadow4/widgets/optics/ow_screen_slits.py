@@ -1,7 +1,10 @@
 import numpy
 
+from AnyQt.QtWidgets import QMessageBox
+
 from orangewidget import gui
 from orangewidget.settings import Setting
+from orangewidget.widget import Input, MultiInput
 
 from oasys2.widget import gui as oasysgui
 from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
@@ -16,6 +19,7 @@ from dabax.dabax_files import dabax_crosssec_files
 from shadow4.beamline.optical_elements.absorbers.s4_screen import S4ScreenElement, S4Screen
 
 from orangecontrib.shadow4.widgets.gui.ow_optical_element import OWOpticalElement, NO_FILE_SPECIFIED
+from orangecontrib.shadow4.util.shadow4_objects import ShadowData, PreReflPreProcessorData
 
 from orangecanvas.resources import icon_loader
 from orangecanvas.scheme.node import SchemeNode
@@ -25,12 +29,13 @@ XRAYLIB_AVAILABLE = True
 try: import xraylib
 except: XRAYLIB_AVAILABLE = False
 
-class OWScreenSlits(OWOpticalElement):
-    name        = "Generic Beam Screen/Slit/Stopper/Attenuator"
-    description = "Shadow Screen/Slit/Stopper/Attenuator"
-    icon        = "icons/generic_beam_stopper.png"
+class _OWScreenSlits(OWOpticalElement):
 
-    priority = 1.1
+    class Inputs:
+        shadow_data               = OWOpticalElement.Inputs.shadow_data
+        trigger                   = OWOpticalElement.Inputs.trigger
+        syned_data                = OWOpticalElement.Inputs.syned_data
+        prerefl_preprocessor_data = MultiInput("PreRefl PreProcessor Data", PreReflPreProcessorData, default=True, auto_summary=False)
 
     aperturing           = Setting(0)
     open_slit_solid_stop = Setting(0)
@@ -50,11 +55,11 @@ class OWScreenSlits(OWOpticalElement):
 
 
     def createdFromNode(self, node):
-        super(OWScreenSlits, self).createdFromNode(node)
+        super(_OWScreenSlits, self).createdFromNode(node)
         self.__change_icon_from_oe_type()
 
     def widgetNodeAdded(self, node_item : SchemeNode):
-        super(OWScreenSlits, self).widgetNodeAdded(node_item)
+        super(_OWScreenSlits, self).widgetNodeAdded(node_item)
         self.__change_icon_from_oe_type()
 
     def __change_icon_from_oe_type(self):
@@ -232,6 +237,47 @@ class OWScreenSlits(OWOpticalElement):
                         )
 
     def get_beamline_element_instance(self): return S4ScreenElement()
+
+    #########################################################
+    # preprocessor
+    #########################################################
+
+    @Inputs.prerefl_preprocessor_data
+    def set_prerefl_preprocessor_data(self, index, preprocessor_data):
+        self.set_PreReflPreProcessorData(preprocessor_data)
+
+    @Inputs.prerefl_preprocessor_data.insert
+    def insert_prerefl_preprocessor_data(self, index, preprocessor_data):
+        self.set_PreReflPreProcessorData(preprocessor_data)
+
+    @Inputs.prerefl_preprocessor_data.remove
+    def remove_prerefl_preprocessor_data(self, index):
+        pass
+
+    def set_PreReflPreProcessorData(self, data):
+        if data is not None:
+            if data.prerefl_data_file != PreReflPreProcessorData.NONE:
+                # self.file_refl = data.prerefl_data_file
+                # self.reflectivity_flag = 1
+                # self.reflectivity_source = 0
+                # self.reflectivity_tab_visibility()
+
+                self.absorption = 1
+                self.opt_const_file_name = data.prerefl_data_file
+                self.set_absorption(is_init=True)
+            else:
+                QMessageBox.warning(self, "Warning", "Incompatible Preprocessor Data", QMessageBox.Ok)
+
+
+class OWScreenSlits(_OWScreenSlits):
+    name        = "Generic Beam Screen/Slit/Stopper/Attenuator"
+    description = "Shadow Screen/Slit/Stopper/Attenuator"
+    icon        = "icons/generic_beam_stopper.png"
+
+    priority = 1.1
+
+    def get_oe_type(self):
+        return "screen/slit/absorber", "Screen/Slit/Absorber"
 
 add_widget_parameters_to_module(__name__)
 
