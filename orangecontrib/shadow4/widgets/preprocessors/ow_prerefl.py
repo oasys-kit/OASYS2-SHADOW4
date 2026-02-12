@@ -19,11 +19,20 @@ from oasys2.widget.util import congruence
 from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
 from oasys2.widget.util.widget_util import EmittingStream
 
+from dabax.dabax_xraylib import DabaxXraylib
+
 from orangecontrib.shadow4.util import materials_library
 from orangecontrib.shadow4.util.shadow4_objects import PreReflPreProcessorData
 from orangecontrib.shadow4.util.shadow4_util import ShadowPhysics
 from orangecontrib.shadow4.widgets.gui.plots import plot_data1D, plot_data2D, plot_multi_data1D
 from orangecontrib.shadow4.util.python_script import PythonScript
+
+XRAYLIB_AVAILABLE = True
+
+try: import xraylib
+except: XRAYLIB_AVAILABLE = False
+
+from dabax.dabax_files import dabax_f1f2_files, dabax_crosssec_files
 
 class OWPrerefl(OWWidget):
     name = "PreRefl (absorbers, mirrors and lenses)"
@@ -62,6 +71,9 @@ class OWPrerefl(OWWidget):
     scan_a_to = Setting(10.0)
     scan_e0 = Setting(8000.0)
 
+    MATERIAL_CONSTANT_LIBRARY_FLAG = Setting(1)
+    DABAX_F1F2_FILE_INDEX = Setting(0)
+    DABAX_CROSSSEC_FILE_INDEX = Setting(0)
 
     IMAGE_WIDTH  = 860
     IMAGE_HEIGHT = 545
@@ -102,7 +114,7 @@ class OWPrerefl(OWWidget):
         tab_out = oasysgui.createTabPage(self.main_tabs, "Output")
         self.plot_tab = oasysgui.createTabPage(self.main_tabs, "Plots (optional scan)")
 
-##############
+        ##############
         # script tab
         script_tab = oasysgui.createTabPage(self.main_tabs, "Script")
         self.shadow4_script = PythonScript()
@@ -110,14 +122,20 @@ class OWPrerefl(OWWidget):
 
         script_box = gui.widgetBox(script_tab, "Python script", addSpace=True, orientation="horizontal")
         script_box.layout().addWidget(self.shadow4_script)
-##############
+
+        ##############
+
         tab_bas = oasysgui.createTabPage(tabs_setting, "Settings")
+
+        tab_dabax = oasysgui.createTabPage(tabs_setting, "Advanced")
 
         tab_input_plots = oasysgui.createTabPage(tabs_setting, "Plots")
 
         tab_usa = oasysgui.createTabPage(tabs_setting, "Use of the Widget")
 
         self.populate_tab_basic_settings(tab_bas)
+
+        self.populate_tab_dabax(tab_dabax)
 
         self.populate_tab_plots(tab_input_plots)
 
@@ -184,6 +202,37 @@ class OWPrerefl(OWWidget):
                           valueType=float, labelWidth=200, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
 
+    def populate_tab_dabax(self, tab_dabax):
+        # xraylib/dabax
+        # widget index xx
+        box1 = gui.widgetBox(tab_dabax, "Material Library")
+        self.cb_material_library = \
+            gui.comboBox(box1, self, "MATERIAL_CONSTANT_LIBRARY_FLAG",
+                         label='Material Library', addSpace=True,
+                         items=["xraylib", "dabax [default]"],
+                         orientation="horizontal",
+                         callback=self.set_visibility)
+
+        # widget index xx
+        self.dabax_f1f2_box = gui.widgetBox(box1)
+        gui.comboBox(self.dabax_f1f2_box, self, "DABAX_F1F2_FILE_INDEX",
+                     label="dabax f1f2 file", addSpace=True,
+                     items=dabax_f1f2_files(),
+                     orientation="horizontal")
+
+        # widget index xx
+        self.dabax_crosssec_box = gui.widgetBox(box1)
+        gui.comboBox(self.dabax_crosssec_box, self, "DABAX_CROSSSEC_FILE_INDEX",
+                     label="dabax cross sec file", addSpace=True,
+                     items=dabax_crosssec_files(),
+                     orientation="horizontal")
+
+        if not XRAYLIB_AVAILABLE:
+            self.MATERIAL_CONSTANT_LIBRARY_FLAG = 1
+            self.cb_material_library.setEnabled(False)
+        else:
+            self.cb_material_library.setEnabled(True)
+
     def populate_tab_plots(self, tab_plots):
 
         box = gui.widgetBox(tab_plots, "Optional scan plots", orientation="vertical")
@@ -244,6 +293,9 @@ class OWPrerefl(OWWidget):
         self.box_plot_a0.setVisible(False)
         self.box_plot_a.setVisible(False)
         self.box_plot_e0.setVisible(False)
+        self.dabax_f1f2_box.setVisible(False)
+        self.dabax_crosssec_box.setVisible(False)
+
 
         if self.plot_flag == 1:
             self.box_plot_e.setVisible(True)
@@ -258,6 +310,10 @@ class OWPrerefl(OWWidget):
         elif self.plot_flag == 5:
             self.box_plot_a.setVisible(True)
             self.box_plot_e.setVisible(True)
+
+        if self.MATERIAL_CONSTANT_LIBRARY_FLAG > 0:
+            self.dabax_f1f2_box.setVisible(True)
+            self.dabax_crosssec_box.setVisible(True)
 
     def unitLabels(self):
          return ['Element/Compound formula','Density [ g/cm3 ]','File name (for SHADOW):','Minimum energy [eV]','Maximum energy [eV]','Energy step [eV]']
@@ -276,6 +332,19 @@ class OWPrerefl(OWWidget):
 
 
     def compute(self):
+        if self.MATERIAL_CONSTANT_LIBRARY_FLAG == 0:
+            import xraylib
+            material_constants_library = xraylib
+            material_constants_library_str = "xraylib"
+            material_constants_library_import = "\nimport xraylib"
+        else:
+            material_constants_library = DabaxXraylib(file_f1f2=dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
+                                                      file_CrossSec=dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX])
+            material_constants_library_str = 'DabaxXraylib(file_f1f2="%s",file_CrossSec="%s")' % \
+                                             (dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
+                                              dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX])
+            material_constants_library_import = "\nfrom dabax.dabax_xraylib import DabaxXraylib"
+
         try:
             sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
@@ -288,7 +357,7 @@ class OWPrerefl(OWWidget):
                             E_MIN=self.e_min,
                             E_MAX=self.e_max,
                             E_STEP=self.e_step,
-                            materials_library=None)
+                            materials_library=material_constants_library)
 
             self.Outputs.preprocessor_data.send(PreReflPreProcessorData(prerefl_data_file=self.prerefl_file))
 
@@ -297,9 +366,10 @@ class OWPrerefl(OWWidget):
             self.prerefl_instance.preprocessor_info()
 
             script = "# script to create the PreRefl preprocessor file (for absorbers, mirrors and lenses)"
+            script += material_constants_library_import
             script += "\nfrom shadow4.physical_models.prerefl.prerefl import PreRefl"
-            script += '\nPreRefl.prerefl(interactive=False, SYMBOL="%s", DENSITY=%f, FILE="%s", E_MIN=%f, E_MAX=%f, E_STEP=%f, materials_library=None)' % \
-                   (self.symbol, self.density, self.prerefl_file, self.e_min, self.e_max, self.e_step)
+            script += '\nPreRefl.prerefl(interactive=False, SYMBOL="%s", DENSITY=%f, FILE="%s", E_MIN=%f, E_MAX=%f, E_STEP=%f, materials_library=%s)' % \
+                   (self.symbol, self.density, self.prerefl_file, self.e_min, self.e_max, self.e_step, material_constants_library_str)
             script +="\n\n"
 
             script_plot = self.do_plots()
