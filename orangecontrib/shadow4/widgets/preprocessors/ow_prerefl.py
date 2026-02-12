@@ -21,7 +21,6 @@ from oasys2.widget.util.widget_util import EmittingStream
 
 from dabax.dabax_xraylib import DabaxXraylib
 
-from orangecontrib.shadow4.util import materials_library
 from orangecontrib.shadow4.util.shadow4_objects import PreReflPreProcessorData
 from orangecontrib.shadow4.util.shadow4_util import ShadowPhysics
 from orangecontrib.shadow4.widgets.gui.plots import plot_data1D, plot_data2D, plot_multi_data1D

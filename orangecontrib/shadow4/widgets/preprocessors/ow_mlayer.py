@@ -5,6 +5,7 @@ from AnyQt.QtGui import QTextCursor, QPixmap
 from AnyQt.QtCore import Qt
 
 import orangecanvas.resources as resources
+from fontTools.unicodedata import script
 
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -15,6 +16,8 @@ from oasys2.widget import gui as oasysgui
 from oasys2.widget.util import congruence
 from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
 
+from dabax.dabax_xraylib import DabaxXraylib
+
 from shadow4.physical_models.mlayer.mlayer import MLayer
 
 from oasys2.widget.util.widget_util import EmittingStream
@@ -23,6 +26,14 @@ from orangecontrib.shadow4.util.shadow4_util import ShadowPhysics
 
 from orangecontrib.shadow4.widgets.gui.plots import plot_data1D, plot_data2D
 
+from orangecontrib.shadow4.util.python_script import PythonScript
+
+XRAYLIB_AVAILABLE = True
+
+try: import xraylib
+except: XRAYLIB_AVAILABLE = False
+
+from dabax.dabax_files import dabax_f1f2_files
 
 class OWMLayer(OWWidget):
     name = "MLayer (multilayers)"
@@ -83,6 +94,12 @@ class OWMLayer(OWWidget):
     ell_photon_energy = Setting(10000.0)
 
     #
+    # materials library
+    #
+    MATERIAL_CONSTANT_LIBRARY_FLAG = Setting(1)
+    DABAX_F1F2_FILE_INDEX = Setting(0)
+
+    #
     # Plots
     #
     plot_flag = Setting(0)
@@ -138,6 +155,14 @@ class OWMLayer(OWWidget):
 
         self.plot_tab = oasysgui.createTabPage(self.main_tabs, "Plots (optional scan)")
 
+        # script tab
+        script_tab = oasysgui.createTabPage(self.main_tabs, "Script")
+        self.shadow4_script = PythonScript()
+        self.shadow4_script.code_area.setFixedHeight(400)
+
+        script_box = gui.widgetBox(script_tab, "Python script", addSpace=True, orientation="horizontal")
+        script_box.layout().addWidget(self.shadow4_script)
+
 
         #
         #
@@ -147,6 +172,9 @@ class OWMLayer(OWWidget):
 
         tab_input_2 = oasysgui.createTabPage(tabs_setting, "Graded-ML")
         self.populate_tab_graded(tab_input_2)
+
+        tab_input_advanced = oasysgui.createTabPage(tabs_setting, "Advanced")
+        self.populate_tab_dabax(tab_input_advanced)
 
         tab_input_3 = oasysgui.createTabPage(tabs_setting, "Plots")
         self.populate_tab_plots(tab_input_3)
@@ -285,6 +313,30 @@ class OWMLayer(OWWidget):
         self.depth_graded_box.layout().addWidget(self.depth_graded_text_area)
         self.depth_graded_text_area.setText(self.graded_depth_text_list)
 
+    def populate_tab_dabax(self, tab_dabax):
+        # xraylib/dabax
+        # widget index xx
+        box1 = gui.widgetBox(tab_dabax, "Material Library")
+        self.cb_material_library = \
+            gui.comboBox(box1, self, "MATERIAL_CONSTANT_LIBRARY_FLAG",
+                         label='Material Library', addSpace=True,
+                         items=["xraylib", "dabax [default]"],
+                         orientation="horizontal",
+                         callback=self.set_visibility)
+
+        # widget index xx
+        self.dabax_f1f2_box = gui.widgetBox(box1)
+        gui.comboBox(self.dabax_f1f2_box, self, "DABAX_F1F2_FILE_INDEX",
+                     label="dabax f1f2 file", addSpace=True,
+                     items=dabax_f1f2_files(),
+                     orientation="horizontal")
+
+        if not XRAYLIB_AVAILABLE:
+            self.MATERIAL_CONSTANT_LIBRARY_FLAG = 1
+            self.cb_material_library.setEnabled(False)
+        else:
+            self.cb_material_library.setEnabled(True)
+
     def populate_tab_plots(self, tab_plots):
 
         box = gui.widgetBox(tab_plots, "Optional scan plots", orientation="vertical")
@@ -402,6 +454,11 @@ class OWMLayer(OWWidget):
             self.box_plot_a.setVisible(True)
             self.box_plot_e0.setVisible(False)
 
+        if self.MATERIAL_CONSTANT_LIBRARY_FLAG > 0:
+            self.dabax_f1f2_box.setVisible(True)
+        else:
+            self.dabax_f1f2_box.setVisible(False)
+
     def set_SDensity(self):
         if not self.S_MATERIAL is None:
             if not self.S_MATERIAL.strip() == "":
@@ -421,6 +478,15 @@ class OWMLayer(OWWidget):
                 self.O_DENSITY = ShadowPhysics.getMaterialDensity(self.O_MATERIAL)
 
     def compute(self):
+        if self.MATERIAL_CONSTANT_LIBRARY_FLAG == 0:
+            material_constants_library = None
+            material_constants_library_str = "None"
+            material_constants_library_import = ""
+        else:
+            material_constants_library = DabaxXraylib(file_f1f2=dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX])
+            material_constants_library_str = 'DabaxXraylib(file_f1f2="%s")' % (dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX])
+            material_constants_library_import = "\nfrom dabax.dabax_xraylib import DabaxXraylib"
+
         try:
             sys.stdout = EmittingStream(textWritten=self.writeStdOut)
             self.shadow_output.setText("")
@@ -480,8 +546,8 @@ class OWMLayer(OWWidget):
                              ell_photon_energy=self.ell_photon_energy,
                              GRADE_DEPTH=GRADE_DEPTH,
                              LIST_N_THICK_GAMMA_ROUGHE_ROUGHO_FROM_TOP_TO_BOTTOM=LIST_N_THICK_GAMMA_ROUGHE_ROUGHO_FROM_TOP_TO_BOTTOM,
-                             use_xraylib_or_dabax=1,
-                             dabax=None,
+                             use_xraylib_or_dabax=self.MATERIAL_CONSTANT_LIBRARY_FLAG,
+                             dabax=material_constants_library,
                              )
 
             # this is for just info
@@ -489,12 +555,111 @@ class OWMLayer(OWWidget):
                 _ = self.mlayer_instance._fit_ellipse_laterally_graded_coeffs(verbose=1)
 
             # plots
-            self.do_plots()
+            script_plot = self.do_plots()
+
+            #
+            # script
+            #
+
+            dict = {
+                "FILE": self.FILE,
+                "E_MIN": self.E_MIN,
+                "E_MAX": self.E_MAX,
+                "S_DENSITY": self.S_DENSITY,
+                "S_MATERIAL": self.S_MATERIAL,
+                "E_DENSITY": self.E_DENSITY,
+                "E_MATERIAL": self.E_MATERIAL,
+                "O_DENSITY": self.O_DENSITY,
+                "O_MATERIAL": self.O_MATERIAL,
+                "N_PAIRS": self.N_PAIRS,
+                "THICKNESS": self.THICKNESS,
+                "GAMMA": self.GAMMA,
+                "ROUGHNESS_EVEN": self.ROUGHNESS_EVEN,
+                "ROUGHNESS_ODD": self.ROUGHNESS_ODD,
+                "GRADE_SURFACE": GRADE_SURFACE,
+                "AA0": self.AA0,
+                "AA1": self.AA1,
+                "AA2": self.AA2,
+                "AA3": self.AA3,
+                "ell_p": self.ell_p,
+                "ell_q": self.ell_q,
+                "ell_theta_grazing_deg": self.ell_theta_deg,
+                "ell_length": self.ell_length,
+                "ell_photon_energy": self.ell_photon_energy,
+                "GRADE_DEPTH": GRADE_DEPTH,
+                "LIST_N_THICK_GAMMA_ROUGHE_ROUGHO_FROM_TOP_TO_BOTTOM": LIST_N_THICK_GAMMA_ROUGHE_ROUGHO_FROM_TOP_TO_BOTTOM,
+                "use_xraylib_or_dabax": self.MATERIAL_CONSTANT_LIBRARY_FLAG,
+                "dabax": material_constants_library_str,
+                "MATERIAL_CONSTANT_LIBRARY_FLAG": self.MATERIAL_CONSTANT_LIBRARY_FLAG,
+                "material_constants_library_import": material_constants_library_import,
+            }
+
+
+            script = self.get_script_template().format_map(dict)
+            self.shadow4_script.set_code(script + script_plot)
 
             self.Outputs.preprocessor_data.send(MLayerPreProcessorData(mlayer_data_file=self.FILE))
         except Exception as exception:
             QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
             if self.IS_DEVELOP: raise exception
+
+    def get_script_template(self):
+        return """
+#   The stack is as follows: Vacuum+[Odd,Even]xn+Substrate
+#                  vacuum   ")
+#       |------------------------------|  \
+#       |          odd (n)             |  |
+#       |------------------------------|  | BILAYER # n
+#       |          even (n)            |  |
+#       |------------------------------|  /
+#       |          .                   |
+#       |          .                   |
+#       |          .                   |
+#       |------------------------------|  \
+#       |          odd (1)             |  |
+#       |------------------------------|  | BILAYER # 1
+#       |          even (1)            |  |
+#       |------------------------------|  /
+#       |                              |
+#       |///////// substrate //////////|
+#       |                              |
+
+# script to create the MLayer preprocessor file (for multilayers)
+{material_constants_library_import}
+from shadow4.physical_models.mlayer.mlayer import MLayer
+
+# help in: https://shadow4.readthedocs.io/en/latest/shadow4.physical_models.mlayer.html#module-shadow4.physical_models.mlayer.mlayer
+mlayer_instance = MLayer.pre_mlayer(
+                 FILE="{FILE:s}",
+                 E_MIN={E_MIN:f},
+                 E_MAX={E_MAX:f},
+                 S_DENSITY ={S_DENSITY:f},
+                 S_MATERIAL="{S_MATERIAL:s}",
+                 E_DENSITY ={E_DENSITY:f},
+                 E_MATERIAL="{E_MATERIAL:s}",
+                 O_DENSITY ={O_DENSITY:f},
+                 O_MATERIAL="{O_MATERIAL:s}",
+                 N_PAIRS  ={N_PAIRS:d},
+                 THICKNESS={THICKNESS:f},
+                 GAMMA    ={GAMMA:f},
+                 ROUGHNESS_EVEN={ROUGHNESS_EVEN:f},
+                 ROUGHNESS_ODD ={ROUGHNESS_ODD:f},
+                 GRADE_SURFACE ={GRADE_SURFACE},
+                 AA0={AA0},
+                 AA1={AA1},
+                 AA2={AA2},
+                 AA3={AA3},
+                 ell_p={ell_p},
+                 ell_q={ell_q},
+                 ell_theta_grazing_deg ={ell_theta_grazing_deg:f},
+                 ell_length            ={ell_length:f},
+                 ell_photon_energy     ={ell_photon_energy:f},
+                 GRADE_DEPTH           ={GRADE_DEPTH},
+                 LIST_N_THICK_GAMMA_ROUGHE_ROUGHO_FROM_TOP_TO_BOTTOM={LIST_N_THICK_GAMMA_ROUGHE_ROUGHO_FROM_TOP_TO_BOTTOM},
+                 use_xraylib_or_dabax={MATERIAL_CONSTANT_LIBRARY_FLAG:d},
+                 dabax={dabax},
+                 )
+"""
 
     def checkFields(self):
         congruence.checkDir(self.FILE)
@@ -530,6 +695,11 @@ class OWMLayer(OWWidget):
 
     def do_plots(self):
 
+        if self.plot_flag == 0:
+            script_plots = ""
+        else:
+            script_plots = "\n# test plot\nfrom srxraylib.plot.gol import plot, plot_image\nimport numpy as np"
+
         self.set_visibility()
 
         self.plot_tab.layout().removeItem(self.plot_tab.layout().itemAt(0))
@@ -550,6 +720,12 @@ class OWMLayer(OWWidget):
                 thetaN=thetaN, theta1=theta1, theta2=theta2)
             plot_widget_id = plot_data1D(energy_array, R_S_array[:, 0] ** 2, xtitle="Photon energy [eV]",
                                          ytitle="Reflectivity")
+
+            script_plots += "\nR_S_array, R_P_array, energy_array, theta_array = mlayer_instance.scan(energyN=%d, energy1=%f, energy2=%f, thetaN=1, theta1=%f, theta2=%f)" % \
+                        (int(self.scan_e_n), self.scan_e_from, self.scan_e_to, self.scan_a0, self.scan_a0)
+            script_plots += "\nplot(energy_array, R_S_array[:, 0] ** 2, xtitle='Photon energy [eV]', ytitle='Reflectivity')"
+
+
         elif self.plot_flag == 2:
             energyN = 1
             energy1 = self.scan_e0
@@ -561,6 +737,11 @@ class OWMLayer(OWWidget):
                 energyN=energyN, energy1=energy1, energy2=energy2,
                 thetaN=thetaN, theta1=theta1, theta2=theta2)
             plot_widget_id = plot_data1D(theta_array, R_S_array[0, :]**2, xtitle="grazing angle [deg]", ytitle="Reflectivity")
+
+            script_plots += "\nR_S_array, R_P_array, energy_array, theta_array = mlayer_instance.scan(energyN=1, energy1=%f, energy2=%f, thetaN=%d, theta1=%f, theta2=%f)" % \
+                        (self.scan_e0, self.scan_e0, int(self.scan_a_n), self.scan_a_from, self.scan_a_to)
+            script_plots += "\nplot(theta_array, R_S_array[0, :] ** 2, xtitle='grazing angle [deg]', ytitle='Reflectivity')"
+
         elif self.plot_flag == 3:
             energyN = self.scan_e_n
             energy1 = self.scan_e_from
@@ -574,7 +755,12 @@ class OWMLayer(OWWidget):
             plot_widget_id = plot_data2D(R_S_array**2, energy_array, theta_array, title="title",
                                          xtitle="photon energy [eV]", ytitle="grazing angle [deg]")
 
+            script_plots += "\nR_S_array, R_P_array, energy_array, theta_array = mlayer_instance.scan(energyN=%d, energy1=%f, energy2=%f, thetaN=%d, theta1=%f, theta2=%f)" % \
+                        (int(self.scan_e_n), self.scan_e_from, self.scan_e_to, int(self.scan_a_n), self.scan_a_from, self.scan_a_to)
+            script_plots += "\nplot_image(R_S_array**2, energy_array,  theta_array, xtitle='Photon energy [eV]', ytitle='grazing angle [deg]', aspect='auto')"
+
         self.plot_tab.layout().addWidget(plot_widget_id)
+        return script_plots
 
     def writeStdOut(self, text):
         cursor = self.shadow_output.textCursor()
