@@ -2,6 +2,7 @@ import numpy
 from oasys2.widget import gui as oasysgui
 from silx.gui.plot.StackView import StackViewMainWindow
 from silx.gui.plot import Plot2D
+from silx.gui.colors import Colormap
 
 def plot_data1D(x, y,
                 title="", xtitle="", ytitle="",
@@ -76,7 +77,7 @@ def plot_data2D(data2D, dataX, dataY, title="", xtitle="", ytitle=""):
 
     data_to_plot = data2D.T
 
-    colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
+    colormap = Colormap(name="temperature", normalization="linear")
 
     plot_widget_id = Plot2D()
     plot_widget_id.resetZoom()
@@ -135,7 +136,7 @@ def plot_data3D(data3D, dataE, dataX, dataY,
 
     data_to_plot = numpy.swapaxes(data3D,1,2)
 
-    colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
+    colormap = Colormap(name="temperature", normalization="linear")
 
     plot_widget_id = StackViewMainWindow()
     plot_widget_id.setGraphTitle(title)
