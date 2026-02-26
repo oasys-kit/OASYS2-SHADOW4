@@ -262,10 +262,10 @@ class OWPrerefl(OWWidget):
                           callback=self.do_plots)
 
         self.box_plot_a = oasysgui.widgetBox(self.box_plots, "", addSpace=True, orientation="horizontal")
-        oasysgui.lineEdit(self.box_plot_a, self, "scan_a_from", label="from [deg]", tooltip="scan_a_from",
+        oasysgui.lineEdit(self.box_plot_a, self, "scan_a_from", label="from [mrad]", tooltip="scan_a_from",
                           valueType=float, addSpace=True, labelWidth=100, orientation="horizontal",
                           callback=self.do_plots)
-        oasysgui.lineEdit(self.box_plot_a, self, "scan_a_to", label="to [deg]", tooltip="scan_a_to",
+        oasysgui.lineEdit(self.box_plot_a, self, "scan_a_to", label="to", tooltip="scan_a_to",
                           valueType=float, addSpace=True, labelWidth=20, orientation="horizontal",
                           callback=self.do_plots)
         oasysgui.lineEdit(self.box_plot_a, self, "scan_a_n", label="points", tooltip="scan_a_n",
