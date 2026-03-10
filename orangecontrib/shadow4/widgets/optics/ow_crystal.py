@@ -1,14 +1,15 @@
 import numpy
-import sys
-import xraylib
 
-from PyQt5.QtWidgets import QMessageBox
+from AnyQt.QtWidgets import QMessageBox
 
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui
+from orangewidget.widget import Input
+from oasys2.widget import gui as oasysgui
+from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
 
-from syned.beamline.optical_elements.crystals.crystal import DiffractionGeometry
+from dabax.dabax_xraylib import DabaxXraylib
+from dabax.dabax_files import dabax_f0_files, dabax_f1f2_files, dabax_crosssec_files
 
 from shadow4.beamline.optical_elements.crystals.s4_plane_crystal import S4PlaneCrystal, S4PlaneCrystalElement
 from shadow4.beamline.optical_elements.crystals.s4_sphere_crystal import S4SphereCrystal, S4SphereCrystalElement
@@ -20,32 +21,29 @@ from shadow4.beamline.optical_elements.crystals.s4_toroid_crystal import S4Toroi
 from shadow4.beamline.optical_elements.crystals.s4_numerical_mesh_crystal import S4NumericalMeshCrystal, S4NumericalMeshCrystalElement
 from shadow4.beamline.optical_elements.crystals.s4_additional_numerical_mesh_crystal import S4AdditionalNumericalMeshCrystal, S4AdditionalNumericalMeshCrystalElement
 
-
-from orangecontrib.shadow4.util.shadow4_objects import ShadowData
 from orangecontrib.shadow4.widgets.gui.ow_optical_element_with_surface_shape import OWOpticalElementWithSurfaceShape
-
 from orangecontrib.shadow4.util.shadow4_objects import BraggPreProcessorData
-import copy
+
+XRAYLIB_AVAILABLE = True
+
+try: import xraylib
+except: XRAYLIB_AVAILABLE = False
 
 class _OWCrystal(OWOpticalElementWithSurfaceShape):
-    # name = "Generic Crystal"
-    # description = "Shadow Crystal"
-    # icon = "icons/plane_crystal.png"
-    #
-    # priority = 1.3
-    #
-    # def get_oe_type(self):
-    #     return "crystal", "Crystal"
-    #
-    # inputs = copy.deepcopy(OWOpticalElementWithSurfaceShape.inputs)
-    # inputs.append(("Bragg PreProcessor Data", BraggPreProcessorData, "setBraggProcessorData"))
+    class Inputs:
+        shadow_data             = OWOpticalElementWithSurfaceShape.Inputs.shadow_data
+        trigger                 = OWOpticalElementWithSurfaceShape.Inputs.trigger
+        syned_data              = OWOpticalElementWithSurfaceShape.Inputs.syned_data
+        oasys_surface_data      = OWOpticalElementWithSurfaceShape.Inputs.oasys_surface_data
+        oasys_preprocessor_data = OWOpticalElementWithSurfaceShape.Inputs.oasys_preprocessor_data
+        bragg_preprocessor_data = Input("VLS-PGM PreProcessor Data", BraggPreProcessorData, default=True, auto_summary=False)
+
 
     #########################################################
     # crystal
     #########################################################
 
-    # diffraction_geometry = Setting(0)
-    diffraction_calculation = Setting(0)
+    diffraction_calculation = Setting(1)
     diffraction_geometry = Setting(0)   #SSLS:YXJ
     dynamic_theory = Setting(1)   #SSLS:YXJ
 
@@ -53,8 +51,8 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
     user_defined_bragg_angle = Setting(14.223)
     user_defined_asymmetry_angle = Setting(0.0)
 
-    CRYSTALS = xraylib.Crystal_GetCrystalsList()
-    user_defined_crystal = Setting(32)
+    CRYSTALS = DabaxXraylib().Crystal_GetCrystalsList()
+    user_defined_crystal = Setting(0)
 
     user_defined_h = Setting(1)
     user_defined_k = Setting(1)
@@ -66,26 +64,23 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
     photon_energy = Setting(8000.0)
     photon_wavelength = Setting(1.0)
 
-    # mosaic_crystal = Setting(0)
-    # angle_spread_FWHM = Setting(0.0)
-    # seed_for_mosaic = Setting(1626261131)
-
     is_thick = Setting(1)
     thickness = Setting(1e-3)
-
-    # johansson_geometry = Setting(0)
-    # johansson_radius = Setting(0.0)
 
     asymmetric_cut = Setting(0)
     planes_angle = Setting(0.0)
     below_onto_bragg_planes = Setting(-1)
     method_efields_management = Setting(0)
 
+    DABAX_F0_FILE_INDEX = Setting(0)
+    DABAX_F1F2_FILE_INDEX = Setting(0)
+
     def __init__(self):
         super(_OWCrystal, self).__init__()
         # with crystals no "internal surface parameters" allowed. Fix value and hide selecting combo:
         self.surface_shape_parameters = 1
         self.surface_shape_internal_external_box.setVisible(False)
+        self.crystal_diffraction_tab_visibility()
 
     def create_basic_settings_specific_subtabs(self, tabs_basic_setting):
         subtab_crystal_diffraction = oasysgui.createTabPage(tabs_basic_setting, "Diffraction")    # to be populated
@@ -109,30 +104,15 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
     def populate_tab_crystal_diffraction(self, subtab_crystal_diffraction):
         crystal_box = oasysgui.widgetBox(subtab_crystal_diffraction, "Diffraction Settings", addSpace=True, orientation="vertical")
 
-        # gui.comboBox(crystal_box, self, "diffraction_geometry", tooltip="diffraction_geometry",
-        #              label="Diffraction Geometry", labelWidth=250,
-        #              items=["Bragg", "Laue *NYI*"],
-        #              sendSelectedValue=False, orientation="horizontal", callback=self.crystal_diffraction_tab_visibility)
-       
-        gui.comboBox(crystal_box, self, "diffraction_geometry", tooltip="diffraction_geometry",
-                     label="diffraction geometry", labelWidth=120,
-                     items=["Bragg diffraction",
-                            "Laue diffraction",
-                            "Bragg transmission",
-                            "Laue transmission"],
-                     sendSelectedValue=False, orientation="horizontal"
-                     )
-
-        gui.separator(crystal_box)
-
         gui.comboBox(crystal_box, self, "diffraction_calculation", tooltip="diffraction_calculation",
                      label="Diffraction Profile", labelWidth=120,
-                     items=["Calculated internally with xraylib",
-                            "Calculated internally with dabax *NYI*",
-                            "bragg preprocessor file v1",
-                            "bragg preprocessor file v2",
-                            "User File (energy-independent) *NYI*",
-                            "User File (energy-dependent) *NYI*"],
+                     items=["Calculated internally with xraylib "  + ("**NOT AVAILABLE**" if not XRAYLIB_AVAILABLE else ""),
+                            "Calculated internally with DABAX",
+                            "Bragg preprocessor file v1",
+                            "Bragg preprocessor file v2",
+                            # "User File (energy-independent) *NYI*",  # TODO IMPLEMENT
+                            # "User File (energy-dependent) *NYI*",  # TODO IMPLEMENT
+                            ],
                      sendSelectedValue=False, orientation="horizontal",
                      callback=self.crystal_diffraction_tab_visibility)
 
@@ -233,7 +213,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                             "via rotations (S3)"],
                      sendSelectedValue=False, orientation="horizontal",
                      callback=self.crystal_diffraction_tab_visibility)
-
+        
         gui.comboBox(advanced_box, self, "dynamic_theory", tooltip="choose dynamic_theory", #SSLS:YXJ
                      label="dynamic theory", labelWidth=160,
                      items=["Zachariasen",
@@ -241,20 +221,28 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                      sendSelectedValue=False, orientation="horizontal",
                      )
 
+    def create_advanced_settings_subtabs(self, tabs_advanced_settings):
+        [subtab_modified_surface, subtab_oe_movement] =  super().create_advanced_settings_subtabs(tabs_advanced_settings)
+        subtab_dabax = oasysgui.createTabPage(tabs_advanced_settings, name="DABAX")
+        return [subtab_modified_surface, subtab_oe_movement, subtab_dabax]
 
-        self.crystal_diffraction_tab_visibility()
+    def populate_advanced_setting_subtabs(self, advanced_setting_subtabs):
+        super().populate_advanced_setting_subtabs(advanced_setting_subtabs)
+
+        #########################################################
+        # Advanced Settings / DABAX
+        #########################################################
+        self.dabax_box = gui.widgetBox(advanced_setting_subtabs[2], "DABAX Materials Files")
+        gui.comboBox(self.dabax_box, self,
+                    "DABAX_F0_FILE_INDEX", tooltip="DABAX_F0_FILE_INDEX",
+                     items=dabax_f0_files(),
+                     label="f0 file", addSpace=True, orientation="horizontal")
+        gui.comboBox(self.dabax_box, self,
+                    "DABAX_F1F2_FILE_INDEX", tooltip="DABAX_F1F2_FILE_INDEX",
+                     items=dabax_f1f2_files(),
+                     label="f1f2 file", addSpace=True, orientation="horizontal")
 
     def populate_tab_crystal_geometry(self, subtab_crystal_geometry):
-        # mosaic_box = oasysgui.widgetBox(subtab_crystal_geometry, "Geometric Parameters", addSpace=True, orientation="vertical")
-        #
-        # gui.comboBox(mosaic_box, self, "mosaic_crystal", tooltip="mosaic_crystal", label="Mosaic Crystal **deleted**", labelWidth=355,
-        #              items=["No", "Yes"],
-        #              callback=self.crystal_geometry_tab_visibility, sendSelectedValue=False, orientation="horizontal")
-        #
-        # gui.separator(mosaic_box, height=10)
-
-        # self.mosaic_box_1 = oasysgui.widgetBox(mosaic_box, "", addSpace=False, orientation="vertical")
-        #
         self.asymmetric_cut_box = oasysgui.widgetBox(subtab_crystal_geometry, "", addSpace=False, orientation="vertical",
                                                      height=110)
 
@@ -276,11 +264,6 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
         self.asymmetric_cut_box_1_order = oasysgui.widgetBox(self.asymmetric_cut_box_1, "", addSpace=False,
                                                              orientation="vertical")
 
-        # oasysgui.lineEdit(self.asymmetric_cut_box_1_order, self,
-        #                   "below_onto_bragg_planes", "Below[-1]/onto[1] bragg planes **deleted**",
-        #                   tooltip="below_onto_bragg_planes",
-        #                   labelWidth=260, valueType=float, orientation="horizontal")
-
         self.thickness_box = oasysgui.widgetBox(subtab_crystal_geometry, "", addSpace=False, orientation="vertical",
                                                      height=110)
 
@@ -299,37 +282,6 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                                                 "thickness", "Crystal thickness [m]", tooltip="thickness",
                                                 valueType=float, labelWidth=260, orientation="horizontal")
 
-        # self.set_BraggLaue()
-
-        # gui.separator(self.mosaic_box_1)
-
-        # self.johansson_box = oasysgui.widgetBox(self.mosaic_box_1, "", addSpace=False, orientation="vertical", height=100)
-        #
-        # gui.comboBox(self.johansson_box, self, "johansson_geometry", tooltip="johansson_geometry",
-        #              label="Johansson Geometry **deleted**", labelWidth=355, items=["No", "Yes"],
-        #              callback=self.crystal_geometry_tab_visibility, sendSelectedValue=False, orientation="horizontal")
-        #
-        # self.johansson_box_1 = oasysgui.widgetBox(self.johansson_box, "", addSpace=False, orientation="vertical")
-        # self.johansson_box_1_empty = oasysgui.widgetBox(self.johansson_box, "", addSpace=False, orientation="vertical")
-        #
-        # self.le_johansson_radius = oasysgui.lineEdit(self.johansson_box_1, self, "johansson_radius", "Johansson radius",
-        #                                              tooltip="johansson_radius",
-        #                                              labelWidth=260, valueType=float, orientation="horizontal")
-        #
-        # self.mosaic_box_2 = oasysgui.widgetBox(mosaic_box, "", addSpace=False, orientation="vertical")
-        #
-        # oasysgui.lineEdit(self.mosaic_box_2, self, "angle_spread_FWHM", "Angle spread FWHM [deg]",
-        #                   tooltip="angle_spread_FWHM", labelWidth=260,
-        #                   valueType=float, orientation="horizontal")
-        # self.le_thickness_2 = oasysgui.lineEdit(self.mosaic_box_2, self, "thickness", "Thickness",
-        #                                         tooltip="thickness", labelWidth=260,
-        #                                         valueType=float, orientation="horizontal")
-        # oasysgui.lineEdit(self.mosaic_box_2, self, "seed_for_mosaic", "Seed for mosaic [>10^5]",
-        #                   tooltip="seed_for_mosaic", labelWidth=260,
-        #                   valueType=float, orientation="horizontal")
-
-        # self.set_Mosaic()
-
         self.crystal_geometry_tab_visibility()
 
     #########################################################
@@ -337,37 +289,25 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
     #########################################################
 
     def crystal_diffraction_tab_visibility(self):
-        # self.set_BraggLaue()  #todo: to be deleted
         self.set_diffraction_calculation()
         self.set_autosetting()
         self.set_units_in_use()
 
     def crystal_geometry_tab_visibility(self):
-        # self.set_mosaic()
         self.set_asymmetric_cut()
         self.set_thickness()
-        # self.set_johansson_geometry()
-
-
-    # todo: change next methods name from CamelCase to undercore...
-    # def set_BraggLaue(self):
-    #     self.asymmetric_cut_box_1_order.setVisible(self.diffraction_geometry==1) #LAUE
-    #     if self.diffraction_geometry==1:
-    #         self.asymmetric_cut = 1
-    #         self.set_AsymmetricCut()
-    #         self.asymmetric_cut_combo.setEnabled(False)
-    #     else:
-    #         self.asymmetric_cut_combo.setEnabled(True)
 
     def set_diffraction_calculation(self):
         self.crystal_box_1.setVisible(False)
         self.crystal_box_2.setVisible(False)
         self.crystal_box_3.setVisible(False)
+        self.dabax_box.setVisible(False)
 
         if (self.diffraction_calculation == 0):   # internal xraylib
             self.crystal_box_3.setVisible(True)
-        elif (self.diffraction_calculation == 1): # internal
+        elif (self.diffraction_calculation == 1): # internal DABAX
             self.crystal_box_3.setVisible(True)
+            self.dabax_box.setVisible(True)
         elif (self.diffraction_calculation == 2): # preprocessor bragg v1
             self.crystal_box_1.setVisible(True)
         elif (self.diffraction_calculation == 3): # preprocessor bragg v2
@@ -409,14 +349,6 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
     def select_file_diffraction_profile(self):
         self.le_file_diffraction_profile.setText(oasysgui.selectFileFromDialog(self, self.file_diffraction_profile, "Select File With User Defined Diffraction Profile"))
 
-    # def set_mosaic(self):
-    #     self.mosaic_box_1.setVisible(self.mosaic_crystal == 0)
-    #     self.mosaic_box_2.setVisible(self.mosaic_crystal == 1)
-    #
-    #     if self.mosaic_crystal == 0:
-    #         self.set_asymmetric_cut()
-    #         self.set_johansson_geometry()
-
     def set_asymmetric_cut(self):
         self.asymmetric_cut_box_1.setVisible(self.asymmetric_cut == 1)
         self.asymmetric_cut_box_1_empty.setVisible(self.asymmetric_cut == 0)
@@ -425,14 +357,11 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
         self.thickness_box_1.setVisible(self.is_thick == 0)
         self.thickness_box_1_empty.setVisible(self.is_thick == 1)
 
-    # def set_johansson_geometry(self):
-    #     self.johansson_box_1.setVisible(self.johansson_geometry == 1)
-    #     self.johansson_box_1_empty.setVisible(self.johansson_geometry == 0)
-
     #########################################################
     # Preprocessors
     #########################################################
 
+    @Inputs.bragg_preprocessor_data
     def setBraggProcessorData(self, data):
         if data is not None:
             if data.bragg_data_file != BraggPreProcessorData.NONE:
@@ -454,6 +383,14 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
         try:    name = self.getNode().title
         except: name = "Crystal"
         geo = [DiffractionGeometry.BRAGG, DiffractionGeometry.LAUE,DiffractionGeometry.BRAGG_T,DiffractionGeometry.LAUE_T]  #SSLS:YXJ
+        if self.diffraction_calculation == 1:
+            dabax = DabaxXraylib(file_f0="%s" % dabax_f0_files()[self.DABAX_F0_FILE_INDEX],
+                                 file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
+                                 )
+        else:
+            dabax = None
+
+        geo = [DiffractionGeometry.BRAGG, DiffractionGeometry.LAUE,DiffractionGeometry.BRAGG_T,DiffractionGeometry.LAUE_T]  #SSLS:YXJ
         if self.surface_shape_type == 0:
             crystal = S4PlaneCrystal(
                 name=name,
@@ -471,9 +408,10 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                 file_refl=self.file_crystal_parameters,
                 f_bragg_a=True if self.asymmetric_cut else False,
                 f_ext=0,
-                material_constants_library_flag=geo[self.diffraction_calculation],
+                material_constants_library_flag=self.diffraction_calculation,
                 method_efields_management=self.method_efields_management,
-                diffraction_geometry = self.diffraction_geometry,   #SSLS:YXJ
+                dabax=dabax,
+		diffraction_geometry = self.diffraction_geometry,   #SSLS:YXJ
             )
 
         elif self.surface_shape_type == 1:
@@ -501,6 +439,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                 is_cylinder=self.is_cylinder,
                 cylinder_direction=self.cylinder_orientation, #  Direction:  TANGENTIAL = 0  SAGITTAL = 1
                 convexity=numpy.logical_not(self.surface_curvature).astype(int), #  Convexity: NONE = -1  UPWARD = 0  DOWNWARD = 1
+                dabax=dabax,
             )
         elif self.surface_shape_type == 2:
             crystal = S4EllipsoidCrystal(
@@ -526,6 +465,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                 is_cylinder=self.is_cylinder,
                 cylinder_direction=self.cylinder_orientation, #  Direction:  TANGENTIAL = 0  SAGITTAL = 1
                 convexity=numpy.logical_not(self.surface_curvature).astype(int), #  Convexity: NONE = -1  UPWARD = 0  DOWNWARD = 1
+                dabax=dabax,
             )
         elif self.surface_shape_type == 3:
             crystal = S4HyperboloidCrystal(
@@ -551,6 +491,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                 is_cylinder=self.is_cylinder,
                 cylinder_direction=self.cylinder_orientation, #  Direction:  TANGENTIAL = 0  SAGITTAL = 1
                 convexity=numpy.logical_not(self.surface_curvature).astype(int), #  Convexity: NONE = -1  UPWARD = 0  DOWNWARD = 1
+                dabax=dabax,
             )
         elif self.surface_shape_type == 4:
             crystal = S4ParaboloidCrystal(
@@ -576,6 +517,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                 is_cylinder=self.is_cylinder,
                 cylinder_direction=self.cylinder_orientation, #  Direction:  TANGENTIAL = 0  SAGITTAL = 1
                 convexity=numpy.logical_not(self.surface_curvature).astype(int), #  Convexity: NONE = -1  UPWARD = 0  DOWNWARD = 1
+                dabax=dabax,
             )
         elif self.surface_shape_type == 5:
             crystal = S4ToroidCrystal(
@@ -598,9 +540,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                 min_radius=self.torus_minor_radius,
                 maj_radius=self.torus_major_radius,
                 f_torus=self.toroidal_mirror_pole_location,
-                # is_cylinder=self.is_cylinder,
-                # cylinder_direction=self.cylinder_orientation, #  Direction:  TANGENTIAL = 0  SAGITTAL = 1
-                # convexity=numpy.logical_not(self.surface_curvature).astype(int), #  Convexity: NONE = -1  UPWARD = 0  DOWNWARD = 1
+                dabax=dabax,
             )
         elif self.surface_shape_type == 6:
             crystal = S4ConicCrystal(
@@ -625,11 +565,11 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                      self.conic_coefficient_3,self.conic_coefficient_4,self.conic_coefficient_5,
                      self.conic_coefficient_6,self.conic_coefficient_7,self.conic_coefficient_8,
                      self.conic_coefficient_9],
+                dabax=dabax,
             )
 
         # if error is selected...
-        crystal.dynamic_theory = self.dynamic_theory #SSLS:YXJ
-
+	crystal.dynamic_theory = self.dynamic_theory #SSLS:YXJ
         if self.modified_surface:
             return S4AdditionalNumericalMeshCrystal(name=name,
                         ideal_crystal=crystal,
@@ -651,12 +591,11 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                             f_bragg_a=True if self.asymmetric_cut else False,
                             f_ext=0,
                             material_constants_library_flag=self.diffraction_calculation,
+                            dabax=dabax,
                             )
                         )
         else:
             return crystal
-
-
 
     def get_beamline_element_instance(self):
 
@@ -689,24 +628,25 @@ class OWCrystal(_OWCrystal):
     def get_oe_type(self):
         return "crystal", "Crystal"
 
-    inputs = copy.deepcopy(OWOpticalElementWithSurfaceShape.inputs)
-    inputs.append(("Bragg PreProcessor Data", BraggPreProcessorData, "setBraggProcessorData"))
+
+add_widget_parameters_to_module(__name__)
 
 if __name__ == "__main__":
+    import sys
     from shadow4.beamline.s4_beamline import S4Beamline
     from shadow4.sources.source_geometrical.source_geometrical import SourceGeometrical
     def get_test_beam():
         from shadow4.sources.source_geometrical.source_geometrical import SourceGeometrical
-        light_source = SourceGeometrical(name='SourceGeometrical', nrays=20000, seed=5676561)
+        light_source = SourceGeometrical(name='SourceGeometrical', nrays=5000, seed=5676561)
         light_source.set_spatial_type_point()
         light_source.set_angular_distribution_flat(hdiv1=-0.000000, hdiv2=0.000000, vdiv1=-0.000000, vdiv2=0.000000)
-        #light_source.set_energy_distribution_uniform(value_min=7990.000000, value_max=8010.000000, unit='eV')
-        light_source.set_energy_distribution_singleline(value=11560, unit='eV')
-        light_source.set_polarization(polarization_degree=1.000000, phase_diff=0.000000, coherent_beam=1)
+        light_source.set_energy_distribution_uniform(value_min=7990.000000, value_max=8010.000000, unit='eV')
+        light_source.set_polarization(polarization_degree=1.000000, phase_diff=0.000000, coherent_beam=0)
         beam = light_source.get_beam()
+        from orangecontrib.shadow4.util.shadow4_objects import ShadowData
         return ShadowData(beam=beam, beamline=S4Beamline(light_source=light_source))
 
-    from PyQt5.QtWidgets import QApplication
+    from AnyQt.QtWidgets import QApplication
     a = QApplication(sys.argv)
     ow = OWCrystal()
     #SSLS:YXJ begin
@@ -731,8 +671,8 @@ if __name__ == "__main__":
     ow.set_autosetting()
     ow.view_type = 2
     ow.dynamic_theory = 0  #0 Zac, 1 Guigay
-    #SSLS:YXJ end
+    #SSLS:YXJ end    
     ow.set_shadow_data(get_test_beam())
     ow.show()
-    a.exec_()
+    a.exec()
     ow.saveSettings()
