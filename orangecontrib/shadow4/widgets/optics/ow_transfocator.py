@@ -203,7 +203,7 @@ class OWTransfocator(OWOpticalElement):
                             radius=radius,
                             conic_coefficients1=[[0] * 10] * n,
                             conic_coefficients2=[[0] * 10] * n,
-                            empty_space_after_last_interface=[0.0] * n,
+                            empty_space_after_last_interface=self.empty_space_after_last_interface,
                             )
         return optical_element
 
@@ -407,6 +407,7 @@ class OWTransfocator(OWOpticalElement):
                 self.empty_space_after_last_interface.append(self.crl_box_array[index].empty_space_after_last_interface)
         except:
             self.empty_space_after_last_interface = copy.deepcopy(bkp_empty_space_after_last_interface)
+
 
     def dump_surface_shape(self):
         bkp_surface_shape = copy.deepcopy(self.surface_shape)
