@@ -277,7 +277,6 @@ class OWWiggler(OWSynchrotronSource):
                         shift_betax_flag=self.shift_betax_flag,
                         shift_betax_value=self.shift_betax_value)
 
-        print("***** \n\n S4Wiggler get_info: \n", sourcewiggler.get_info())
 
         # S4WigglerLightSource
         try:    name = self.getNode().title
@@ -307,7 +306,6 @@ class OWWiggler(OWSynchrotronSource):
 
 
 
-        print("\n\n***** S4WigglerLightSource info: \n", light_source.info())
 
         return light_source
 

@@ -269,7 +269,6 @@ class OWUndulator(OWSynchrotronSource):
             else:                     light_source.set_energy_at_resonance(harmonic_number=self.harmonic, delta_e=self.delta_e)
 
 
-        print("\n\n***** S4undulatorLightSource info: ", light_source.info())
 
         return light_source
 

@@ -130,11 +130,6 @@ class OWBendingMagnet(OWSynchrotronSource):
         magnetic_radius = numpy.abs(S4BendingMagnet.calculate_magnetic_radius(self.magnetic_field, electron_beam.energy()))
         length          = numpy.abs(self.divergence * magnetic_radius)
 
-        print(">>> calculated magnetic_radius = S4BendingMagnet.calculate_magnetic_radius(%f, %f) = %f" %\
-              (self.magnetic_field, electron_beam.energy(), magnetic_radius))
-
-        print(">>> calculated BM length = divergence * magnetic_radius = %f " % length)
-
         bm = S4BendingMagnet(magnetic_radius,
                              self.magnetic_field,
                              length,
@@ -144,7 +139,6 @@ class OWBendingMagnet(OWSynchrotronSource):
                              flag_emittance=flag_emittance,  # when sampling rays: Use emittance (0=No, 1=Yes)
                              )
 
-        print("\n\n***** BM info: ", bm.info())
 
         # S4UndulatorLightSource
         try:    name = self.getNode().title
@@ -156,7 +150,6 @@ class OWBendingMagnet(OWSynchrotronSource):
                                                   nrays=self.number_of_rays,
                                                   seed=self.seed)
 
-        print("\n\n***** S4BendingMagnetLightSource info: ", light_source.info())
 
         return light_source
 
@@ -166,3 +159,12 @@ class OWBendingMagnet(OWSynchrotronSource):
             self.divergence     = magnetic_structure.horizontal_divergence()
 
 add_widget_parameters_to_module(__name__)
+
+
+if __name__ == "__main__":
+    import sys
+    from AnyQt.QtWidgets import QApplication
+    a = QApplication(sys.argv)
+    ow = OWBendingMagnet()
+    ow.show()
+    a.exec()

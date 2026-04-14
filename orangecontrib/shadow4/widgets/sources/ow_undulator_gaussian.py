@@ -236,7 +236,6 @@ class OWUndulatorGaussian(OWSynchrotronSource):
                                              nrays=self.number_of_rays,
                                              seed=self.seed)
 
-        print("\n\n***** S4UndulatorLightSource info: ", lightsource.info())
 
         return lightsource
 
@@ -250,3 +249,11 @@ class OWUndulatorGaussian(OWSynchrotronSource):
 
 
 add_widget_parameters_to_module(__name__)
+
+if __name__ == "__main__":
+    import sys
+    from AnyQt.QtWidgets import QApplication
+    a = QApplication(sys.argv)
+    ow = OWUndulatorGaussian()
+    ow.show()
+    a.exec()
