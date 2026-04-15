@@ -259,9 +259,9 @@ class PlotScatter(AutomaticElement):
         try:
             beamline = self.input_data.beamline.duplicate()
 
-            script = beamline.to_python_code(partial_code=1) # onlu source
+            script = beamline.to_python_code(partial_code=1) # only source
             indented_script = '\n'.join('    ' + line for line in script.splitlines())
-            final_script = "def run_source():\n"
+            final_script = "import numpy as np\n\ndef run_source():\n"
             final_script += indented_script
             final_script += "\n    return beam"
             final_script += "\n\n"
@@ -269,6 +269,7 @@ class PlotScatter(AutomaticElement):
             script = beamline.to_python_code(partial_code=2) # only beamline
             indented_script = '\n'.join('    ' + line for line in script.splitlines())
             final_script += "def run_beamline(beam):\n"
+            final_script += '    ' + "footprint = None\n"
             final_script += indented_script
             final_script += "\n    return beam, footprint"
             final_script += "\n\n"

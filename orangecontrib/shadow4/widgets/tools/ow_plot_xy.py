@@ -361,7 +361,9 @@ class _PlotXY(AutomaticElement):
 
             indented_script = '\n'.join('    ' + line for line in script.splitlines())
 
-            final_script = "def run_beamline():\n"
+            final_script = "import numpy as np\n\n"
+            final_script += "def run_beamline():\n"
+            final_script += '    ' + "footprint = None\n"
             final_script += indented_script
             final_script += "\n    return beam, footprint"
             final_script += "\n\n"
