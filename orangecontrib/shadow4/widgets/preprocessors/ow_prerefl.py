@@ -242,7 +242,7 @@ class OWPrerefl(OWWidget):
                             'mirror reflectivity energy-scan',
                             'mirror reflectivity grazing angle-scan',
                             'mirror reflectivity energy-angle-scan'],
-                     valueType=int, orientation="horizontal", labelWidth=270, callback=self.do_plots)
+                     orientation="horizontal", labelWidth=270, callback=self.do_plots)
 
         self.box_plots = gui.widgetBox(tab_plots, "Optional scan plots", orientation="vertical")
 

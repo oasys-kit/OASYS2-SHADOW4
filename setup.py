@@ -37,7 +37,7 @@
 #     python -m pip install -e . --no-deps --no-binary :all:
 #
 # Upload to pypi (when uploading, increment the version number):
-#     python setup.py register (only once, not longer needed)
+#     python setup.py register (only once, no longer needed)
 #     python setup.py sdist
 #     python setup.py upload
 #          
@@ -54,7 +54,7 @@ import sys
 from setuptools import find_packages, setup
 
 NAME = 'OASYS2-SHADOW4'
-VERSION = '0.0.38'
+VERSION = '0.0.39'
 ISRELEASED = False
 
 DESCRIPTION = 'oasys2-shadow4: Oasys 2 widgets for shadow4'
