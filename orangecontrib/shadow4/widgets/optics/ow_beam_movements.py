@@ -1,4 +1,4 @@
-import sys
+import sys, numpy
 
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -44,6 +44,7 @@ class OWBeamMovement(GenericElement, WidgetDecorator, TriggerToolsDecorator):
     translation_x  = Setting(0.0)
     translation_y  = Setting(0.0)
     translation_z  = Setting(0.0)
+    angle_um       = Setting(0)
     rotation_x     = Setting(0.0)
     rotation_y     = Setting(0.0)
     rotation_z     = Setting(0.0)
@@ -101,10 +102,10 @@ class OWBeamMovement(GenericElement, WidgetDecorator, TriggerToolsDecorator):
         self.translation_x = 0.0
         self.translation_y = 0.0
         self.translation_z = 0.0
+        self.angle_um   = 0
         self.rotation_x = 0.0
         self.rotation_y = 0.0
         self.rotation_z = 0.0
-
 
     def populate_tab_movement(self):
 
@@ -124,11 +125,15 @@ class OWBeamMovement(GenericElement, WidgetDecorator, TriggerToolsDecorator):
         oasysgui.lineEdit(self.translation_box, self, "translation_z", "Translation along Z [m]", labelWidth=260,
                           valueType=float, orientation="horizontal", tooltip="translation_z")
 
-        oasysgui.lineEdit(self.rotation_box, self, "rotation_x", "1) Rotation along X [rad]", labelWidth=260,
+        gui.comboBox(self.rotation_box, self, "angle_um", label="Angular Units", labelWidth=350,
+                     items=["rad", "deg", "mrad", "arcsec"], sendSelectedValue=False, orientation="horizontal",
+                     tooltip="angle_um")
+        gui.separator(self.rotation_box, height=2)
+        oasysgui.lineEdit(self.rotation_box, self, "rotation_x", "1) Rotation along X", labelWidth=260,
                           valueType=float, orientation="horizontal", tooltip="rotation_x")
-        oasysgui.lineEdit(self.rotation_box, self, "rotation_y", "2) Rotation along Y [rad]", labelWidth=260,
+        oasysgui.lineEdit(self.rotation_box, self, "rotation_y", "2) Rotation along Y", labelWidth=260,
                           valueType=float, orientation="horizontal", tooltip="rotation_y")
-        oasysgui.lineEdit(self.rotation_box, self, "rotation_z", "3) Rotation along Z [rad]", labelWidth=260,
+        oasysgui.lineEdit(self.rotation_box, self, "rotation_z", "3) Rotation along Z", labelWidth=260,
                           valueType=float, orientation="horizontal", tooltip="rotation_z")
 
 
@@ -143,14 +148,32 @@ class OWBeamMovement(GenericElement, WidgetDecorator, TriggerToolsDecorator):
 
 
     def get_oe_instance(self):
+        if self.angle_um == 1:  # deg
+            rotation_x = numpy.radians(self.rotation_x)
+            rotation_y = numpy.radians(self.rotation_y)
+            rotation_z = numpy.radians(self.rotation_z)
+        elif self.angle_um == 2:  # mrad
+            rotation_x = 1e-3 * self.rotation_x
+            rotation_y = 1e-3 * self.rotation_y
+            rotation_z = 1e-3 * self.rotation_z
+        elif self.angle_um == 0:  # rad
+            rotation_x = self.rotation_x
+            rotation_y = self.rotation_y
+            rotation_z = self.rotation_z
+        elif self.angle_um == 3:  # arcsec
+            factor = numpy.pi / 648000
+            rotation_x = factor * self.rotation_x
+            rotation_y = factor * self.rotation_y
+            rotation_z = factor * self.rotation_z
+        
         return S4BeamMovement(
             apply_flag = self.apply_flag,
             translation_x = self.translation_x,
             translation_y = self.translation_y,
             translation_z = self.translation_z,
-            rotation_x = self.rotation_x,
-            rotation_y = self.rotation_y,
-            rotation_z = self.rotation_z,
+            rotation_x = rotation_x,
+            rotation_y = rotation_y,
+            rotation_z = rotation_z,
         )
 
     def get_element_instance(self):

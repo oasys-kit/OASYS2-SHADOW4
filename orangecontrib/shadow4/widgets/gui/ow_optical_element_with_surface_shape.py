@@ -7,7 +7,6 @@ from matplotlib import cm
 from oasys2.widget.gui import FigureCanvas3D
 from matplotlib.figure import Figure
 
-
 try:    from mpl_toolkits.mplot3d import Axes3D  # plot 3D
 except: pass
 
@@ -18,8 +17,8 @@ from orangecanvas.scheme.node import SchemeNode
 
 from orangewidget import gui
 from orangewidget.settings import Setting
-
 from orangewidget.widget import MultiInput
+
 from oasys2.widget import gui as oasysgui
 from oasys2.widget.gui import ConfirmDialog
 from oasys2.widget.widget import OWDialog
@@ -32,9 +31,9 @@ from syned.beamline.shape import Ellipse
 from srxraylib.metrology import profiles_simulation
 
 from orangecontrib.shadow4.widgets.gui.ow_optical_element import OWOpticalElement, SUBTAB_INNER_BOX_WIDTH
+from orangecontrib.shadow4.widgets.gui.ow_optical_element_with_surface_shape_render import ShowSurfaceShapeDialog
 
 from shadow4.beamline.s4_beamline_element_movements import S4BeamlineElementMovements
-from orangecontrib.shadow4.widgets.gui.ow_optical_element_with_surface_shape_render import ShowSurfaceShapeDialog
 
 class OWOpticalElementWithSurfaceShape(OWOpticalElement):
 
@@ -103,6 +102,7 @@ class OWOpticalElementWithSurfaceShape(OWOpticalElement):
     #########################################################
 
     oe_movement            = Setting(0)
+    oe_movement_angle_um   = Setting(0)
     oe_movement_offset_x   = Setting(0.0)
     oe_movement_rotation_x = Setting(0.0)
     oe_movement_offset_y   = Setting(0.0)
@@ -453,22 +453,28 @@ class OWOpticalElementWithSurfaceShape(OWOpticalElement):
 
         self.mir_mov_box_1 = oasysgui.widgetBox(mir_mov_box, "", addSpace=False, orientation="vertical")
 
+        gui.comboBox(self.mir_mov_box_1, self, "oe_movement_angle_um", label="Angular Units", labelWidth=350,
+                     items=["deg", "mrad", "rad", "arcsec"],
+                     callback=self.oe_movement_tab_visibility, sendSelectedValue=False, orientation="horizontal",
+                     tooltip="oe_movement_angle_um")
+        gui.separator(self.mir_mov_box_1, height=2)
+
         self.le_mm_mirror_offset_x = oasysgui.lineEdit(self.mir_mov_box_1, self, "oe_movement_offset_x", "O.E. Offset X [m]",
                                                        labelWidth=260, valueType=float, orientation="horizontal",
                                                        tooltip="oe_movement_offset_x")
-        oasysgui.lineEdit(self.mir_mov_box_1, self, "oe_movement_rotation_x", "O.E. Rotation X [CCW, deg]",
+        oasysgui.lineEdit(self.mir_mov_box_1, self, "oe_movement_rotation_x", "O.E. Rotation X [CCW]",
                           labelWidth=260, valueType=float, orientation="horizontal",
                           tooltip="oe_movement_rotation_x")
         self.le_mm_mirror_offset_y = oasysgui.lineEdit(self.mir_mov_box_1, self, "oe_movement_offset_y", "O.E. Offset Y [m]",
                                                        labelWidth=260, valueType=float, orientation="horizontal",
                                                        tooltip="oe_movement_offset_y")
-        oasysgui.lineEdit(self.mir_mov_box_1, self, "oe_movement_rotation_y", "O.E. Rotation Y [CCW, deg]",
+        oasysgui.lineEdit(self.mir_mov_box_1, self, "oe_movement_rotation_y", "O.E. Rotation Y [CCW]",
                           labelWidth=260, valueType=float, orientation="horizontal",
                           tooltip="oe_movement_rotation_y")
         self.le_mm_mirror_offset_z = oasysgui.lineEdit(self.mir_mov_box_1, self, "oe_movement_offset_z", "O.E. Offset Z [m]",
                                                        labelWidth=260, valueType=float, orientation="horizontal",
                                                        tooltip="oe_movement_offset_z")
-        oasysgui.lineEdit(self.mir_mov_box_1, self, "oe_movement_rotation_z", "O.E. Rotation Z [CCW, deg]",
+        oasysgui.lineEdit(self.mir_mov_box_1, self, "oe_movement_rotation_z", "O.E. Rotation Z [CCW]",
                           labelWidth=260, valueType=float, orientation="horizontal",
                           tooltip="oe_movement_rotation_z")
 
@@ -700,13 +706,31 @@ class OWOpticalElementWithSurfaceShape(OWOpticalElement):
         if self.oe_movement == 0:
             return None
         else:
+            if self.oe_movement_angle_um == 0: # deg
+                rotation_x = numpy.radians(self.oe_movement_rotation_x)
+                rotation_y = numpy.radians(self.oe_movement_rotation_y)
+                rotation_z = numpy.radians(self.oe_movement_rotation_z)
+            elif self.oe_movement_angle_um == 1: # mrad
+                rotation_x = 1e-3*self.oe_movement_rotation_x
+                rotation_y = 1e-3*self.oe_movement_rotation_y
+                rotation_z = 1e-3*self.oe_movement_rotation_z
+            elif self.oe_movement_angle_um == 2: # rad
+                rotation_x = self.oe_movement_rotation_x
+                rotation_y = self.oe_movement_rotation_y
+                rotation_z = self.oe_movement_rotation_z
+            elif self.oe_movement_angle_um == 3: # arcsec
+                factor = numpy.pi / 648000
+                rotation_x = factor*self.oe_movement_rotation_x
+                rotation_y = factor*self.oe_movement_rotation_y
+                rotation_z = factor*self.oe_movement_rotation_z
+
             return S4BeamlineElementMovements(f_move=1,
                                               offset_x=self.oe_movement_offset_x,
                                               offset_y=self.oe_movement_offset_y,
                                               offset_z=self.oe_movement_offset_z,
-                                              rotation_x=numpy.radians(self.oe_movement_rotation_x),
-                                              rotation_y=numpy.radians(self.oe_movement_rotation_y),
-                                              rotation_z=numpy.radians(self.oe_movement_rotation_z),
+                                              rotation_x=rotation_x,
+                                              rotation_y=rotation_y,
+                                              rotation_z=rotation_z,
                                               )
     #########################################################
     # S4 objects
