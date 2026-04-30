@@ -106,7 +106,8 @@ ENTRY_POINTS = {
             "SHADOW4 Loops = orangecontrib.shadow4.widgets.loops",
             "SHADOW4 Tools = orangecontrib.shadow4.widgets.tools",
     ),
-    'oasys2.menus' : ("shadow4menu = orangecontrib.shadow4.menu",)
+    'oasys2.menus' : ("shadow4menu = orangecontrib.shadow4.menu",),
+    'oasys2.tutorials' : ("shadow4tutorial = orangecontrib.shadow4.tutorials",)
     }
 
 if __name__ == '__main__':
