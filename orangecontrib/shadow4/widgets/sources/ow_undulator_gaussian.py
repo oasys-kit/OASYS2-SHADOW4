@@ -52,7 +52,9 @@ class OWUndulatorGaussian(OWSynchrotronSource):
         oasysgui.lineEdit(box_1, self, "undulator_length", "Undulator Length [m]", labelWidth=250, tooltip="undulator_length", valueType=float, orientation="horizontal")
         self.box_energy_spread_local = oasysgui.widgetBox(box_1, orientation="vertical")
         oasysgui.lineEdit(self.box_energy_spread_local, self, "period_length", "ID period [m]", labelWidth=260, tooltip="period_length", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_energy_spread_local, self, "harmonic_number", "Harmonic in use [odd]", labelWidth=250, tooltip="harmonic_number", valueType=int, orientation="horizontal")
+
+        self.box_harmonic_number = oasysgui.widgetBox(box_1, orientation="vertical")
+        oasysgui.lineEdit(self.box_harmonic_number, self, "harmonic_number", "Harmonic in use [odd]", labelWidth=250, tooltip="harmonic_number", valueType=int, orientation="horizontal")
 
 
         #
@@ -76,6 +78,7 @@ class OWUndulatorGaussian(OWSynchrotronSource):
                            items=["No", "Yes"],
                            callback=self.set_visibility,
                            sendSelectedValue=False,
+                           tooltip = "flag_autoset_flux_central_cone",
                            orientation="horizontal")
 
         self.box_flux_central_cone = oasysgui.widgetBox(left_box_11, orientation="vertical")
@@ -112,9 +115,11 @@ class OWUndulatorGaussian(OWSynchrotronSource):
     
     def set_visibility_energy_spread(self): # to be filled in the upper class
         self.box_energy_spread_local.setVisible(self.flag_energy_spread == 1)
+        self.box_harmonic_number.setVisible(self.flag_energy_spread == 1 or self.flag_autoset_flux_central_cone == 1)
 
     def set_visibility(self):
         self.box_flux_central_cone.setVisible(self.flag_autoset_flux_central_cone == 0)
+        self.box_harmonic_number.setVisible(self.flag_autoset_flux_central_cone == 1)
         self.set_visibility_energy_spread()
 
     def add_specific_undulator_plots(self):
