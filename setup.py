@@ -54,7 +54,7 @@ import sys
 from setuptools import find_packages, setup
 
 NAME = 'OASYS2-SHADOW4'
-VERSION = '0.0.40'
+VERSION = '0.0.41'
 ISRELEASED = False
 
 DESCRIPTION = 'oasys2-shadow4: Oasys 2 widgets for shadow4'
@@ -84,7 +84,7 @@ CLASSIFIERS = [
 
 INSTALL_REQUIRES = (
     'oasys2>=0.0.42',
-    'shadow4>=0.1.81',
+    'shadow4>=0.1.84',
 )
 
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))

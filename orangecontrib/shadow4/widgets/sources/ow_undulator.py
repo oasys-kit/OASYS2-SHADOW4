@@ -343,21 +343,28 @@ class OWUndulator(OWSynchrotronSource):
                                            title="Backpropagated radiation (size distribution)", xtitle="Distance [um]",
                                            ytitle="Intensity [arbitrary units]")
             else:
-
-                if is_monochromatic:
-                    self.plot_undulator_item2D(3,
-                                               dict_results['CART_BACKPROPAGATED_radiation'][0],
-                                               1e6 * dict_results['CART_BACKPROPAGATED_x'],
-                                               1e6 * dict_results['CART_BACKPROPAGATED_y'],
-                                               title="Backpropagated radiation (size distribution)", xtitle="x [um]", ytitle="z [um]")
+                if self.flag_size in [0,1]: # no backpropagation, no plot, clean old plot
+                    item = self.undulator_tab[3].layout().itemAt(0)
+                    if item is not None:
+                        w = item.widget()
+                        self.undulator_tab[3].layout().removeItem(item)
+                        if w is not None:
+                            w.deleteLater()
+                    self.undulator_tab[3].layout().addWidget(oasysgui.QLabel())
                 else:
-                    self.plot_undulator_item3D(3,
-                                               dict_results['CART_BACKPROPAGATED_radiation'],
-                                               dict_results['photon_energy'],
-                                               1e6 * dict_results['CART_BACKPROPAGATED_x'],
-                                               1e6 * dict_results['CART_BACKPROPAGATED_y'],
-                                               title="Backpropagated radiation (size distribution)", xtitle="x [um]", ytitle="z [um]")
-
+                    if is_monochromatic:
+                        self.plot_undulator_item2D(3,
+                                                   dict_results['CART_BACKPROPAGATED_radiation'][0],
+                                                   1e6 * dict_results['CART_BACKPROPAGATED_x'],
+                                                   1e6 * dict_results['CART_BACKPROPAGATED_y'],
+                                                   title="Backpropagated radiation (size distribution)", xtitle="x [um]", ytitle="z [um]")
+                    else:
+                        self.plot_undulator_item3D(3,
+                                                   dict_results['CART_BACKPROPAGATED_radiation'],
+                                                   dict_results['photon_energy'],
+                                                   1e6 * dict_results['CART_BACKPROPAGATED_x'],
+                                                   1e6 * dict_results['CART_BACKPROPAGATED_y'],
+                                                   title="Backpropagated radiation (size distribution)", xtitle="x [um]", ytitle="z [um]")
             #
             # power density
             #
