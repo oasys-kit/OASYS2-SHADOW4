@@ -98,7 +98,7 @@ class Shadow4Menu(OMenu):
 
     def executeAction_8(self, action):
         try:
-            webbrowser.open("https://github.com/oasys-kit/shadow4")
+            webbrowser.open("https://shadow4.readthedocs.io/")
         except Exception as exception:
             super(Shadow4Menu, self).showCriticalMessage(message=exception.args[0])
 
