@@ -1,3 +1,14 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Pycharm
+/.idea/
+
 /build/
 /dist/
 /OASYS2_shadow4.egg-info/
