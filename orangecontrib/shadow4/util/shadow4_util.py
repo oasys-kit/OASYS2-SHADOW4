@@ -1620,7 +1620,7 @@ class Properties(object):
                 return getattr(self._props, name)
 
 try:
-    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+    from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
     from matplotlib.figure import Figure
     from mpl_toolkits.mplot3d import Axes3D  # necessario per caricare i plot 3D
 except:
