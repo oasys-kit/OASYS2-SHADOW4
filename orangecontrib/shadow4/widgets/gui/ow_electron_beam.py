@@ -1,3 +1,5 @@
+import warnings
+
 from AnyQt.QtWidgets import QMessageBox
 
 from orangewidget import gui
@@ -11,6 +13,8 @@ from oasys2.widget.gui import ConfirmDialog, Styles
 from orangecontrib.shadow4.widgets.gui.ow_generic_element import GenericElement
 
 from shadow4.sources.s4_electron_beam import S4ElectronBeam
+from syned.storage_ring.electron_beam import ElectronBeam
+
 
 class OWElectronBeam(GenericElement):
     electron_energy_in_GeV = Setting(1.9)
@@ -159,14 +163,13 @@ class OWElectronBeam(GenericElement):
             congruence.checkNumber(self.electron_beam_etap_h, "Horizontal Beam Dispersion Eta'")
             congruence.checkNumber(self.electron_beam_etap_v, "Vertical Beam Dispersion Eta'")
 
-
     def _check_dispersion_presence(self):
         return self.electron_beam_eta_h != 0.0 or \
                self.electron_beam_eta_v != 0.0 or \
                self.electron_beam_etap_h != 0.0 or \
                self.electron_beam_etap_v != 0.0
 
-    def get_electron_beam(self):
+    def get_electron_beam(self, online: bool=False):
         electron_beam = S4ElectronBeam(energy_in_GeV=self.electron_energy_in_GeV,
                                      energy_spread=self.electron_energy_spread,
                                      current=self.ring_current)
@@ -198,13 +201,14 @@ class OWElectronBeam(GenericElement):
             electron_beam.set_moments_all(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
         if self._check_dispersion_reset(): # modify input form with the results of the calculations
-            self.populate_fields_from_electron_beam(electron_beam)
+            if not online: self.populate_fields_from_electron_beam(electron_beam)
 
             return electron_beam
         else:
             return None
 
-    def populate_fields_from_electron_beam(self, electron_beam):
+
+    def populate_fields_from_electron_beam(self, electron_beam: ElectronBeam, online: bool = False):
         self.electron_energy_in_GeV = electron_beam.energy()
         self.electron_energy_spread = electron_beam._energy_spread
         self.ring_current           = electron_beam.current()
@@ -223,24 +227,31 @@ class OWElectronBeam(GenericElement):
         self.moment_yyp             = round(moment_yyp,  16)
         self.moment_ypyp            = round(moment_ypyp, 16)
 
-        x, xp, y, yp                 = electron_beam.get_sigmas_all(dispersion=False)
-        ex, ax, bx, ey, ay, by,      = electron_beam.get_twiss_all()
-        eta_x, etap_x, eta_y, etap_y = electron_beam.get_dispersion_all()
+        if not (online and self.type_of_properties == 1):
+            x, xp, y, yp = electron_beam.get_sigmas_all(dispersion=False)
 
-        self.electron_beam_size_h       = round(x, 10)
-        self.electron_beam_size_v       = round(y, 10)
-        self.electron_beam_divergence_h = round(xp, 10)
-        self.electron_beam_divergence_v = round(yp, 10)
-        self.electron_beam_emittance_h  = round(ex, 16)
-        self.electron_beam_emittance_v  = round(ey, 16)
-        self.electron_beam_alpha_h      = round(ax, 6)
-        self.electron_beam_alpha_v      = round(ay, 6)
-        self.electron_beam_beta_h       = round(bx, 6)
-        self.electron_beam_beta_v       = round(by, 6)
-        self.electron_beam_eta_h        = round(eta_x, 8)
-        self.electron_beam_eta_v        = round(eta_y, 8)
-        self.electron_beam_etap_h       = round(etap_x, 8)
-        self.electron_beam_etap_v       = round(etap_y, 8)
+            self.electron_beam_size_h       = round(x, 10)
+            self.electron_beam_size_v       = round(y, 10)
+            self.electron_beam_divergence_h = round(xp, 10)
+            self.electron_beam_divergence_v = round(yp, 10)
+
+        if not (online and self.type_of_properties == 2):
+            with warnings.catch_warnings(record=True) as captured_warnings:
+                ex, ax, bx, ey, ay, by,      = electron_beam.get_twiss_all()
+                eta_x, etap_x, eta_y, etap_y = electron_beam.get_dispersion_all()
+
+                for w in captured_warnings:  raise ValueError(f"Wrong input parameters: {w.message}\nConsider choosing 'Zero emittance' Electron Beam Properties. ")
+
+                self.electron_beam_emittance_h  = round(ex, 16)
+                self.electron_beam_emittance_v  = round(ey, 16)
+                self.electron_beam_alpha_h      = round(ax, 6)
+                self.electron_beam_alpha_v      = round(ay, 6)
+                self.electron_beam_beta_h       = round(bx, 6)
+                self.electron_beam_beta_v       = round(by, 6)
+                self.electron_beam_eta_h        = round(eta_x, 8)
+                self.electron_beam_eta_v        = round(eta_y, 8)
+                self.electron_beam_etap_h       = round(etap_x, 8)
+                self.electron_beam_etap_v       = round(etap_y, 8)
 
     def run_shadow4(self, scanning_data = None): raise NotImplementedError
 
@@ -257,7 +268,7 @@ class OWElectronBeam(GenericElement):
         try:
             self.check_electron_beam()
             if self._check_dispersion_reset():
-                self.populate_fields_from_electron_beam(self.get_electron_beam())
+                self.populate_fields_from_electron_beam(self.get_electron_beam(online=True), online=True)
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e.args[0]), QMessageBox.Ok)
             if self.IS_DEVELOP: raise e
