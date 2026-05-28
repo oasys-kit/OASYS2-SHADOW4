@@ -44,6 +44,8 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
     #########################################################
 
     diffraction_calculation = Setting(1)
+    diffraction_geometry = Setting(0)   #SSLS:YXJ
+    dynamic_theory = Setting(1)   #SSLS:YXJ
 
     file_diffraction_profile = Setting("diffraction_profile.dat")
     user_defined_bragg_angle = Setting(14.223)
@@ -211,7 +213,13 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                             "via rotations (S3)"],
                      sendSelectedValue=False, orientation="horizontal",
                      callback=self.crystal_diffraction_tab_visibility)
-
+        
+        gui.comboBox(advanced_box, self, "dynamic_theory", tooltip="choose dynamic_theory", #SSLS:YXJ
+                     label="dynamic theory", labelWidth=160,
+                     items=["Zachariasen",
+                            "Guigay"],
+                     sendSelectedValue=False, orientation="horizontal",
+                     )
 
     def create_advanced_settings_subtabs(self, tabs_advanced_settings):
         [subtab_modified_surface, subtab_oe_movement] =  super().create_advanced_settings_subtabs(tabs_advanced_settings)
@@ -374,7 +382,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
 
         try:    name = self.getNode().title
         except: name = "Crystal"
-
+        geo = [DiffractionGeometry.BRAGG, DiffractionGeometry.LAUE,DiffractionGeometry.BRAGG_T,DiffractionGeometry.LAUE_T]  #SSLS:YXJ
         if self.diffraction_calculation == 1:
             dabax = DabaxXraylib(file_f0="%s" % dabax_f0_files()[self.DABAX_F0_FILE_INDEX],
                                  file_f1f2="%s" % dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
@@ -382,6 +390,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
         else:
             dabax = None
 
+        geo = [DiffractionGeometry.BRAGG, DiffractionGeometry.LAUE,DiffractionGeometry.BRAGG_T,DiffractionGeometry.LAUE_T]  #SSLS:YXJ
         if self.surface_shape_type == 0:
             crystal = S4PlaneCrystal(
                 name=name,
@@ -402,6 +411,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                 material_constants_library_flag=self.diffraction_calculation,
                 method_efields_management=self.method_efields_management,
                 dabax=dabax,
+		diffraction_geometry = self.diffraction_geometry,   #SSLS:YXJ
             )
 
         elif self.surface_shape_type == 1:
@@ -559,7 +569,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
             )
 
         # if error is selected...
-
+	crystal.dynamic_theory = self.dynamic_theory #SSLS:YXJ
         if self.modified_surface:
             return S4AdditionalNumericalMeshCrystal(name=name,
                         ideal_crystal=crystal,
@@ -639,6 +649,29 @@ if __name__ == "__main__":
     from AnyQt.QtWidgets import QApplication
     a = QApplication(sys.argv)
     ow = OWCrystal()
+    #SSLS:YXJ begin
+    ow.diffraction_geometry = 3
+    ow.user_defined_crystal = 8
+    ow.user_defined_h = 2
+    ow.user_defined_k = 2
+    ow.user_defined_l = 0
+    ow.photon_energy = 11560
+    ow.crystal_auto_setting = 0
+    ow.is_thick = 0
+    ow.thickness = 1.5e-3
+    ow.planes_angle = 45
+    ow.asymmetric_cut = 1
+    ow.crystal_geometry_tab_visibility()
+    ow.source_plane_distance = 10
+    ow.image_plane_distance = 3
+    ow.incidence_angle_deg = 19.83342
+    ow.reflection_angle_deg = 160.16658
+    ow.calculate_incidence_angle_mrad()
+    ow.calculate_reflection_angle_mrad()
+    ow.set_autosetting()
+    ow.view_type = 2
+    ow.dynamic_theory = 0  #0 Zac, 1 Guigay
+    #SSLS:YXJ end    
     ow.set_shadow_data(get_test_beam())
     ow.show()
     a.exec()
