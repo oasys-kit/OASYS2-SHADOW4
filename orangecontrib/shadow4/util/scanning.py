@@ -266,9 +266,9 @@ class Scan3DHistoWidget(AbstractScanHistoWidget):
             zmin = numpy.min(self.zz)
             zmax = numpy.max(self.zz)
 
-            self.axis.set_xlim(xmin,xmax)
-            self.axis.set_ylim(ymin,ymax)
-            self.axis.set_zlim(zmin,zmax)
+            if xmin < xmax: self.axis.set_xlim(xmin, xmax)
+            if ymin < ymax: self.axis.set_ylim(ymin, ymax)
+            if zmin < zmax: self.axis.set_zlim(zmin, zmax)
 
         self.axis.mouse_init()
 
