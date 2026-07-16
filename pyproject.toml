@@ -1,0 +1,132 @@
+#! /usr/bin/env python3
+
+# coding: utf-8
+# /*##########################################################################
+#
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2019-2020 Lawrence Berkeley National Laboratory
+# Copyright (c) 2020-now European Synchrotron Radiation Facility
+# Copyright (c) 2023-now Argonne National Laboratory
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+# ###########################################################################*/
+
+# Memorandum:
+#
+# Install from sources (developer / editable):
+#     git clone https://github.com/oasys-kit/OASYS2-SHADOW4
+#     cd OASYS2-SHADOW4
+#     python -m pip install -e . --no-deps --no-build-isolation
+#     # NOTE: use --no-build-isolation, NOT --no-binary :all:. The latter forces an
+#     # isolated source build that writes a setuptools wheel to the pip cache and
+#     # fails with "[Errno 13] Permission denied: ...\pip\cache\wheels\..." .
+#
+# Upload to pypi (when uploading, increment the version number):
+#     rm -rf dist
+#     python -m build          # builds BOTH the sdist and the wheel
+#     python -m twine upload dist/*
+#
+# Install from pypi:
+#     pip install OASYS2-SHADOW4
+
+[build-system]
+requires = ["setuptools>=77.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "OASYS2-SHADOW4"
+version = "0.0.46"
+description = "oasys2-shadow4: Oasys 2 widgets for shadow4"
+readme = "README.md"
+
+# ---------------------------------------------------------------------------
+# TODO: PICK ONE. __license__ / LICENSE both say "BSD3", but the copyright
+# header at the top of the old setup.py is the MIT License text verbatim
+# ("Permission is hereby granted, free of charge..."). Same contradiction as
+# OASYS2-OKONA -- see chat notes.
+# ---------------------------------------------------------------------------
+license = "BSD-3-Clause"
+# license = "MIT"               # <- if the MIT header is authoritative
+# license-files = ["LICENSE"]   # <- uncomment if a LICENSE file exists in the repo
+
+authors = [
+    { name = "Manuel Sanchez del Rio", email = "srio@esrf.eu" },
+    { name = "Luca Rebuffi", email = "lrebuffi@anl.gov" },
+]
+keywords = [
+    "ray tracing",
+    "x-ray optics",
+    "oasys2",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: X11 Applications :: Qt",
+    "Environment :: Console",
+    "Environment :: Plugins",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: Science/Research",
+]
+dependencies = [
+    "oasys2>=0.0.54",
+    "shadow4>=0.1.88",
+]
+
+[project.urls]
+Homepage = "https://github.com/oasys-kit/OASYS2-SHADOW4"
+Download = "https://github.com/oasys-kit/OASYS2-SHADOW4"
+
+[project.entry-points."oasys2.addons"]
+SHADOW4 = "orangecontrib.shadow4"
+
+[project.entry-points."oasys2.widgets"]
+"SHADOW4 Sources" = "orangecontrib.shadow4.widgets.sources"
+"SHADOW4 Optics" = "orangecontrib.shadow4.widgets.optics"
+"SHADOW4 Preprocessors" = "orangecontrib.shadow4.widgets.preprocessors"
+"SHADOW4 Loops" = "orangecontrib.shadow4.widgets.loops"
+"SHADOW4 Tools" = "orangecontrib.shadow4.widgets.tools"
+
+[project.entry-points."oasys2.menus"]
+shadow4menu = "orangecontrib.shadow4.menu"
+
+[project.entry-points."oasys2.tutorials"]
+shadow4tutorial = "orangecontrib.shadow4.tutorials"
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+
+[tool.setuptools.packages.find]
+exclude = ["*.tests", "*.tests.*", "tests.*", "tests"]
+# namespaces = false replicates the old find_packages() behaviour exactly.
+# Under pyproject.toml, setuptools DEFAULTS this to true (= find_namespace_packages),
+# which would sweep in non-package dirs such as .../icons.
+namespaces = false
+
+[tool.setuptools.package-data]
+"orangecontrib.shadow4.widgets.sources" = ["icons/*.png", "icons/*.jpg"]
+"orangecontrib.shadow4.widgets.optics" = ["icons/*.png", "icons/*.jpg"]
+"orangecontrib.shadow4.widgets.preprocessors" = ["icons/*.png", "icons/*.jpg"]
+"orangecontrib.shadow4.widgets.loops" = ["icons/*.png", "icons/*.jpg"]
+"orangecontrib.shadow4.widgets.tools" = ["icons/*.png", "icons/*.jpg"]
+# TODO: the oasys2.tutorials entry point registers orangecontrib.shadow4.tutorials,
+# but there is no package-data rule shipping its *.ows workflows (the sibling
+# addons all have one). See chat notes.
+# "orangecontrib.shadow4.tutorials" = ["*.ows"]
