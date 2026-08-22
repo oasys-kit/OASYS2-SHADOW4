@@ -12,6 +12,7 @@ from oasys2.widget.widget import OWAction
 from oasys2.widget import gui as oasysgui
 from oasys2.widget.util.widget_util import EmittingStream
 from oasys2.widget.gui import Styles
+from oasys2.widget.util.widget_objects import TriggerIn
 
 from syned.widget.widget_decorator import WidgetDecorator
 from syned.beamline.element_coordinates import ElementCoordinates
@@ -23,7 +24,7 @@ from orangecontrib.shadow4.widgets.gui.ow_generic_element import GenericElement
 from orangecontrib.shadow4.util.shadow4_objects import ShadowData
 
 from orangecontrib.shadow4.util.shadow4_util import ShadowCongruence, TriggerToolsDecorator
-from oasys2.widget.util.widget_objects import TriggerIn
+
 
 NO_FILE_SPECIFIED = "<specify file name>"
 SUBTAB_INNER_BOX_WIDTH = 375
