@@ -361,7 +361,7 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                 self.diffraction_calculation = 3
                 self.crystal_diffraction_tab_visibility()
             else:
-                QMessageBox.warning(self, "Warning", "Incompatible Preprocessor Data", QMessageBox.Ok)
+                QMessageBox.warning(self, "Warning", "Incompatible Preprocessor Data", QMessageBox.StandardButton.Ok)
 
     #########################################################
     # S4 objects

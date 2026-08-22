@@ -195,8 +195,8 @@ class OWBragg(OWWidget):
         tab_usa.setStyleSheet("background-color: white;")
         usage_box = oasysgui.widgetBox(tab_usa, "", orientation="horizontal")
         label = QLabel("")
-        label.setAlignment(Qt.AlignCenter)
-        label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         label.setPixmap(QPixmap(self.usage_path))
         usage_box.layout().addWidget(label)
 
@@ -471,7 +471,7 @@ class OWBragg(OWWidget):
             self.shadow4_script.set_code(script)
 
         except Exception as exception:
-            QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
+            QMessageBox.critical(self, "Error", str(exception), QMessageBox.StandardButton.Ok)
             if self.IS_DEVELOP: raise exception
 
     def get_script_template(self):

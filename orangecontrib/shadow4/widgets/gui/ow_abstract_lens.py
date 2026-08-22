@@ -9,8 +9,6 @@ from orangewidget.widget import Input
 
 from syned.beamline.element_coordinates import ElementCoordinates
 
-
-from dabax.dabax_xraylib import DabaxXraylib
 from dabax.dabax_files import dabax_f1f2_files, dabax_crosssec_files
 
 from orangecontrib.shadow4.widgets.gui.ow_optical_element import OWOpticalElement
@@ -192,7 +190,7 @@ class OWAbstractLens(OWOpticalElement):
                 self.ri_calculation_mode = 1
                 self.set_ri_calculation_mode()
             else:
-                QMessageBox.warning(self, "Warning", "Incompatible Preprocessor Data", QMessageBox.Ok)
+                QMessageBox.warning(self, "Warning", "Incompatible Preprocessor Data", QMessageBox.StandardButton.Ok)
 
     def set_Density(self):
         if not self.material is None:

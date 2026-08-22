@@ -85,10 +85,10 @@ class BeamFileWriter(OWWidget):
             if ShadowCongruence.check_good_beam(input_data.beam):
                 self.input_data = input_data
             else:
-                QMessageBox.critical(self, "Error", "No good rays or bad content", QMessageBox.Ok)
+                QMessageBox.critical(self, "Error", "No good rays or bad content", QMessageBox.StandardButton.Ok)
                 return
         else:
-            QMessageBox.critical(self, "Error", "Empty input data or empty beam", QMessageBox.Ok)
+            QMessageBox.critical(self, "Error", "Empty input data or empty beam", QMessageBox.StandardButton.Ok)
 
         if self.is_automatic_run: self.write_file()
 
@@ -110,9 +110,9 @@ class BeamFileWriter(OWWidget):
 
                     self.Outputs.shadow_data.send(self.input_data)
             else:
-                QMessageBox.critical(self, "Error", "Empty input data or empty beam", QMessageBox.Ok)
+                QMessageBox.critical(self, "Error", "Empty input data or empty beam", QMessageBox.StandardButton.Ok)
         except Exception as exception:
-            QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
+            QMessageBox.critical(self, "Error", str(exception), QMessageBox.StandardButton.Ok)
 
 
 add_widget_parameters_to_module(__name__)

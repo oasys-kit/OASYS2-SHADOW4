@@ -270,5 +270,5 @@ class OWElectronBeam(GenericElement):
             if self._check_dispersion_reset():
                 self.populate_fields_from_electron_beam(self.get_electron_beam(online=True), online=True)
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e.args[0]), QMessageBox.Ok)
+            QMessageBox.critical(self, "Error", str(e.args[0]), QMessageBox.StandardButton.Ok)
             if self.IS_DEVELOP: raise e

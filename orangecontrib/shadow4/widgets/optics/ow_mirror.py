@@ -211,7 +211,7 @@ class _OWMirror(OWOpticalElementWithSurfaceShape):
                 self.reflectivity_source = 0
                 self.reflectivity_tab_visibility()
             else:
-                QMessageBox.warning(self, "Warning", "Incompatible Preprocessor Data", QMessageBox.Ok)
+                QMessageBox.warning(self, "Warning", "Incompatible Preprocessor Data", QMessageBox.StandardButton.Ok)
 
     @Inputs.vls_pgm_preprocessor_data
     def set_VlsPgmPreProcessorData(self, data):

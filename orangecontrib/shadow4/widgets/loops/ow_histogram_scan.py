@@ -598,7 +598,7 @@ class Histogram(AutomaticElement):
 
             return plotted
         except Exception as exception:
-            QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
+            QMessageBox.critical(self, "Error", str(exception), QMessageBox.StandardButton.Ok)
 
             if self.IS_DEVELOP: raise exception
 
@@ -661,7 +661,7 @@ class Histogram(AutomaticElement):
                 if self.is_automatic_run:
                     self.plot_results()
             else:
-                QMessageBox.critical(self, "Error", "Data not displayable: No good rays or bad content", QMessageBox.Ok)
+                QMessageBox.critical(self, "Error", "Data not displayable: No good rays or bad content", QMessageBox.StandardButton.Ok)
 
 
     def writeStdOut(self, text):
@@ -698,6 +698,6 @@ class Histogram(AutomaticElement):
                                                    suffix="",
                                                    output_folder=output_folder)
 
-                    QMessageBox.information(self, "Export Scanning Results & Stats", "Data saved into directory: " + output_folder, QMessageBox.Ok)
+                    QMessageBox.information(self, "Export Scanning Results & Stats", "Data saved into directory: " + output_folder, QMessageBox.StandardButton.Ok)
 
 add_widget_parameters_to_module(__name__)

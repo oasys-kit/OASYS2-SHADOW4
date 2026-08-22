@@ -52,7 +52,7 @@ class PythonScript(QWidget):
 
                 QMessageBox.information(self, "Information",
                                               "File " + file_name + " written to disk",
-                                              QMessageBox.Ok)
+                                              QMessageBox.StandardButton.Ok)
 
 
     def clear(self):

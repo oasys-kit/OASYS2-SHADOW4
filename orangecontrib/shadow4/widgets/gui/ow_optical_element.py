@@ -118,9 +118,10 @@ class OWOpticalElement(GenericElement, WidgetDecorator, TriggerToolsDecorator):
             help_box = oasysgui.widgetBox(self.tab_help, "", addSpace=True, orientation="horizontal")
 
             label = QLabel("")
-            label.setAlignment(Qt.AlignCenter | Qt.AlignTop)
-            label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-            label.setPixmap(QPixmap(self.help_path).scaledToWidth(self.CONTROL_AREA_WIDTH-20))
+            label.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignTop)
+            label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+            try:    label.setPixmap(QPixmap(self.help_path).scaledToWidth(self.CONTROL_AREA_WIDTH-20))
+            except: pass
 
             help_box.layout().addWidget(label)
 

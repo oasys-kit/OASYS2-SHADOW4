@@ -416,7 +416,7 @@ plt.show()
         except Exception as exception:
             QMessageBox.critical(self, "Error",
                                        str(exception),
-                                       QMessageBox.Ok)
+                                       QMessageBox.StandardButton.Ok)
 
             if self.IS_DEVELOP: raise exception
 
@@ -452,7 +452,7 @@ plt.show()
                         "It seems that PyOpenGL is not installed in your system." +
                         "\nInstall it to get much faster scatter plots, like:" +
                         "\n" + os.path.dirname(sys.executable) + os.sep + "pip install PyOpenGL",
-                        QMessageBox.Ok)
+                        QMessageBox.StandardButton.Ok)
                 use_backend = 'matplotlib'
                 self.backend = 0
             else:

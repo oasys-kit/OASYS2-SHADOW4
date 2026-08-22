@@ -163,7 +163,7 @@ class MergeBeams(GenericElement, TriggerToolsDecorator):
                 if self.use_weights == 1: self.le_weight_input_data_1.setEnabled(True)
             else:
                 QMessageBox.critical(self, "Error", "Data #1 not displayable: No good rays or bad content",
-                                     QMessageBox.Ok)
+                                     QMessageBox.StandardButton.Ok)
 
     @Inputs.shadow_data_2
     def set_shadow_data2(self, shadow_data: ShadowData):
@@ -176,7 +176,7 @@ class MergeBeams(GenericElement, TriggerToolsDecorator):
                 if self.use_weights == 1: self.le_weight_input_data_2.setEnabled(True)
             else:
                 QMessageBox.critical(self, "Error", "Data #2 not displayable: No good rays or bad content",
-                                     QMessageBox.Ok)
+                                     QMessageBox.StandardButton.Ok)
 
     @Inputs.shadow_data_3
     def set_shadow_data3(self, shadow_data: ShadowData):
@@ -189,7 +189,7 @@ class MergeBeams(GenericElement, TriggerToolsDecorator):
                 if self.use_weights == 1: self.le_weight_input_data_3.setEnabled(True)
             else:
                 QMessageBox.critical(self, "Error", "Data #3 not displayable: No good rays or bad content",
-                                     QMessageBox.Ok)
+                                     QMessageBox.StandardButton.Ok)
 
     @Inputs.shadow_data_4
     def set_shadow_data4(self, shadow_data: ShadowData):
@@ -202,7 +202,7 @@ class MergeBeams(GenericElement, TriggerToolsDecorator):
                 if self.use_weights == 1: self.le_weight_input_data_4.setEnabled(True)
             else:
                 QMessageBox.critical(self, "Error", "Data #4 not displayable: No good rays or bad content",
-                                     QMessageBox.Ok)
+                                     QMessageBox.StandardButton.Ok)
 
     @Inputs.shadow_data_5
     def set_shadow_data5(self, shadow_data: ShadowData):
@@ -215,7 +215,7 @@ class MergeBeams(GenericElement, TriggerToolsDecorator):
                 if self.use_weights == 1: self.le_weight_input_data_5.setEnabled(True)
             else:
                 QMessageBox.critical(self, "Error", "Data #5 not displayable: No good rays or bad content",
-                                     QMessageBox.Ok)
+                                     QMessageBox.StandardButton.Ok)
 
     @Inputs.shadow_data_6
     def set_shadow_data6(self, shadow_data: ShadowData):
@@ -228,7 +228,7 @@ class MergeBeams(GenericElement, TriggerToolsDecorator):
                 if self.use_weights == 1: self.le_weight_input_data_6.setEnabled(True)
             else:
                 QMessageBox.critical(self, "Error", "Data #6 not displayable: No good rays or bad content",
-                                     QMessageBox.Ok)
+                                     QMessageBox.StandardButton.Ok)
 
     @Inputs.shadow_data_7
     def set_shadow_data7(self, shadow_data: ShadowData):
@@ -241,7 +241,7 @@ class MergeBeams(GenericElement, TriggerToolsDecorator):
                 if self.use_weights == 1: self.le_weight_input_data_7.setEnabled(True)
             else:
                 QMessageBox.critical(self, "Error", "Data #7 not displayable: No good rays or bad content",
-                                     QMessageBox.Ok)
+                                     QMessageBox.StandardButton.Ok)
 
     @Inputs.shadow_data_8
     def set_shadow_data8(self, shadow_data: ShadowData):
@@ -254,7 +254,7 @@ class MergeBeams(GenericElement, TriggerToolsDecorator):
                 if self.use_weights == 1: self.le_weight_input_data_8.setEnabled(True)
             else:
                 QMessageBox.critical(self, "Error", "Data #8 not displayable: No good rays or bad content",
-                                     QMessageBox.Ok)
+                                     QMessageBox.StandardButton.Ok)
 
     @Inputs.shadow_data_9
     def set_shadow_data9(self, shadow_data: ShadowData):
@@ -267,7 +267,7 @@ class MergeBeams(GenericElement, TriggerToolsDecorator):
                 if self.use_weights == 1: self.le_weight_input_data_9.setEnabled(True)
             else:
                 QMessageBox.critical(self, "Error", "Data #9 not displayable: No good rays or bad content",
-                                     QMessageBox.Ok)
+                                     QMessageBox.StandardButton.Ok)
 
     @Inputs.shadow_data_10
     def set_shadow_data10(self, shadow_data: ShadowData):
@@ -280,7 +280,7 @@ class MergeBeams(GenericElement, TriggerToolsDecorator):
                 if self.use_weights == 1: self.le_weight_input_data_10.setEnabled(True)
             else:
                 QMessageBox.critical(self, "Error", "Data #10 not displayable: No good rays or bad content",
-                                     QMessageBox.Ok)
+                                     QMessageBox.StandardButton.Ok)
 
     def get_lightsource(self):
         try:    name = self.getNode().title
@@ -300,7 +300,7 @@ class MergeBeams(GenericElement, TriggerToolsDecorator):
                     light_source.append_beamline(current_data.beamline, id="beamline channel %d" % (index), weight=weight)
 
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e), QMessageBox.Ok)
+            QMessageBox.critical(self, "Error", str(e), QMessageBox.StandardButton.Ok)
 
             if self.IS_DEVELOP: raise e
 
@@ -352,7 +352,7 @@ class MergeBeams(GenericElement, TriggerToolsDecorator):
                 number_of_rays=merged_beam.N))
             self.Outputs.trigger.send(TriggerIn(new_object=True))
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e), QMessageBox.Ok)
+            QMessageBox.critical(self, "Error", str(e), QMessageBox.StandardButton.Ok)
 
             if self.IS_DEVELOP: raise e
 

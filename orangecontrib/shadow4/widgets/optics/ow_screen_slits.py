@@ -266,7 +266,7 @@ class _OWScreenSlits(OWOpticalElement):
                 self.opt_const_file_name = data.prerefl_data_file
                 self.set_absorption(is_init=True)
             else:
-                QMessageBox.warning(self, "Warning", "Incompatible Preprocessor Data", QMessageBox.Ok)
+                QMessageBox.warning(self, "Warning", "Incompatible Preprocessor Data", QMessageBox.StandardButton.Ok)
 
 
 class OWScreenSlits(_OWScreenSlits):

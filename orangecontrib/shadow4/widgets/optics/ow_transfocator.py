@@ -267,7 +267,7 @@ class OWTransfocator(OWOpticalElement):
         if self.tab_crls.count() <= 1:
             QMessageBox.critical(self, "Error",
                                        "Remove not possible, transfocator needs at least 1 element",
-                                       QMessageBox.Ok)
+                                       QMessageBox.StandardButton.Ok)
         else:
             current_index = self.tab_crls.currentIndex()
 
@@ -612,7 +612,7 @@ class OWTransfocator(OWOpticalElement):
 
                     box.set_ri_calculation_mode()
             else:
-                QMessageBox.warning(self, "Warning", "Incompatible PreReflPreprocessor Data", QMessageBox.Ok)
+                QMessageBox.warning(self, "Warning", "Incompatible PreReflPreprocessor Data", QMessageBox.StandardButton.Ok)
 
                 self.dump_prerefl_file()
 
@@ -679,7 +679,7 @@ class CRLBox(QWidget, OWComponent):
         QWidget.__init__(self, parent=parent)
 
         self.setLayout(QVBoxLayout())
-        self.layout().setAlignment(Qt.AlignTop)
+        self.layout().setAlignment(Qt.AlignmentFlag.AlignTop)
         self.setFixedWidth(470)
         self.setFixedHeight(700)
 

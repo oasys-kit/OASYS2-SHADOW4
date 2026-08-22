@@ -111,8 +111,8 @@ class OWVlsPgmCoefficientsCalculator(OWWidget):
         usage_box = oasysgui.widgetBox(tab_usa, "", addSpace=True, orientation="horizontal")
 
         label = QLabel("")
-        label.setAlignment(Qt.AlignCenter)
-        label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         label.setPixmap(QPixmap(self.usage_path))
 
         usage_box.layout().addWidget(label)
@@ -436,7 +436,7 @@ class OWVlsPgmCoefficientsCalculator(OWWidget):
                                                                           beta=self.raytracing_beta))
 
         except Exception as exception:
-            QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
+            QMessageBox.critical(self, "Error", str(exception), QMessageBox.StandardButton.Ok)
             if self.IS_DEVELOP: raise exception
 
     def checkFields(self):

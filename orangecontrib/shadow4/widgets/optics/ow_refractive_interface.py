@@ -277,7 +277,7 @@ class OWRefractiveInterface(OWOpticalElementWithSurfaceShape):
                 if self.optical_constants_refraction_index in [2,3]:
                     self.file_prerefl_for_image_medium = data.prerefl_data_file
             else:
-                QMessageBox.warning(self, "Warning", "Incompatible Preprocessor Data", QMessageBox.Ok)
+                QMessageBox.warning(self, "Warning", "Incompatible Preprocessor Data", QMessageBox.StandardButton.Ok)
 
 add_widget_parameters_to_module(__name__)
 

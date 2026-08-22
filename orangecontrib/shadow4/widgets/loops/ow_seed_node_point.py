@@ -188,7 +188,7 @@ class SourceSeedLoopPoint(OWLoopWidget):
                     self.Outputs.trigger_out.send(TriggerOut(new_object=False))
                 elif trigger.new_object:
                     if self.current_new_object == 0:
-                        QMessageBox.critical(self, "Error", "Loop has to be started properly: press the button Start", QMessageBox.Ok)
+                        QMessageBox.critical(self, "Error", "Loop has to be started properly: press the button Start", QMessageBox.StandardButton.Ok)
                         return
 
                     if self.current_new_object < self.number_of_new_objects:
