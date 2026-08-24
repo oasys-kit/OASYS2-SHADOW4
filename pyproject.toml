@@ -52,7 +52,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "OASYS2-SHADOW4"
-version = "0.0.47"
+version = "0.0.48"
 description = "oasys2-shadow4: Oasys 2 widgets for shadow4"
 readme = "README.md"
 
@@ -126,7 +126,4 @@ namespaces = false
 "orangecontrib.shadow4.widgets.preprocessors" = ["icons/*.png", "icons/*.jpg"]
 "orangecontrib.shadow4.widgets.loops" = ["icons/*.png", "icons/*.jpg"]
 "orangecontrib.shadow4.widgets.tools" = ["icons/*.png", "icons/*.jpg"]
-# TODO: the oasys2.tutorials entry point registers orangecontrib.shadow4.tutorials,
-# but there is no package-data rule shipping its *.ows workflows (the sibling
-# addons all have one). See chat notes.
-# "orangecontrib.shadow4.tutorials" = ["*.ows"]
+"orangecontrib.shadow4.tutorials" = ["*.ows"]
