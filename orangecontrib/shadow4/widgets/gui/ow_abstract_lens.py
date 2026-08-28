@@ -8,6 +8,7 @@ from oasys2.widget import gui as oasysgui
 from orangewidget.widget import Input
 
 from syned.beamline.element_coordinates import ElementCoordinates
+from syned.beamline.shape import Circle, Rectangle, Ellipse
 
 from dabax.dabax_files import dabax_f1f2_files, dabax_crosssec_files
 
@@ -26,6 +27,7 @@ class OWAbstractLens(OWOpticalElement):
     convex_to_the_beam      = Setting(0)
     has_finite_diameter     = Setting(0)
     diameter                = Setting(632.0)
+    diameter_h              = Setting(632.0)
     is_cylinder             = Setting(0)
     cylinder_angle          = Setting(0)
     ri_calculation_mode     = Setting(0)
@@ -68,17 +70,7 @@ class OWAbstractLens(OWOpticalElement):
         lens_box = oasysgui.widgetBox(basic_setting_subtabs, "Lens Parameters", addSpace=False, orientation="vertical",
                                       height=370)
 
-        gui.comboBox(lens_box, self, "has_finite_diameter", label="Lens aperture", tooltip="has_finite_diameter",
-                     labelWidth=260, items=["Infinite", "Circle", "Square"], callback=self.set_diameter, sendSelectedValue=False,
-                     orientation="horizontal")
-
-        self.diameter_box = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical")
-        self.diameter_box_empty = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=24)
-
-        oasysgui.lineEdit(self.diameter_box, self, "diameter", "Physical Aperture 'A' [\u03bcm]", tooltip= "diameter",
-                          labelWidth=260, valueType=float, orientation="horizontal")
-
-        self.set_diameter()
+        self.populate_lens_aperture(lens_box)
 
         gui.comboBox(lens_box, self, "surface_shape", label="Surface Shape", tooltip="surface_shape", labelWidth=260,
                      items=["Plane", "Sphere", "Paraboloid"], callback=self.set_surface_shape, sendSelectedValue=False,
@@ -139,6 +131,44 @@ class OWAbstractLens(OWOpticalElement):
         oasysgui.lineEdit(mat_box, self, "density", "density [g/cm3]", tooltip="density",
                                                  labelWidth=110, valueType=float, orientation="horizontal")
 
+    def populate_lens_aperture(self, lens_box):
+        gui.comboBox(lens_box, self, "has_finite_diameter", label="Lens aperture", tooltip="has_finite_diameter",
+                     labelWidth=260, items=["Infinite", "Circle", "Square", "Ellipse", "Rectangle"],
+                     callback=self.set_diameter, sendSelectedValue=False, orientation="horizontal")
+
+        self.diameter_box = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical")
+        self.diameter_box_empty = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=24)
+
+        oasysgui.lineEdit(self.diameter_box, self, "diameter", "Physical Aperture 'A' [μm]", tooltip= "diameter",
+                          labelWidth=260, valueType=float, orientation="horizontal")
+
+        self.diameter_h_box = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical")
+
+        oasysgui.lineEdit(self.diameter_h_box, self, "diameter_h", "Physical Aperture Horizontal [μm]", tooltip="diameter_h",
+                          labelWidth=260, valueType=float, orientation="horizontal")
+
+        self.set_diameter()
+
+    def get_lens_boundary_shape(self):
+        um_to_si = 1e-6
+
+        if self.has_finite_diameter == 0:
+            return None
+        elif self.has_finite_diameter == 1:
+            return Circle(radius=um_to_si * self.diameter * 0.5)
+        elif self.has_finite_diameter == 2:
+            half_aperture = um_to_si * self.diameter * 0.5
+            return Rectangle(x_left=-half_aperture, x_right=half_aperture,
+                             y_bottom=-half_aperture, y_top=half_aperture)
+        elif self.has_finite_diameter == 3:
+            half_x = um_to_si * self.diameter_h * 0.5
+            half_y = um_to_si * self.diameter * 0.5
+            return Ellipse(a_axis_min=-half_x, a_axis_max=half_x, b_axis_min=-half_y, b_axis_max=half_y)
+        else: # 4: Rectangle
+            half_x = um_to_si * self.diameter_h * 0.5
+            half_y = um_to_si * self.diameter * 0.5
+            return Rectangle(x_left=-half_x, x_right=half_x, y_bottom=-half_y, y_top=half_y)
+
     def create_advanced_settings_subtabs(self, tabs_advanced_settings):
         subtab_dabax = oasysgui.createTabPage(tabs_advanced_settings, name="DABAX")
         return [subtab_dabax]
@@ -166,6 +196,7 @@ class OWAbstractLens(OWOpticalElement):
     def set_diameter(self):
         self.diameter_box.setVisible(self.has_finite_diameter > 0)
         self.diameter_box_empty.setVisible(self.has_finite_diameter == 0)
+        self.diameter_h_box.setVisible(self.has_finite_diameter in (3, 4))
 
     def set_cylindrical(self):
         self.box_cyl.setVisible(self.is_cylinder == 1)

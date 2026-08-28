@@ -1,10 +1,16 @@
 import os
 
+from orangewidget import gui
+from orangewidget.settings import Setting
+
+from oasys2.widget import gui as oasysgui
+
 from orangecontrib.shadow4.widgets.gui.ow_abstract_lens import OWAbstractLens
+from orangecontrib.shadow4.widgets.gui.ow_optical_element_with_surface_shape import \
+    ShowSurfaceErrorDataFileDialog, ShowImageErrorDataFileDialog
 import orangecanvas.resources as resources
 from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
 
-from syned.beamline.shape import Circle, Rectangle
 from shadow4.beamline.optical_elements.refractors.s4_lens import S4Lens, S4LensElement
 
 from dabax.dabax_xraylib import DabaxXraylib
@@ -18,8 +24,111 @@ class OWLens(OWAbstractLens):
 
     help_path = os.path.join(resources.package_dirname("orangecontrib.shadow4.widgets.gui"), "misc", "lens_help.png")
 
+    flag_add_mesh_surface_entrance = Setting(0)
+    flag_add_mesh_surface_exit     = Setting(0)
+    mesh_surface_entrance_h5file   = Setting("<none>.hdf5")
+    mesh_surface_exit_h5file       = Setting("<none>.hdf5")
+
     def __init__(self):
         super().__init__()
+
+    # ----------------------------------------------------
+    # Advanced Settings / Modified Surface
+
+    def create_advanced_settings_subtabs(self, tabs_advanced_settings):
+        subtab_modified_surface = oasysgui.createTabPage(tabs_advanced_settings, "Modified Surface")
+
+        return [subtab_modified_surface] + super().create_advanced_settings_subtabs(tabs_advanced_settings)
+
+    def populate_advanced_setting_subtabs(self, advanced_setting_subtabs):
+        self.populate_tab_modified_surface(advanced_setting_subtabs[0])
+
+        super().populate_advanced_setting_subtabs(advanced_setting_subtabs[1:])
+
+    def populate_tab_modified_surface(self, subtab_modified_surface):
+        box = oasysgui.widgetBox(subtab_modified_surface, "Modified Surface Parameters", addSpace=True, orientation="vertical")
+
+        # ---- Entrance interface -------------------------------------------------
+        gui.comboBox(box, self, "flag_add_mesh_surface_entrance", tooltip="flag_add_mesh_surface_entrance",
+                     label="Add mesh to Entrance interface", labelWidth=250,
+                     items=["No", "Yes"], callback=self.modified_surface_tab_visibility,
+                     sendSelectedValue=False, orientation="horizontal")
+
+        self.mod_surf_entrance_box_1 = oasysgui.widgetBox(box, "", addSpace=False, orientation="horizontal")
+
+        self.le_mesh_surface_entrance_h5file = oasysgui.lineEdit(self.mod_surf_entrance_box_1, self, "mesh_surface_entrance_h5file",
+                                                                  "File", tooltip="mesh_surface_entrance_h5file", labelWidth=40,
+                                                                  valueType=str, orientation="horizontal")
+
+        gui.button(self.mod_surf_entrance_box_1, self, "...", callback=self.select_mesh_surface_entrance_file_name, width=30)
+        gui.button(self.mod_surf_entrance_box_1, self, "View Surf", callback=self.view_mesh_surface_entrance_surface, width=65,
+                   tooltip="Render data in surface mode [slow]")
+        gui.button(self.mod_surf_entrance_box_1, self, "View Img", callback=self.view_mesh_surface_entrance_image, width=65,
+                   tooltip="Render data in image mode [slow]")
+
+        gui.separator(box, height=10)
+
+        # ---- Exit interface -------------------------------------------------
+        gui.comboBox(box, self, "flag_add_mesh_surface_exit", tooltip="flag_add_mesh_surface_exit",
+                     label="Add mesh to Exit interface", labelWidth=250,
+                     items=["No", "Yes"], callback=self.modified_surface_tab_visibility,
+                     sendSelectedValue=False, orientation="horizontal")
+
+        self.mod_surf_exit_box_1 = oasysgui.widgetBox(box, "", addSpace=False, orientation="horizontal")
+
+        self.le_mesh_surface_exit_h5file = oasysgui.lineEdit(self.mod_surf_exit_box_1, self, "mesh_surface_exit_h5file",
+                                                              "File", tooltip="mesh_surface_exit_h5file", labelWidth=40,
+                                                              valueType=str, orientation="horizontal")
+
+        gui.button(self.mod_surf_exit_box_1, self, "...", callback=self.select_mesh_surface_exit_file_name, width=30)
+        gui.button(self.mod_surf_exit_box_1, self, "View Surf", callback=self.view_mesh_surface_exit_surface, width=65,
+                   tooltip="Render data in surface mode [slow]")
+        gui.button(self.mod_surf_exit_box_1, self, "View Img", callback=self.view_mesh_surface_exit_image, width=65,
+                   tooltip="Render data in image mode [slow]")
+
+        self.modified_surface_tab_visibility()
+
+    def modified_surface_tab_visibility(self):
+        self.mod_surf_entrance_box_1.setVisible(self.flag_add_mesh_surface_entrance == 1)
+        self.mod_surf_exit_box_1.setVisible(self.flag_add_mesh_surface_exit == 1)
+
+    def select_mesh_surface_entrance_file_name(self):
+        self.le_mesh_surface_entrance_h5file.setText(
+            oasysgui.selectFileFromDialog(self, self.mesh_surface_entrance_h5file, "Select Entrance Interface Mesh File",
+                                          file_extension_filter="Data Files (*.h5 *.hdf5)"))
+
+    def select_mesh_surface_exit_file_name(self):
+        self.le_mesh_surface_exit_h5file.setText(
+            oasysgui.selectFileFromDialog(self, self.mesh_surface_exit_h5file, "Select Exit Interface Mesh File",
+                                          file_extension_filter="Data Files (*.h5 *.hdf5)"))
+
+    def view_mesh_surface_entrance_surface(self):
+        try:
+            dialog = ShowSurfaceErrorDataFileDialog(parent=self, file_name=self.mesh_surface_entrance_h5file)
+            dialog.show()
+        except Exception as exception:
+            self.prompt_exception(exception)
+
+    def view_mesh_surface_entrance_image(self):
+        try:
+            dialog = ShowImageErrorDataFileDialog(parent=self, file_name=self.mesh_surface_entrance_h5file)
+            dialog.show()
+        except Exception as exception:
+            self.prompt_exception(exception)
+
+    def view_mesh_surface_exit_surface(self):
+        try:
+            dialog = ShowSurfaceErrorDataFileDialog(parent=self, file_name=self.mesh_surface_exit_h5file)
+            dialog.show()
+        except Exception as exception:
+            self.prompt_exception(exception)
+
+    def view_mesh_surface_exit_image(self):
+        try:
+            dialog = ShowImageErrorDataFileDialog(parent=self, file_name=self.mesh_surface_exit_h5file)
+            dialog.show()
+        except Exception as exception:
+            self.prompt_exception(exception)
 
     # ----------------------------------------------------
     # from OpticalElement
@@ -30,14 +139,7 @@ class OWLens(OWAbstractLens):
 
         um_to_si = 1e-6
 
-        if self.has_finite_diameter == 0:
-            boundary_shape = None
-        elif self.has_finite_diameter == 1:
-            boundary_shape = Circle(radius=um_to_si * self.diameter * 0.5)
-        else:
-            half_aperture = um_to_si * self.diameter * 0.5
-            boundary_shape = Rectangle(x_left = -half_aperture, x_right = half_aperture,
-                                       y_bottom = -half_aperture, y_top = half_aperture)
+        boundary_shape = self.get_lens_boundary_shape()
 
         if self.is_cylinder == 1:
             cylinder_angle = self.cylinder_angle + 1
@@ -69,6 +171,10 @@ class OWLens(OWAbstractLens):
                       conic_coefficients1=None, # TODO: add conic coefficient shape to the GUI
                       conic_coefficients2=None,  # TODO: add conic coefficient shape to the GUI
                       dabax=dabax,
+                      flag_add_mesh_surface_entrance=self.flag_add_mesh_surface_entrance,
+                      flag_add_mesh_surface_exit=self.flag_add_mesh_surface_exit,
+                      mesh_surface_entrance_h5file=self.mesh_surface_entrance_h5file,
+                      mesh_surface_exit_h5file=self.mesh_surface_exit_h5file,
                       )
 
     def get_beamline_element_instance(self):

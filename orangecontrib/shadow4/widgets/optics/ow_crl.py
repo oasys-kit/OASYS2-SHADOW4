@@ -6,7 +6,6 @@ import orangecanvas.resources as resources
 from oasys2.widget import gui as oasysgui
 from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
 
-from syned.beamline.shape import Circle, Rectangle
 from shadow4.beamline.optical_elements.refractors.s4_crl import S4CRL, S4CRLElement
 
 from dabax.dabax_xraylib import DabaxXraylib
@@ -44,13 +43,7 @@ class OWCRL(OWAbstractLens):
         um_to_si = 1e-6
         mm_to_si = 1e-3
 
-        if self.has_finite_diameter == 0:
-            boundary_shape = None
-        elif self.has_finite_diameter == 1:
-            boundary_shape = Circle(radius=um_to_si * self.diameter * 0.5)
-        elif self.has_finite_diameter == 2:
-            rr = um_to_si * self.diameter * 0.5
-            boundary_shape = Rectangle(x_left=-rr, x_right=rr, y_bottom=-rr, y_top=rr)
+        boundary_shape = self.get_lens_boundary_shape()
 
         if self.is_cylinder == 1: cylinder_angle = self.cylinder_angle + 1
         else:                     cylinder_angle = 0
