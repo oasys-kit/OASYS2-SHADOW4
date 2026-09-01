@@ -270,6 +270,12 @@ class OWOpticalElement(GenericElement, WidgetDecorator, TriggerToolsDecorator):
     def set_trigger_parameters_for_optics(self, trigger):
         super(OWOpticalElement, self).set_trigger_parameters_for_optics(trigger)
 
+    def _call_setters_on_trigger(self, variable_name):
+        if variable_name == "incidence_angle_deg":   self.calculate_incidence_angle_mrad()
+        if variable_name == "incidence_angle_deg":   self.calculate_reflection_angle_mrad()
+        if variable_name == "incidence_angle_mrad":  self.calculate_incidence_angle_deg()
+        if variable_name == "incidence_angle_mrad":  self.calculate_reflection_angle_deg()
+
     @Inputs.syned_data
     def set_syned_data(self, index, syned_data):
         self.receive_syned_data(syned_data)
@@ -356,6 +362,8 @@ class OWOpticalElement(GenericElement, WidgetDecorator, TriggerToolsDecorator):
             self.prompt_exception(exception)
         finally:
             self.progressBarFinished()
+
+
 
     def _post_trace_operations(self, output_beam, footprint, element, beamline): pass
     def _plot_additional_results(self, output_beam, footprint, element, beamline): pass

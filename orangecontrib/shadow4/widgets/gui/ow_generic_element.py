@@ -229,3 +229,5 @@ class GenericElement(AutomaticElement):
 
     def _is_conversion_active(self):
         return True
+
+    def _call_setters_on_trigger(self, variable_name): pass

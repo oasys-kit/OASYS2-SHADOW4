@@ -8,7 +8,6 @@ from orangewidget.widget import Output
 
 from oasys2.widget import gui as oasysgui
 from oasys2.widget.widget import OWAction
-from oasys2.widget.util import congruence
 from oasys2.widget.util.widget_util import EmittingStream
 from oasys2.widget.gui import Styles
 from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
@@ -126,6 +125,8 @@ class BeamFileReader(GenericElement, TriggerToolsDecorator):
             try:    self._initialize_tabs()
             except: pass
             self.prompt_exception(exception)
+
+            self.progressBarFinished() # If progressBarFinished is not called, the widget is locked.
 
     def get_lightsource(self):
         return S4LightSourceFromFile(

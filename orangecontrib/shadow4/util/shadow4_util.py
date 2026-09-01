@@ -1382,6 +1382,8 @@ class TriggerToolsDecorator(object):
             else:
                 scanning_data = None
 
+            self._call_setters_on_trigger(variable_name=variable_name)
+
             self.run_shadow4(scanning_data=scanning_data)
 
     def check_options(self, variable_name):
@@ -1419,6 +1421,8 @@ class TriggerToolsDecorator(object):
                     scanning_data = ShadowData.ScanningData(variable_name, variable_value, variable_display_name, variable_um)
                 else:
                     scanning_data = None
+
+                self._call_setters_on_trigger(variable_name=variable_name)
 
                 self.run_shadow4(scanning_data=scanning_data)
 
