@@ -26,6 +26,7 @@ from shadow4.beamline.optical_elements.multilayers.s4_additional_numerical_mesh_
 
 from orangecontrib.shadow4.widgets.gui.ow_optical_element_with_surface_shape import OWOpticalElementWithSurfaceShape, SUBTAB_INNER_BOX_WIDTH
 from orangecontrib.shadow4.util.shadow4_objects import MLayerPreProcessorData
+from orangecontrib.shadow4.util.shadow4_util import ShadowPhysics
 
 XRAYLIB_AVAILABLE = True
 
@@ -47,6 +48,12 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
     structure = Setting('[C,Pt]x30+Si')
     period = Setting(50.0)
     Gamma = Setting(0.4)
+    density_O    = Setting(2.0)
+    roughness_O  = Setting(0.0)
+    density_E    = Setting(21.45)
+    roughness_E  = Setting(0.0)
+    density_S    = Setting(2.33)
+    roughness_S  = Setting(0.0)
 
     DABAX_F1F2_FILE_INDEX = Setting(0)
 
@@ -88,13 +95,37 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
 
         oasysgui.lineEdit(self.box_xraylib_dabax, self, "structure",
                           "ML structure [odd,even]xN+Sub: ", labelWidth=220, valueType=str,
-                          orientation="horizontal", tooltip="structure")
+                          orientation="horizontal", tooltip="structure", callback=self.set_structure_densities)
         oasysgui.lineEdit(self.box_xraylib_dabax, self, "period",
                           "Bilayer thick [A]: ", labelWidth=180, valueType=float,
                           orientation="horizontal", tooltip="period")
         oasysgui.lineEdit(self.box_xraylib_dabax, self, "Gamma",
                           "Gamma [even/total]: ", labelWidth=180, valueType=float,
                           orientation="horizontal", tooltip="Gamma")
+
+        box_odd = oasysgui.widgetBox(self.box_xraylib_dabax, "", addSpace=False, orientation="horizontal")
+        oasysgui.lineEdit(box_odd, self, "density_O",
+                          "Odd density [g/cm3]: ", labelWidth=180, valueType=float,
+                          orientation="horizontal", tooltip="density_O (auto-filled from structure; edit for compounds)")
+        oasysgui.lineEdit(box_odd, self, "roughness_O",
+                          "roughness [A]: ", labelWidth=90, valueType=float,
+                          orientation="horizontal", tooltip="roughness_O")
+
+        box_even = oasysgui.widgetBox(self.box_xraylib_dabax, "", addSpace=False, orientation="horizontal")
+        oasysgui.lineEdit(box_even, self, "density_E",
+                          "Even density [g/cm3]: ", labelWidth=180, valueType=float,
+                          orientation="horizontal", tooltip="density_E (auto-filled from structure; edit for compounds)")
+        oasysgui.lineEdit(box_even, self, "roughness_E",
+                          "roughness [A]: ", labelWidth=90, valueType=float,
+                          orientation="horizontal", tooltip="roughness_E")
+
+        box_substrate = oasysgui.widgetBox(self.box_xraylib_dabax, "", addSpace=False, orientation="horizontal")
+        oasysgui.lineEdit(box_substrate, self, "density_S",
+                          "Substrate density [g/cm3]: ", labelWidth=180, valueType=float,
+                          orientation="horizontal", tooltip="density_S (auto-filled from structure; edit for compounds)")
+        oasysgui.lineEdit(box_substrate, self, "roughness_S",
+                          "roughness [A]: ", labelWidth=90, valueType=float,
+                          orientation="horizontal", tooltip="roughness_S")
 
         oasysgui.widgetLabel(self.box_xraylib_dabax, "(Use preprocessor for graded ML & more options)")
 
@@ -134,6 +165,30 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
 
     def select_file_refl(self):
         self.le_file_refl.setText(oasysgui.selectFileFromDialog(self, self.file_refl, "Select File with Reflectivity")) #, file_extension_filter="Data Files (*.dat)"))
+
+    def set_structure_densities(self):
+        # best-effort auto-fill of density_O/E/S from the odd/even/substrate materials in "structure";
+        # ShadowPhysics.getMaterialDensity() also estimates a density for compounds (mass-fraction weighted),
+        # so this works as a starting point even for a compound layer, but the user should override it
+        # with a proper value if higher accuracy is needed.
+        try:
+            structure = self.structure
+            i0 = structure.find('[')
+            i1 = structure.find(',')
+            i2 = structure.find(']')
+            i3 = structure.find('x')
+            i4 = structure.find('+')
+            if i0 < 0 or i1 < 0 or i2 < 0 or i3 < 0 or i4 < 0 or not (i0 < i1 < i2 < i3 < i4): return
+
+            material_O = structure[(i0 + 1):i1].strip()
+            material_E = structure[(i1 + 1):i2].strip()
+            material_S = structure[(i4 + 1):].strip()
+
+            self.density_O = round(ShadowPhysics.getMaterialDensity(material_O), 2)
+            self.density_E = round(ShadowPhysics.getMaterialDensity(material_E), 2)
+            self.density_S = round(ShadowPhysics.getMaterialDensity(material_S), 2)
+        except:
+            pass
 
     #########################################################
     # preprocessor
@@ -190,6 +245,12 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
+                density_O=self.density_O,
+                roughness_O=self.roughness_O,
+                density_E=self.density_E,
+                roughness_E=self.roughness_E,
+                density_S=self.density_S,
+                roughness_S=self.roughness_S,
                 dabax=dabax,
             )
         elif self.surface_shape_type == 1:
@@ -217,6 +278,12 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
+                density_O=self.density_O,
+                roughness_O=self.roughness_O,
+                density_E=self.density_E,
+                roughness_E=self.roughness_E,
+                density_S=self.density_S,
+                roughness_S=self.roughness_S,
                 dabax=dabax,
             )
         elif self.surface_shape_type == 2:
@@ -239,6 +306,12 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
+                density_O=self.density_O,
+                roughness_O=self.roughness_O,
+                density_E=self.density_E,
+                roughness_E=self.roughness_E,
+                density_S=self.density_S,
+                roughness_S=self.roughness_S,
                 dabax=dabax,
             )
         elif self.surface_shape_type == 3:
@@ -261,6 +334,12 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
+                density_O=self.density_O,
+                roughness_O=self.roughness_O,
+                density_E=self.density_E,
+                roughness_E=self.roughness_E,
+                density_S=self.density_S,
+                roughness_S=self.roughness_S,
                 dabax=dabax,
             )
         elif self.surface_shape_type == 4:
@@ -283,6 +362,12 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
+                density_O=self.density_O,
+                roughness_O=self.roughness_O,
+                density_E=self.density_E,
+                roughness_E=self.roughness_E,
+                density_S=self.density_S,
+                roughness_S=self.roughness_S,
                 dabax=dabax,
             )
         elif self.surface_shape_type == 5:
@@ -302,6 +387,12 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
+                density_O=self.density_O,
+                roughness_O=self.roughness_O,
+                density_E=self.density_E,
+                roughness_E=self.roughness_E,
+                density_S=self.density_S,
+                roughness_S=self.roughness_S,
                 dabax=dabax,
             )
         elif self.surface_shape_type == 6:
@@ -319,6 +410,12 @@ class _OWMultilayer(OWOpticalElementWithSurfaceShape):
                 structure=self.structure,
                 period=self.period,
                 Gamma=self.Gamma,
+                density_O=self.density_O,
+                roughness_O=self.roughness_O,
+                density_E=self.density_E,
+                roughness_E=self.roughness_E,
+                density_S=self.density_S,
+                roughness_S=self.roughness_S,
                 dabax=dabax,
             )
 
