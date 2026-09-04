@@ -214,7 +214,15 @@ class ShowSurfaceShapeDialog(OWDialog):
         self.setLayout(layout)
 
     def refresh(self):
+        try:
+            self._refresh()
+        except Exception as exception:
+            if self.parent is not None: self.parent.prompt_exception(exception)
+            else:
+                MessageDialog.message(self, str(exception), "Exception occured in OASYS", "critical")
+                if self.IS_DEVELOP: raise exception
 
+    def _refresh(self):
         self.check_values()
 
         X, Y, z_values = self.calculate_surface()

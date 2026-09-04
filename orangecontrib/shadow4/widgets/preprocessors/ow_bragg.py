@@ -504,7 +504,14 @@ bragg_dict = create_bragg_preprocessor_file_v2(interactive=False,
         congruence.checkDir(self.SHADOW_FILE)
 
     def do_plots(self):
+        try:
+            return self._do_plots()
+        except Exception as exception:
+            QMessageBox.critical(self, "Error", str(exception), QMessageBox.StandardButton.Ok)
+            if self.IS_DEVELOP: raise exception
+            return ""
 
+    def _do_plots(self):
         script_plots = ""
 
         if self.plot_flag > 0:
