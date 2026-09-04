@@ -389,7 +389,14 @@ class OWPrerefl(OWWidget):
         congruence.checkDir(self.prerefl_file)
 
     def do_plots(self):
+        try:
+            return self._do_plots()
+        except Exception as exception:
+            QMessageBox.critical(self, "Error", str(exception), QMessageBox.StandardButton.Ok)
+            if self.IS_DEVELOP: raise exception
+            return ""
 
+    def _do_plots(self):
         script = ""
         if self.plot_flag != 0:
             script += "\n# test plot\nfrom srxraylib.plot.gol import plot, plot_image"
@@ -402,7 +409,7 @@ class OWPrerefl(OWWidget):
 
         self.plot_tab.layout().removeItem(self.plot_tab.layout().itemAt(0))
 
-        if self.prerefl_instance is None: return
+        if self.prerefl_instance is None: return ""
 
         if self.plot_flag == 0:
             plot_widget_id = plot_data1D([0], [0], xtitle="", ytitle="")

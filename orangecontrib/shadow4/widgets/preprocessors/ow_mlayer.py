@@ -694,7 +694,14 @@ mlayer_instance = MLayer.pre_mlayer(
         self.le_FILE_DEPTH.setText(oasysgui.selectFileFromDialog(self, self.FILE_DEPTH, "Open File with list of t_bilayer,gamma,roughness_even,roughness_odd", file_extension_filter="Data Files (*.dat)"))
 
     def do_plots(self):
+        try:
+            return self._do_plots()
+        except Exception as exception:
+            QMessageBox.critical(self, "Error", str(exception), QMessageBox.StandardButton.Ok)
+            if self.IS_DEVELOP: raise exception
+            return ""
 
+    def _do_plots(self):
         if self.plot_flag == 0:
             script_plots = ""
         else:
@@ -704,7 +711,7 @@ mlayer_instance = MLayer.pre_mlayer(
 
         self.plot_tab.layout().removeItem(self.plot_tab.layout().itemAt(0))
 
-        if self.mlayer_instance is None: return
+        if self.mlayer_instance is None: return ""
 
         if self.plot_flag == 0:
             plot_widget_id = plot_data1D([0], [0], xtitle="", ytitle="")
