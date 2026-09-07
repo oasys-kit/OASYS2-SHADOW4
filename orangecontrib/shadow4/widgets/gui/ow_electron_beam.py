@@ -237,7 +237,10 @@ class OWElectronBeam(GenericElement):
 
         if not (online and self.type_of_properties == 2):
             with warnings.catch_warnings(record=True) as captured_warnings:
-                ex, ax, bx, ey, ay, by,      = electron_beam.get_twiss_all()
+                if self.type_of_properties == 3: # Zero emittance: Twiss parameters are undefined by construction
+                    ex, ax, bx, ey, ay, by = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+                else:
+                    ex, ax, bx, ey, ay, by, = electron_beam.get_twiss_all()
                 eta_x, etap_x, eta_y, etap_y = electron_beam.get_dispersion_all()
 
                 for w in captured_warnings:  raise ValueError(f"Wrong input parameters: {w.message}\nConsider choosing 'Zero emittance' Electron Beam Properties. ")
