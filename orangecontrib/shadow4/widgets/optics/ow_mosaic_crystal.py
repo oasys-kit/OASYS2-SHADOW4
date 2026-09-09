@@ -12,14 +12,14 @@ from dabax.dabax_xraylib import DabaxXraylib
 from dabax.dabax_files import dabax_f0_files, dabax_f1f2_files, dabax_crosssec_files
 
 from shadow4.beamline.optical_elements.mosaic_crystals.s4_plane_mosaic_crystal import                                       S4PlaneMosaicCrystal,                   S4PlaneMosaicCrystalElement
-# from shadow4.beamline.optical_elements.mosaic_crystals.s4_sphere_mosaic_crystals import                                     S4SphereMosaicCrystal,                  S4SphereMosaicCrystalElement
-# from shadow4.beamline.optical_elements.mosaic_crystals.s4_paraboloid_mosaic_crystals import                             S4ParaboloidMosaicCrystal,              S4ParaboloidMosaicCrystalElement
-# from shadow4.beamline.optical_elements.mosaic_crystals.s4_ellipsoid_mosaic_crystals import                               S4EllipsoidMosaicCrystal,               S4EllipsoidMosaicCrystalElement
-# from shadow4.beamline.optical_elements.mosaic_crystals.s4_hyperboloid_mosaic_crystals import                           S4HyperboloidMosaicCrystal,             S4HyperboloidMosaicCrystalElement
-# from shadow4.beamline.optical_elements.mosaic_crystals.s4_conic_mosaic_crystals import                                       S4ConicMosaicCrystal,                   S4ConicMosaicCrystalElement
-# from shadow4.beamline.optical_elements.mosaic_crystals.s4_toroid_mosaic_crystals import                                     S4ToroidMosaicCrystal,                  S4ToroidMosaicCrystalElement
-# from shadow4.beamline.optical_elements.mosaic_crystals.s4_numerical_mesh_mosaic_crystals import                      S4NumericalMeshMosaicCrystal,           S4NumericalMeshMosaicCrystalElement
-# from shadow4.beamline.optical_elements.mosaic_crystals.s4_additional_numerical_mesh_mosaic_crystals import S4AdditionalNumericalMeshMosaicCrystal, S4AdditionalNumericalMeshMosaicCrystalElement
+from shadow4.beamline.optical_elements.mosaic_crystals.s4_sphere_mosaic_crystal import                                     S4SphereMosaicCrystal,                  S4SphereMosaicCrystalElement
+from shadow4.beamline.optical_elements.mosaic_crystals.s4_paraboloid_mosaic_crystal import                             S4ParaboloidMosaicCrystal,              S4ParaboloidMosaicCrystalElement
+from shadow4.beamline.optical_elements.mosaic_crystals.s4_ellipsoid_mosaic_crystal import                               S4EllipsoidMosaicCrystal,               S4EllipsoidMosaicCrystalElement
+from shadow4.beamline.optical_elements.mosaic_crystals.s4_hyperboloid_mosaic_crystal import                           S4HyperboloidMosaicCrystal,             S4HyperboloidMosaicCrystalElement
+from shadow4.beamline.optical_elements.mosaic_crystals.s4_conic_mosaic_crystal import                                       S4ConicMosaicCrystal,                   S4ConicMosaicCrystalElement
+from shadow4.beamline.optical_elements.mosaic_crystals.s4_toroid_mosaic_crystal import                                     S4ToroidMosaicCrystal,                  S4ToroidMosaicCrystalElement
+from shadow4.beamline.optical_elements.mosaic_crystals.s4_numerical_mesh_mosaic_crystal import                      S4NumericalMeshMosaicCrystal,           S4NumericalMeshMosaicCrystalElement
+from shadow4.beamline.optical_elements.mosaic_crystals.s4_additional_numerical_mesh_mosaic_crystal import S4AdditionalNumericalMeshMosaicCrystal, S4AdditionalNumericalMeshMosaicCrystalElement
 
 from orangecontrib.shadow4.widgets.gui.ow_optical_element_with_surface_shape import OWOpticalElementWithSurfaceShape
 from orangecontrib.shadow4.util.shadow4_objects import BraggPreProcessorData
@@ -514,7 +514,7 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
         if self.modified_surface:
             return S4AdditionalNumericalMeshMosaicCrystal(name=name,
                         ideal_crystal=crystal,
-                        numerical_mesh_crystal=S4NumericalMeshCrystal(
+                        numerical_mesh_crystal=S4NumericalMeshMosaicCrystal(
                             surface_data_file=self.ms_defect_file_name,
                             boundary_shape=None,
                             material=self.CRYSTALS[self.user_defined_crystal],
@@ -539,7 +539,7 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
     def get_beamline_element_instance(self):
 
         if self.modified_surface:
-            return S4AdditionalNumericalMeshCrystalElement()
+            return S4AdditionalNumericalMeshMosaicCrystalElement()
         else:
             if self.surface_shape_type == 0:   return       S4PlaneMosaicCrystalElement()
             elif self.surface_shape_type == 1: return      S4SphereMosaicCrystalElement()
