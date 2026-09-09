@@ -11,15 +11,15 @@ from oasys2.canvas.util.canvas_util import add_widget_parameters_to_module
 from dabax.dabax_xraylib import DabaxXraylib
 from dabax.dabax_files import dabax_f0_files, dabax_f1f2_files, dabax_crosssec_files
 
-from shadow4.beamline.optical_elements.mosaiccrystals.s4_plane_mosaiccrystal import                                       S4PlaneMosaicCrystal,                   S4PlaneMosaicCrystalElement
-# from shadow4.beamline.optical_elements.mosaiccrystals.s4_sphere_mosaiccrystal import                                     S4SphereMosaicCrystal,                  S4SphereMosaicCrystalElement
-# from shadow4.beamline.optical_elements.mosaiccrystals.s4_paraboloid_mosaiccrystal import                             S4ParaboloidMosaicCrystal,              S4ParaboloidMosaicCrystalElement
-# from shadow4.beamline.optical_elements.mosaiccrystals.s4_ellipsoid_mosaiccrystal import                               S4EllipsoidMosaicCrystal,               S4EllipsoidMosaicCrystalElement
-# from shadow4.beamline.optical_elements.mosaiccrystals.s4_hyperboloid_mosaiccrystal import                           S4HyperboloidMosaicCrystal,             S4HyperboloidMosaicCrystalElement
-# from shadow4.beamline.optical_elements.mosaiccrystals.s4_conic_mosaiccrystal import                                       S4ConicMosaicCrystal,                   S4ConicMosaicCrystalElement
-# from shadow4.beamline.optical_elements.mosaiccrystals.s4_toroid_mosaiccrystal import                                     S4ToroidMosaicCrystal,                  S4ToroidMosaicCrystalElement
-# from shadow4.beamline.optical_elements.mosaiccrystals.s4_numerical_mesh_mosaiccrystal import                      S4NumericalMeshMosaicCrystal,           S4NumericalMeshMosaicCrystalElement
-# from shadow4.beamline.optical_elements.mosaiccrystals.s4_additional_numerical_mesh_mosaiccrystal import S4AdditionalNumericalMeshMosaicCrystal, S4AdditionalNumericalMeshMosaicCrystalElement
+from shadow4.beamline.optical_elements.mosaic_crystals.s4_plane_mosaic_crystal import                                       S4PlaneMosaicCrystal,                   S4PlaneMosaicCrystalElement
+# from shadow4.beamline.optical_elements.mosaic_crystals.s4_sphere_mosaic_crystals import                                     S4SphereMosaicCrystal,                  S4SphereMosaicCrystalElement
+# from shadow4.beamline.optical_elements.mosaic_crystals.s4_paraboloid_mosaic_crystals import                             S4ParaboloidMosaicCrystal,              S4ParaboloidMosaicCrystalElement
+# from shadow4.beamline.optical_elements.mosaic_crystals.s4_ellipsoid_mosaic_crystals import                               S4EllipsoidMosaicCrystal,               S4EllipsoidMosaicCrystalElement
+# from shadow4.beamline.optical_elements.mosaic_crystals.s4_hyperboloid_mosaic_crystals import                           S4HyperboloidMosaicCrystal,             S4HyperboloidMosaicCrystalElement
+# from shadow4.beamline.optical_elements.mosaic_crystals.s4_conic_mosaic_crystals import                                       S4ConicMosaicCrystal,                   S4ConicMosaicCrystalElement
+# from shadow4.beamline.optical_elements.mosaic_crystals.s4_toroid_mosaic_crystals import                                     S4ToroidMosaicCrystal,                  S4ToroidMosaicCrystalElement
+# from shadow4.beamline.optical_elements.mosaic_crystals.s4_numerical_mesh_mosaic_crystals import                      S4NumericalMeshMosaicCrystal,           S4NumericalMeshMosaicCrystalElement
+# from shadow4.beamline.optical_elements.mosaic_crystals.s4_additional_numerical_mesh_mosaic_crystals import S4AdditionalNumericalMeshMosaicCrystal, S4AdditionalNumericalMeshMosaicCrystalElement
 
 from orangecontrib.shadow4.widgets.gui.ow_optical_element_with_surface_shape import OWOpticalElementWithSurfaceShape
 from orangecontrib.shadow4.util.shadow4_objects import BraggPreProcessorData
@@ -67,7 +67,6 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
     mosaicity_fwhm_deg = Setting(0.4)
     mosaicity_profile_flag = Setting(0)  # 0=Gaussian, 1=Lorentzian
 
-    asymmetric_cut = Setting(0)
     planes_angle = Setting(0.0)
     # below_onto_bragg_planes = Setting(-1)
     # method_efields_management = Setting(0)
@@ -239,44 +238,6 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                      label="f1f2 file", addSpace=True, orientation="horizontal")
 
     def populate_tab_crystal_geometry(self, subtab_crystal_geometry):
-        self.asymmetric_cut_box = oasysgui.widgetBox(subtab_crystal_geometry, "", addSpace=False, orientation="vertical",
-                                                     height=110)
-
-        self.asymmetric_cut_combo = gui.comboBox(self.asymmetric_cut_box, self, "asymmetric_cut",
-                                                 tooltip="asymmetric_cut", label="Asymmetric cut",
-                                                 labelWidth=355,
-                                                 items=["No", "Yes"],
-                                                 callback=self.crystal_geometry_tab_visibility, sendSelectedValue=False,
-                                                 orientation="horizontal")
-
-        self.asymmetric_cut_box_1 = oasysgui.widgetBox(self.asymmetric_cut_box, "", addSpace=False, orientation="vertical")
-        self.asymmetric_cut_box_1_empty = oasysgui.widgetBox(self.asymmetric_cut_box, "", addSpace=False,
-                                                             orientation="vertical")
-
-        oasysgui.lineEdit(self.asymmetric_cut_box_1, self, "planes_angle", "Planes angle [deg]",
-                          tooltip="planes_angle", labelWidth=260,
-                          valueType=float, orientation="horizontal")
-
-        self.asymmetric_cut_box_1_order = oasysgui.widgetBox(self.asymmetric_cut_box_1, "", addSpace=False,
-                                                             orientation="vertical")
-
-        # self.thickness_box = oasysgui.widgetBox(subtab_crystal_geometry, "", addSpace=False, orientation="vertical",
-        #                                              height=110)
-
-        # self.thickness_combo = gui.comboBox(self.thickness_box, self, "is_thick",
-        #                                          tooltip="is_thick", label="Thick crystal approx.",
-        #                                          labelWidth=355,
-        #                                          items=["No", "Yes"],
-        #                                          callback=self.crystal_geometry_tab_visibility, sendSelectedValue=False,
-        #                                          orientation="horizontal")
-
-        # self.thickness_box_1 = oasysgui.widgetBox(self.thickness_box, "", addSpace=False, orientation="vertical")
-        # self.thickness_box_1_empty = oasysgui.widgetBox(self.thickness_box_1, "", addSpace=False,
-        #                                                      orientation="vertical")
-        #
-        # self.le_thickness_1 = oasysgui.lineEdit(self.thickness_box_1, self,
-        #                                         "thickness", "Crystal thickness [m]", tooltip="thickness",
-        #                                         valueType=float, labelWidth=260, orientation="horizontal")
 
         oasysgui.lineEdit(subtab_crystal_geometry, self,
                                                 "thickness", "Crystal thickness [m]", tooltip="thickness",
@@ -288,11 +249,10 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
         gui.comboBox(subtab_crystal_geometry, self, "mosaicity_profile_flag",
                                                  tooltip="mosaicity_profile_flag", label="Mosaicity profile",
                                                  labelWidth=355,
-                                                 items=["Gaussian", "Lorentzian"],
+                                                 items=["Gaussian", "External (to be implemented)"],
                                                  sendSelectedValue=False,
                                                  orientation="horizontal")
 
-        self.crystal_geometry_tab_visibility()
 
     #########################################################
     # Crystal Methods
@@ -302,10 +262,6 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
         self.set_diffraction_calculation()
         self.set_autosetting()
         self.set_units_in_use()
-
-    def crystal_geometry_tab_visibility(self):
-        self.set_asymmetric_cut()
-        # self.set_thickness()
 
     def set_diffraction_calculation(self):
         self.crystal_box_1.setVisible(False)
@@ -359,14 +315,6 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
     def select_file_diffraction_profile(self):
         self.le_file_diffraction_profile.setText(oasysgui.selectFileFromDialog(self, self.file_diffraction_profile, "Select File With User Defined Diffraction Profile"))
 
-    def set_asymmetric_cut(self):
-        self.asymmetric_cut_box_1.setVisible(self.asymmetric_cut == 1)
-        self.asymmetric_cut_box_1_empty.setVisible(self.asymmetric_cut == 0)
-
-    # def set_thickness(self):
-    #     self.thickness_box_1.setVisible(self.is_thick == 0)
-    #     self.thickness_box_1_empty.setVisible(self.is_thick == 1)
-
     #########################################################
     # Preprocessors
     #########################################################
@@ -408,17 +356,12 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                 miller_index_h=self.user_defined_h,  #todo: check if this is needed if material_constants_library_flag in (2,3)
                 miller_index_k=self.user_defined_k,  #todo: check if this is needed if material_constants_library_flag in (2,3)
                 miller_index_l=self.user_defined_l,  #todo: check if this is needed if material_constants_library_flag in (2,3)
-                asymmetry_angle=0.0 if not self.asymmetric_cut else numpy.radians(self.planes_angle),
-                # is_thick=1,
                 thickness=self.thickness,
                 f_central=self.crystal_auto_setting,
                 f_phot_cent=self.units_in_use,
                 phot_cent=(self.photon_energy if (self.units_in_use == 0) else self.photon_wavelength),
                 file_refl=self.file_crystal_parameters,
-                # f_bragg_a=True if self.asymmetric_cut else False,   # TODO: reimplement
-                # f_ext=0,
                 material_constants_library_flag=self.diffraction_calculation,
-                # method_efields_management=0,
                 dabax=dabax,
                 mosaicity_fwhm_deg=self.mosaicity_fwhm_deg,
                 mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=Lorentzian
@@ -435,15 +378,11 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                 miller_index_h=self.user_defined_h,
                 miller_index_k=self.user_defined_k,
                 miller_index_l=self.user_defined_l,
-                asymmetry_angle=0.0 if not self.asymmetric_cut else numpy.radians(self.planes_angle),
-                # is_thick=1,
                 thickness=self.thickness,
                 f_central=self.crystal_auto_setting,
                 f_phot_cent=self.units_in_use,
                 phot_cent=(self.photon_energy if (self.units_in_use == 0) else self.photon_wavelength),
                 file_refl=self.file_crystal_parameters,
-                # f_bragg_a=True if self.asymmetric_cut else False,
-                # f_ext=0,
                 material_constants_library_flag=self.diffraction_calculation,
                 radius=self.spherical_radius,
                 is_cylinder=self.is_cylinder,
@@ -461,15 +400,11 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                 miller_index_h=self.user_defined_h,
                 miller_index_k=self.user_defined_k,
                 miller_index_l=self.user_defined_l,
-                asymmetry_angle=0.0 if not self.asymmetric_cut else numpy.radians(self.planes_angle),
-                # is_thick=1,
                 thickness=self.thickness,
                 f_central=self.crystal_auto_setting,
                 f_phot_cent=self.units_in_use,
                 phot_cent=(self.photon_energy if (self.units_in_use == 0) else self.photon_wavelength),
                 file_refl=self.file_crystal_parameters,
-                # f_bragg_a=True if self.asymmetric_cut else False,
-                # f_ext=0,
                 material_constants_library_flag=self.diffraction_calculation,
                 min_axis=self.ellipse_hyperbola_semi_minor_axis * 2, # todo: check factor 2
                 maj_axis=self.ellipse_hyperbola_semi_major_axis * 2, # todo: check factor 2
@@ -489,15 +424,11 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                 miller_index_h=self.user_defined_h,
                 miller_index_k=self.user_defined_k,
                 miller_index_l=self.user_defined_l,
-                asymmetry_angle=0.0 if not self.asymmetric_cut else numpy.radians(self.planes_angle),
-                # is_thick=1,
                 thickness=self.thickness,
                 f_central=self.crystal_auto_setting,
                 f_phot_cent=self.units_in_use,
                 phot_cent=(self.photon_energy if (self.units_in_use == 0) else self.photon_wavelength),
                 file_refl=self.file_crystal_parameters,
-                # f_bragg_a=True if self.asymmetric_cut else False,
-                # f_ext=0,
                 material_constants_library_flag=self.diffraction_calculation,
                 min_axis=self.ellipse_hyperbola_semi_minor_axis * 2, # todo: check factor 2
                 maj_axis=self.ellipse_hyperbola_semi_major_axis * 2, # todo: check factor 2
@@ -517,15 +448,11 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                 miller_index_h=self.user_defined_h,
                 miller_index_k=self.user_defined_k,
                 miller_index_l=self.user_defined_l,
-                asymmetry_angle=0.0 if not self.asymmetric_cut else numpy.radians(self.planes_angle),
-                # is_thick=1,
                 thickness=self.thickness,
                 f_central=self.crystal_auto_setting,
                 f_phot_cent=self.units_in_use,
                 phot_cent=(self.photon_energy if (self.units_in_use == 0) else self.photon_wavelength),
                 file_refl=self.file_crystal_parameters,
-                # f_bragg_a=True if self.asymmetric_cut else False,
-                # f_ext=0,
                 material_constants_library_flag=self.diffraction_calculation,
                 at_infinity=self.focus_location,  # Side:  Side.SOURCE: SOURCE = 0  IMAGE = 1
                 parabola_parameter=self.paraboloid_parameter,
@@ -545,15 +472,11 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                 miller_index_h=self.user_defined_h,
                 miller_index_k=self.user_defined_k,
                 miller_index_l=self.user_defined_l,
-                asymmetry_angle=0.0 if not self.asymmetric_cut else numpy.radians(self.planes_angle),
-                # is_thick=1,
                 thickness=self.thickness,
                 f_central=self.crystal_auto_setting,
                 f_phot_cent=self.units_in_use,
                 phot_cent=(self.photon_energy if (self.units_in_use == 0) else self.photon_wavelength),
                 file_refl=self.file_crystal_parameters,
-                # f_bragg_a=True if self.asymmetric_cut else False,
-                # f_ext=0,
                 material_constants_library_flag=self.diffraction_calculation,
                 min_radius=self.torus_minor_radius,
                 maj_radius=self.torus_major_radius,
@@ -570,15 +493,11 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                 miller_index_h=self.user_defined_h,
                 miller_index_k=self.user_defined_k,
                 miller_index_l=self.user_defined_l,
-                asymmetry_angle=0.0 if not self.asymmetric_cut else numpy.radians(self.planes_angle),
-                # is_thick=1,
                 thickness=self.thickness,
                 f_central=self.crystal_auto_setting,
                 f_phot_cent=self.units_in_use,
                 phot_cent=(self.photon_energy if (self.units_in_use == 0) else self.photon_wavelength),
                 file_refl=self.file_crystal_parameters,
-                # f_bragg_a=True if self.asymmetric_cut else False,
-                # f_ext=0,
                 material_constants_library_flag=self.diffraction_calculation,
                 conic_coefficients=[
                      self.conic_coefficient_0,self.conic_coefficient_1,self.conic_coefficient_2,
@@ -602,16 +521,12 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                             miller_index_h=self.user_defined_h,
                             miller_index_k=self.user_defined_k,
                             miller_index_l=self.user_defined_l,
-                            asymmetry_angle=0.0 if not self.asymmetric_cut else numpy.radians(self.planes_angle),
-                            # is_thick=1,
                             thickness=self.thickness,
                             f_central=self.crystal_auto_setting,
                             f_phot_cent=self.units_in_use,
                             phot_cent=(self.photon_energy if (
                             self.units_in_use == 0) else self.photon_wavelength),
                             file_refl=self.file_crystal_parameters,
-                            # f_bragg_a=True if self.asymmetric_cut else False,
-                            # f_ext=0,
                             material_constants_library_flag=self.diffraction_calculation,
                             dabax=dabax,
                             mosaicity_fwhm_deg=self.mosaicity_fwhm_deg,
