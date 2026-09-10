@@ -65,7 +65,7 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
     # is_thick = Setting(1)
     thickness = Setting(1e-3)
     mosaicity_fwhm_deg = Setting(0.4)
-    mosaicity_profile_flag = Setting(0)  # 0=Gaussian, 1=Lorentzian
+    mosaicity_profile_flag = Setting(0)  # 0=Gaussian, 1=External
 
     planes_angle = Setting(0.0)
     # below_onto_bragg_planes = Setting(-1)
@@ -364,7 +364,7 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                 material_constants_library_flag=self.diffraction_calculation,
                 dabax=dabax,
                 mosaicity_fwhm_deg=self.mosaicity_fwhm_deg,
-                mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=Lorentzian
+                mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=External
             )
 
         elif self.surface_shape_type == 1:
@@ -390,7 +390,7 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                 convexity=numpy.logical_not(self.surface_curvature).astype(int), #  Convexity: NONE = -1  UPWARD = 0  DOWNWARD = 1
                 dabax=dabax,
                 mosaicity_fwhm_deg=self.mosaicity_fwhm_deg,
-                mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=Lorentzian
+                mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=External
             )
         elif self.surface_shape_type == 2:
             crystal = S4EllipsoidMosaicCrystal(
@@ -414,7 +414,7 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                 convexity=numpy.logical_not(self.surface_curvature).astype(int), #  Convexity: NONE = -1  UPWARD = 0  DOWNWARD = 1
                 dabax=dabax,
                 mosaicity_fwhm_deg=self.mosaicity_fwhm_deg,
-                mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=Lorentzian
+                mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=External
             )
         elif self.surface_shape_type == 3:
             crystal = S4HyperboloidMosaicCrystal(
@@ -438,7 +438,7 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                 convexity=numpy.logical_not(self.surface_curvature).astype(int), #  Convexity: NONE = -1  UPWARD = 0  DOWNWARD = 1
                 dabax=dabax,
                 mosaicity_fwhm_deg=self.mosaicity_fwhm_deg,
-                mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=Lorentzian
+                mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=External
             )
         elif self.surface_shape_type == 4:
             crystal = S4ParaboloidMosaicCrystal(
@@ -462,7 +462,7 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                 convexity=numpy.logical_not(self.surface_curvature).astype(int), #  Convexity: NONE = -1  UPWARD = 0  DOWNWARD = 1
                 dabax=dabax,
                 mosaicity_fwhm_deg=self.mosaicity_fwhm_deg,
-                mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=Lorentzian
+                mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=External
             )
         elif self.surface_shape_type == 5:
             crystal = S4ToroidMosaicCrystal(
@@ -483,7 +483,7 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                 f_torus=self.toroidal_mirror_pole_location,
                 dabax=dabax,
                 mosaicity_fwhm_deg=self.mosaicity_fwhm_deg,
-                mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=Lorentzian
+                mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=External
             )
         elif self.surface_shape_type == 6:
             crystal = S4ConicMosaicCrystal(
@@ -506,7 +506,7 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                      self.conic_coefficient_9],
                 dabax=dabax,
                 mosaicity_fwhm_deg=self.mosaicity_fwhm_deg,
-                mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=Lorentzian
+                mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=External
             )
 
         # if error is selected...
@@ -530,7 +530,7 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                             material_constants_library_flag=self.diffraction_calculation,
                             dabax=dabax,
                             mosaicity_fwhm_deg=self.mosaicity_fwhm_deg,
-                            mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=Lorentzian
+                            mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=External (to be implemented)
                             )
                         )
         else:
@@ -560,12 +560,12 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
 class OWMosaicCrystal(_OWMosaicCrystal):
     name = "Mosaic Crystal"
     description = "Shadow Mosaic Crystal"
-    icon = "icons/plane_crystal.png"
+    icon = "icons/plane_mosaic_crystal.png"
 
     priority = 1.31
 
     def get_oe_type(self):
-        return "crystal", "MosaicCrystal"
+        return "mosaic_crystal", "MosaicCrystal"
 
 
 add_widget_parameters_to_module(__name__)
