@@ -52,7 +52,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "OASYS2-SHADOW4"
-version = "0.0.52"
+version = "0.0.53"
 description = "oasys2-shadow4: Oasys 2 widgets for shadow4"
 readme = "README.md"
 
@@ -86,7 +86,7 @@ classifiers = [
 ]
 dependencies = [
     "oasys2>=0.0.60",
-    "shadow4>=0.1.91",
+    "shadow4>=0.1.92",
 ]
 
 [project.urls]
