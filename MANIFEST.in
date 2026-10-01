@@ -5,5 +5,6 @@ recursive-include orangecontrib/shadow4/widgets/sources *.png *.svg *.ico *.jpg 
 recursive-include orangecontrib/shadow4/widgets/optics *.png *.svg *.ico *.jpg *.bmp
 recursive-include orangecontrib/shadow4/widgets/tools *.png *.svg *.ico *.jpg *.bmp
 recursive-include orangecontrib/shadow4/widgets/compatibility *.png *.svg *.ico *.jpg *.bmp
+recursive-include orangecontrib/shadow4/widgets/gui/misc *.png
 
 include README.md
