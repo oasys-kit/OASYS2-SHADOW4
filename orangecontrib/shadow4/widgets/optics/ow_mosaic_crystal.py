@@ -67,6 +67,12 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
     mosaicity_fwhm_deg = Setting(0.4)
     mosaicity_profile_flag = Setting(0)  # 0=Gaussian, 1=External
 
+    calculation_method = Setting(0)             # 0=macroscopic (1992 model), 1=Monte Carlo
+    mc_crystallite_thickness_flag = Setting(0)  # 0=automatic (factor x amplitude extinction depth), 1=user-defined
+    mc_crystallite_factor = Setting(0.3)        # crystallite thickness / primary extinction depth (amplitude)
+    mc_crystallite_thickness = Setting(1e-6)    # crystallite thickness [m]
+    mc_max_energies = Setting(21)               # max number of energies for the crystallite curves
+
     planes_angle = Setting(0.0)
     # below_onto_bragg_planes = Setting(-1)
     # method_efields_management = Setting(0)
@@ -253,6 +259,37 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                                                  sendSelectedValue=False,
                                                  orientation="horizontal")
 
+        calculation_box = oasysgui.widgetBox(subtab_crystal_geometry, "Calculation", addSpace=True, orientation="vertical")
+
+        gui.comboBox(calculation_box, self, "calculation_method", tooltip="calculation_method",
+                     label="Calculation method", labelWidth=150,
+                     items=["Macroscopic (1992 model)",
+                            "Monte Carlo (crystallites)"],
+                     sendSelectedValue=False, orientation="horizontal",
+                     callback=self.set_calculation_method)
+
+        self.mc_box = oasysgui.widgetBox(calculation_box, "", addSpace=False, orientation="vertical")
+
+        gui.comboBox(self.mc_box, self, "mc_crystallite_thickness_flag", tooltip="mc_crystallite_thickness_flag",
+                     label="Crystallite thickness", labelWidth=150,
+                     items=["Automatic", "User-defined"],
+                     sendSelectedValue=False, orientation="horizontal",
+                     callback=self.set_calculation_method)
+
+        self.mc_box_factor = oasysgui.widgetBox(self.mc_box, "", addSpace=False, orientation="vertical")
+        oasysgui.lineEdit(self.mc_box_factor, self, "mc_crystallite_factor",
+                          "Crystallite t0 / ampl-extinction-depth", tooltip="mc_crystallite_factor",
+                          valueType=float, labelWidth=260, orientation="horizontal")
+
+        self.mc_box_thickness = oasysgui.widgetBox(self.mc_box, "", addSpace=False, orientation="vertical")
+        oasysgui.lineEdit(self.mc_box_thickness, self, "mc_crystallite_thickness",
+                          "Crystallite thickness [m]", tooltip="mc_crystallite_thickness",
+                          valueType=float, labelWidth=260, orientation="horizontal")
+
+        # oasysgui.lineEdit(self.mc_box, self, "mc_max_energies",
+        #                   "Max energies for crystallite curves", tooltip="mc_max_energies",
+        #                   valueType=int, labelWidth=260, orientation="horizontal")
+
 
     #########################################################
     # Crystal Methods
@@ -262,6 +299,12 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
         self.set_diffraction_calculation()
         self.set_autosetting()
         self.set_units_in_use()
+        self.set_calculation_method()
+
+    def set_calculation_method(self):
+        self.mc_box.setVisible(self.calculation_method == 1)
+        self.mc_box_factor.setVisible(self.mc_crystallite_thickness_flag == 0)
+        self.mc_box_thickness.setVisible(self.mc_crystallite_thickness_flag == 1)
 
     def set_diffraction_calculation(self):
         self.crystal_box_1.setVisible(False)
@@ -365,6 +408,11 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                 dabax=dabax,
                 mosaicity_fwhm_deg=self.mosaicity_fwhm_deg,
                 mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=External
+                calculation_method=self.calculation_method,  # 0=macroscopic (1992 model), 1=Monte Carlo
+                mc_crystallite_thickness_flag=self.mc_crystallite_thickness_flag,  # 0=automatic, 1=user-defined
+                mc_crystallite_factor=self.mc_crystallite_factor,
+                mc_crystallite_thickness=self.mc_crystallite_thickness,
+                mc_max_energies=self.mc_max_energies,
             )
 
         elif self.surface_shape_type == 1:
@@ -391,6 +439,11 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                 dabax=dabax,
                 mosaicity_fwhm_deg=self.mosaicity_fwhm_deg,
                 mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=External
+                calculation_method=self.calculation_method,  # 0=macroscopic (1992 model), 1=Monte Carlo
+                mc_crystallite_thickness_flag=self.mc_crystallite_thickness_flag,  # 0=automatic, 1=user-defined
+                mc_crystallite_factor=self.mc_crystallite_factor,
+                mc_crystallite_thickness=self.mc_crystallite_thickness,
+                mc_max_energies=self.mc_max_energies,
             )
         elif self.surface_shape_type == 2:
             crystal = S4EllipsoidMosaicCrystal(
@@ -415,6 +468,11 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                 dabax=dabax,
                 mosaicity_fwhm_deg=self.mosaicity_fwhm_deg,
                 mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=External
+                calculation_method=self.calculation_method,  # 0=macroscopic (1992 model), 1=Monte Carlo
+                mc_crystallite_thickness_flag=self.mc_crystallite_thickness_flag,  # 0=automatic, 1=user-defined
+                mc_crystallite_factor=self.mc_crystallite_factor,
+                mc_crystallite_thickness=self.mc_crystallite_thickness,
+                mc_max_energies=self.mc_max_energies,
             )
         elif self.surface_shape_type == 3:
             crystal = S4HyperboloidMosaicCrystal(
@@ -439,6 +497,11 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                 dabax=dabax,
                 mosaicity_fwhm_deg=self.mosaicity_fwhm_deg,
                 mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=External
+                calculation_method=self.calculation_method,  # 0=macroscopic (1992 model), 1=Monte Carlo
+                mc_crystallite_thickness_flag=self.mc_crystallite_thickness_flag,  # 0=automatic, 1=user-defined
+                mc_crystallite_factor=self.mc_crystallite_factor,
+                mc_crystallite_thickness=self.mc_crystallite_thickness,
+                mc_max_energies=self.mc_max_energies,
             )
         elif self.surface_shape_type == 4:
             crystal = S4ParaboloidMosaicCrystal(
@@ -463,6 +526,11 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                 dabax=dabax,
                 mosaicity_fwhm_deg=self.mosaicity_fwhm_deg,
                 mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=External
+                calculation_method=self.calculation_method,  # 0=macroscopic (1992 model), 1=Monte Carlo
+                mc_crystallite_thickness_flag=self.mc_crystallite_thickness_flag,  # 0=automatic, 1=user-defined
+                mc_crystallite_factor=self.mc_crystallite_factor,
+                mc_crystallite_thickness=self.mc_crystallite_thickness,
+                mc_max_energies=self.mc_max_energies,
             )
         elif self.surface_shape_type == 5:
             crystal = S4ToroidMosaicCrystal(
@@ -484,6 +552,11 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                 dabax=dabax,
                 mosaicity_fwhm_deg=self.mosaicity_fwhm_deg,
                 mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=External
+                calculation_method=self.calculation_method,  # 0=macroscopic (1992 model), 1=Monte Carlo
+                mc_crystallite_thickness_flag=self.mc_crystallite_thickness_flag,  # 0=automatic, 1=user-defined
+                mc_crystallite_factor=self.mc_crystallite_factor,
+                mc_crystallite_thickness=self.mc_crystallite_thickness,
+                mc_max_energies=self.mc_max_energies,
             )
         elif self.surface_shape_type == 6:
             crystal = S4ConicMosaicCrystal(
@@ -507,6 +580,11 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                 dabax=dabax,
                 mosaicity_fwhm_deg=self.mosaicity_fwhm_deg,
                 mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=External
+                calculation_method=self.calculation_method,  # 0=macroscopic (1992 model), 1=Monte Carlo
+                mc_crystallite_thickness_flag=self.mc_crystallite_thickness_flag,  # 0=automatic, 1=user-defined
+                mc_crystallite_factor=self.mc_crystallite_factor,
+                mc_crystallite_thickness=self.mc_crystallite_thickness,
+                mc_max_energies=self.mc_max_energies,
             )
 
         # if error is selected...
@@ -531,6 +609,11 @@ class _OWMosaicCrystal(OWOpticalElementWithSurfaceShape):
                             dabax=dabax,
                             mosaicity_fwhm_deg=self.mosaicity_fwhm_deg,
                             mosaicity_profile_flag=self.mosaicity_profile_flag,  # 0=Gaussian, 1=External (to be implemented)
+                            calculation_method=self.calculation_method,  # 0=macroscopic (1992 model), 1=Monte Carlo
+                            mc_crystallite_thickness_flag=self.mc_crystallite_thickness_flag,  # 0=automatic, 1=user-defined
+                            mc_crystallite_factor=self.mc_crystallite_factor,
+                            mc_crystallite_thickness=self.mc_crystallite_thickness,
+                            mc_max_energies=self.mc_max_energies,
                             )
                         )
         else:
