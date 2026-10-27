@@ -34,6 +34,8 @@ class Shadow4Menu(OMenu):
         self.addSubMenu("Execute all the Preprocessor widgets")
         self.addSeparator()
         self.addSubMenu("Shadow4 Documentation")
+        self.addSeparator()
+        self.addSubMenu("Load Shadow4 beamline from JSON file...")
 
     def __set_plot_visibility(self, vt, pg):
         try:
@@ -101,4 +103,19 @@ class Shadow4Menu(OMenu):
             webbrowser.open("https://shadow4.readthedocs.io/")
         except Exception as exception:
             super(Shadow4Menu, self).showCriticalMessage(message=exception.args[0])
+
+    def executeAction_9(self, action):
+        # creates in the canvas the widgets of a shadow4 beamline saved with S4Beamline.to_json() (prototype:
+        # geometrical source and plane/spherical mirrors)
+        try:
+            from AnyQt.QtWidgets import QFileDialog
+            from orangecontrib.shadow4.util.beamline_from_json import load_beamline, build_canvas
+            file_name, _ = QFileDialog.getOpenFileName(None, "Load Shadow4 beamline", "", "JSON files (*.json);;All files (*)")
+            if not file_name: return
+            warnings = build_canvas(self.canvas_main_window.current_document(),
+                                    self.canvas_main_window.widget_registry,
+                                    load_beamline(file_name))
+            if warnings: super(Shadow4Menu, self).showWarningMessage("\n".join(warnings))
+        except Exception as exception:
+            super(Shadow4Menu, self).showCriticalMessage(message=str(exception))
 
