@@ -202,13 +202,16 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
                           valueType=float, orientation="horizontal")
 
 
-        #
+        self.populate_box_efields_management(subtab_crystal_diffraction)
+
+    def populate_box_efields_management(self, subtab_crystal_diffraction):
         advanced_box = oasysgui.widgetBox(subtab_crystal_diffraction, "Advanced Settings", addSpace=True, orientation="vertical")
 
         gui.comboBox(advanced_box, self, "method_efields_management", tooltip="method_efields_management",
                      label="manage electric fields", labelWidth=160,
                      items=["via Jones calculus (S4)",
-                            "via rotations (S3)"],
+                            "via rotations (S3)",
+                            "via standard Jones calculus (S4, validation)"],
                      sendSelectedValue=False, orientation="horizontal",
                      callback=self.crystal_diffraction_tab_visibility)
 
