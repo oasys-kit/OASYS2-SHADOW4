@@ -52,19 +52,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "OASYS2-SHADOW4"
-version = "0.0.55"
+version = "0.0.56"
 description = "oasys2-shadow4: Oasys 2 widgets for shadow4"
 readme = "README.md"
 
-# ---------------------------------------------------------------------------
-# TODO: PICK ONE. __license__ / LICENSE both say "BSD3", but the copyright
-# header at the top of the old setup.py is the MIT License text verbatim
-# ("Permission is hereby granted, free of charge..."). Same contradiction as
-# OASYS2-OKONA -- see chat notes.
-# ---------------------------------------------------------------------------
-license = "BSD-3-Clause"
-# license = "MIT"               # <- if the MIT header is authoritative
-# license-files = ["LICENSE"]   # <- uncomment if a LICENSE file exists in the repo
+license = "MIT"
+license-files = ["LICENSE"]
 
 authors = [
     { name = "Manuel Sanchez del Rio", email = "srio@esrf.eu" },
@@ -85,8 +78,8 @@ classifiers = [
     "Intended Audience :: Science/Research",
 ]
 dependencies = [
-    "oasys2>=0.0.60",
-    "shadow4>=0.1.93",
+    "oasys2>=0.0.61",
+    "shadow4>=0.2.0",
 ]
 
 [project.urls]
