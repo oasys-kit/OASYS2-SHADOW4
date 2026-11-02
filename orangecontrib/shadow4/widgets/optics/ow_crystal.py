@@ -73,8 +73,8 @@ class _OWCrystal(OWOpticalElementWithSurfaceShape):
     DABAX_F0_FILE_INDEX = Setting(0)
     DABAX_F1F2_FILE_INDEX = Setting(0)
 
-    def __init__(self):
-        super(_OWCrystal, self).__init__()
+    def __init__(self, switch_icons=True):
+        super(_OWCrystal, self).__init__(switch_icons=switch_icons)
         # with crystals no "internal surface parameters" allowed. Fix value and hide selecting combo:
         self.surface_shape_parameters = 1
         self.surface_shape_internal_external_box.setVisible(False)

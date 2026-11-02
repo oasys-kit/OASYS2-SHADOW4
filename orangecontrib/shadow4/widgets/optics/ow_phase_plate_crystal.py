@@ -37,7 +37,8 @@ class OWPhasePlateCrystal(_OWCrystal):
     detune_half_darwin_widths = Setting(-3.0)
 
     def __init__(self):
-        super(OWPhasePlateCrystal, self).__init__()
+        # keep the phase plate icon and title (do not switch them with the surface shape: only plane plates)
+        super(OWPhasePlateCrystal, self).__init__(switch_icons=False)
         # only plane plates
         self.surface_shape_type = 0
         self.surface_shape_type_combo.setEnabled(False)
