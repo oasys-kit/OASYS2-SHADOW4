@@ -40,7 +40,7 @@
 #
 # Upload to pypi (when uploading, increment the version number):
 #     rm -rf dist
-#     python -m build          # builds BOTH the sdist and the wheel
+#     python -m build --sdist # builds ONLY sources, not wheels (OK for addons, not OK for libraries)
 #     python -m twine upload dist/*
 #
 # Install from pypi:
